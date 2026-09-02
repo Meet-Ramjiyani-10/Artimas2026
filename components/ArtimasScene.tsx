@@ -14,6 +14,8 @@ import { getHasSeenIntro, setHasSeenIntro } from '@/lib/introState';
 // model-viewer is a browser-only web component — dynamically imported without SSR
 const ChakraMedallion = dynamic(() => import('./ChakraMedallion'), { ssr: false });
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type YugaAngle = 0 | 90 | 180 | 270;
@@ -124,6 +126,25 @@ export default function ArtimasScene() {
   const [wheelEmerging, setWheelEmerging] = useState(false);
   const [isYugasMode, setIsYugasMode] = useState(false);
   const [activeYuga, setActiveYuga] = useState<YugaAngle | null>(null);
+  const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
+
+  // Fetch live registration open/closed status from API
+  useEffect(() => {
+    fetch(`${API_BASE}/events`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data && Array.isArray(json.data)) {
+          const map: Record<string, boolean> = {};
+          json.data.forEach((e: any) => {
+            const isOpen = e.registrationOpen !== false && e.active !== false;
+            map[e.slug] = isOpen;
+            map[e.id] = isOpen;
+          });
+          setOpenMap(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Clear legacy sessionStorage
   useEffect(() => {
@@ -601,13 +622,22 @@ export default function ArtimasScene() {
                         >
                           VIEW RULEBOOK
                         </Link>
-                        <Link
-                          href={evt.registerUrl}
-                          className="yuga-decree-btn primary"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          ENTER TRIAL
-                        </Link>
+                        {(openMap[evt.slug] !== false && openMap[evt.id] !== false) ? (
+                          <Link
+                            href={evt.registerUrl}
+                            className="yuga-decree-btn primary"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            ENTER TRIAL
+                          </Link>
+                        ) : (
+                          <div
+                            className="yuga-decree-btn closed"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            REGISTRATION CLOSED
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

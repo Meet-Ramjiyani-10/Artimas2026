@@ -15,12 +15,32 @@ const SCROLL_ITEMS = EVENTS.map((event, i) => ({
   event,
 }));
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 export default function ScrollCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
   const isDragging = useRef(false);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const hasDragged = useRef(false);
+
+  // Fetch live registration open/closed status from API
+  useEffect(() => {
+    fetch(`${API_BASE}/events`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.data && Array.isArray(json.data)) {
+          const map: Record<string, boolean> = {};
+          json.data.forEach((e: any) => {
+            map[e.slug] = e.registrationOpen !== false && e.active !== false;
+            map[e.id] = e.registrationOpen !== false && e.active !== false;
+          });
+          setOpenMap(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const nextScroll = useCallback(() => {
     setActiveIndex(prev => (prev + 1) % TOTAL_SCROLLS);
@@ -261,14 +281,32 @@ export default function ScrollCarousel() {
                       >
                         VIEW RULEBOOK
                       </Link>
-                      <Link
-                        href={item.event.registerUrl}
-                        className="decree-btn register-action-btn"
-                        onClick={(e) => e.stopPropagation()}
-                        aria-label={`Enter The Trial for ${item.event.name}`}
-                      >
-                        ENTER THE TRIAL
-                      </Link>
+                      {(openMap[item.event.slug] !== false && openMap[item.event.id] !== false) ? (
+                        <Link
+                          href={item.event.registerUrl}
+                          className="decree-btn register-action-btn"
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Enter The Trial for ${item.event.name}`}
+                        >
+                          ENTER THE TRIAL
+                        </Link>
+                      ) : (
+                        <div
+                          className="decree-btn register-action-btn"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            cursor: 'not-allowed',
+                            opacity: 0.65,
+                            borderColor: '#76552f',
+                            background: 'rgba(25, 12, 12, 0.7)',
+                            color: '#a89070',
+                            letterSpacing: '1px',
+                            fontSize: '12px',
+                          }}
+                        >
+                          REGISTRATION CLOSED
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

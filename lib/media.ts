@@ -18,7 +18,7 @@ export const MEDIA = {
   },
   images: {
     logo: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_800,c_limit/v1788352573/Untitled_-_September_02_2026_at_18.03.44.webp',
-    bgImage: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_1920,c_limit/v1788219483/bg_image.png',
+    bgImage: 'https://res.cloudinary.com/qllarlul/image/upload/v1788219483/bg_image.png',
     pillar: 'https://res.cloudinary.com/qllarlul/image/upload/v1788219529/layer_1_pillar.png',
     scroll: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_950,c_limit/v1788219523/scroll_without_background.png',
     eventCard: 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto,w_950,c_limit/v1788273328/event-card.webp',

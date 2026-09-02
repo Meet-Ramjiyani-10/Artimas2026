@@ -346,6 +346,18 @@ model-viewer {
     -webkit-user-select: none !important;
     -webkit-touch-callout: none !important;
     --poster-color: transparent;
+    --progress-bar-color: transparent !important;
+    --progress-mask: transparent !important;
+}
+
+.chakra-container model-viewer::part(default-progress-bar),
+.chakra-container model-viewer::part(default-progress-mask),
+model-viewer::part(default-progress-bar),
+model-viewer::part(default-progress-mask) {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 .chakra-container model-viewer:focus,
@@ -3641,6 +3653,42 @@ body.mode-yugas .yuga-title-img.active {
     box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 10px var(--active-glow-gold);
 }
 
+/* ── Field Validation & Inline Errors ── */
+.reg-field-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.reg-input.reg-input-error,
+.reg-select.reg-input-error {
+    border-color: #ff5e57 !important;
+    background: rgba(30, 12, 12, 0.78) !important;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 94, 87, 0.35) !important;
+}
+
+.reg-field-error {
+    color: #ff7b72;
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-top: 4px;
+    margin-bottom: 2px;
+    padding-left: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    animation: regFadeIn 0.2s ease-in-out;
+}
+
+@keyframes regFadeIn {
+    from { opacity: 0; transform: translateY(-2px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .reg-select {
     box-sizing: border-box;
     background: rgba(8, 10, 12, 0.68);
@@ -6240,6 +6288,16 @@ body.mode-yugas .yuga-title-img.active {
     color: #ffffff;
     box-shadow: 0 0 14px var(--active-glow-gold);
     transform: translateY(-1px);
+}
+
+.yuga-decree-btn.closed {
+    background: rgba(25, 12, 12, 0.65) !important;
+    border: 1px solid rgba(118, 85, 47, 0.45) !important;
+    color: #a89070 !important;
+    cursor: not-allowed !important;
+    opacity: 0.7 !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 /* ===================================

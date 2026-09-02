@@ -1,6 +1,7 @@
 export interface TeamConfig {
   minMembers: number;
   maxMembers: number;
+  allowedTeamSizes?: number[];
   isCompulsoryFixed?: boolean;
   memberLabelPrefix?: string;
   addMemberPrompt?: string;
@@ -164,17 +165,18 @@ export const EVENTS: EventItem[] = [
     registerUrl: '/events/capture-the-flag/register',
     rulebookUrl: '/events/capture-the-flag/rulebook',
     fee: 150,
-    ruleSubtitle: 'CYBER WARFARE ARENA | 1 TO 3 MEMBERS PER TEAM',
+    ruleSubtitle: 'CYBER WARFARE ARENA | EXACTLY 2 OR 4 MEMBERS PER TEAM',
     sanskritMantra: '॥ व्यूहरचना भेदनम् ॥',
     mythicCrest: 'chakra',
     dharmaLevel: 'DHARMA 2/4',
     prizePool: '₹25,000 PRIZE POOL',
     teamConfig: {
-      minMembers: 1,
-      maxMembers: 3,
+      minMembers: 2,
+      maxMembers: 4,
+      allowedTeamSizes: [2, 4],
       isCompulsoryFixed: false,
-      memberLabelPrefix: 'Member',
-      addMemberPrompt: '+ Add Member (Max 3 Members)',
+      memberLabelPrefix: 'Agent',
+      addMemberPrompt: '+ Add Team Member (2 or 4 Members only)',
     },
     aliases: ['ctf', 'kurukshetra'],
   },

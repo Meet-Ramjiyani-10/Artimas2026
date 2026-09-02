@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getEventBySlug } from '@/lib/events';
-import { MEDIA } from '@/lib/media';
 import SubpageLayout from '@/components/SubpageLayout';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 interface RulebookPageProps {
   params: Promise<{
@@ -16,6 +17,21 @@ export default async function RulebookPage({ params }: RulebookPageProps) {
 
   if (!event) {
     notFound();
+  }
+
+  // Fetch live registrationOpen status from backend
+  let isRegistrationOpen = true;
+  try {
+    const res = await fetch(`${API_BASE}/events/${slug}`, { cache: 'no-store' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) {
+        isRegistrationOpen = json.data.registrationOpen !== false && json.data.active !== false;
+      }
+    }
+  } catch {
+    // fallback to open if API unreachable
+    isRegistrationOpen = true;
   }
 
   return (
@@ -69,7 +85,7 @@ export default async function RulebookPage({ params }: RulebookPageProps) {
                 <section className="rulebook-sec">
                   <h3>III. GENERAL GUIDELINES</h3>
                   <ul>
-                    <li>All participants must carry a valid College ID Card or PRN verification.</li>
+                    <li>All participants must carry a valid College ID Card.</li>
                     <li>Any form of unfair means or plagiarism will lead to immediate disqualification.</li>
                     <li>Decisions of the jury and organizing committee will be final and binding.</li>
                   </ul>
@@ -77,9 +93,25 @@ export default async function RulebookPage({ params }: RulebookPageProps) {
               </div>
 
               <div className="decree-btn-group rulebook-btn-row">
-                <Link href={event.registerUrl} className="decree-btn register-action-btn">
-                  ENTER THE TRIAL (₹{event.fee})
-                </Link>
+                {isRegistrationOpen ? (
+                  <Link href={event.registerUrl} className="decree-btn register-action-btn">
+                    ENTER THE TRIAL (₹{event.fee})
+                  </Link>
+                ) : (
+                  <div
+                    className="decree-btn"
+                    style={{
+                      cursor: 'not-allowed',
+                      opacity: 0.6,
+                      borderColor: '#76552f',
+                      background: 'rgba(25, 12, 12, 0.7)',
+                      color: '#a89070',
+                      letterSpacing: '2px',
+                    }}
+                  >
+                    REGISTRATION CLOSED
+                  </div>
+                )}
               </div>
             </div>
           </div>

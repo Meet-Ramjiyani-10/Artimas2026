@@ -34,6 +34,8 @@ export default function ChakraMedallion() {
       src={MEDIA.models.chakraMedallion}
       camera-orbit="0deg 90deg 110%"
       interaction-prompt="none"
+      loading="eager"
+      seamless-poster
       disable-zoom
       disable-pan
       disable-tap
@@ -53,6 +55,8 @@ export default function ChakraMedallion() {
         WebkitUserSelect: 'none',
         touchAction: 'manipulation',
       }}
-    />
+    >
+      <div slot="progress-bar" style={{ display: 'none' }} />
+    </model-viewer>
   );
 }
