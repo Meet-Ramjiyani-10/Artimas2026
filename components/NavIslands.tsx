@@ -2,11 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { MEDIA } from '@/lib/media';
 
-export default function NavIslands({ showMobile = false }: { showMobile?: boolean }) {
+interface NavIslandsProps {
+  showMobile?: boolean;
+  onLogoClick?: () => void;
+}
+
+export default function NavIslands({ showMobile = false, onLogoClick }: NavIslandsProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
   // Close drawer on route change
@@ -29,11 +35,25 @@ export default function NavIslands({ showMobile = false }: { showMobile?: boolea
   ];
 
   const mobileLinks = [
+    { href: '/', label: 'HOME' },
     { href: '/events', label: 'EVENTS' },
     { href: '/sponsors', label: 'SPONSORS' },
     { href: '/team', label: 'TEAM' },
     { href: '/calendar', label: 'CALENDAR' },
   ];
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    setIsOpen(false);
+    if (onLogoClick) {
+      e.preventDefault();
+      onLogoClick();
+    } else if (pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      router.push('/');
+    }
+  };
 
   return (
     <>
@@ -50,6 +70,12 @@ export default function NavIslands({ showMobile = false }: { showMobile?: boolea
                 href={href}
                 prefetch={true}
                 className={`ancient-nav-link${isActive ? ' active-nav' : ''}`}
+                onClick={(e) => {
+                  if (href === '/' && onLogoClick) {
+                    e.preventDefault();
+                    onLogoClick();
+                  }
+                }}
               >
                 {label}
               </Link>
@@ -66,7 +92,12 @@ export default function NavIslands({ showMobile = false }: { showMobile?: boolea
         <div className="mobile-nav-wrapper mobile-nav-only">
           <div className={`mobile-nav-pill${isOpen ? ' drawer-active' : ''}`}>
             {/* Brand logo → home */}
-            <Link href="/" className="mobile-nav-brand" onClick={() => setIsOpen(false)}>
+            <Link
+              href="/"
+              className="mobile-nav-brand"
+              onClick={handleLogoClick}
+              aria-label="Artimas Home"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={MEDIA.images.logo}
@@ -114,13 +145,22 @@ export default function NavIslands({ showMobile = false }: { showMobile?: boolea
                   {/* Nav links */}
                   <nav className="mobile-drawer-links" aria-label="Mobile Navigation">
                     {mobileLinks.map(({ href, label }) => {
-                      const isActive = pathname === href || pathname.startsWith(`${href}/`);
+                      const isActive =
+                        href === '/'
+                          ? pathname === '/'
+                          : pathname === href || pathname.startsWith(`${href}/`);
                       return (
                         <Link
                           key={href}
                           href={href}
                           prefetch={true}
-                          onClick={() => setIsOpen(false)}
+                          onClick={(e) => {
+                            setIsOpen(false);
+                            if (href === '/' && onLogoClick) {
+                              e.preventDefault();
+                              onLogoClick();
+                            }
+                          }}
                           className={`mobile-drawer-link${isActive ? ' active-link' : ''}`}
                         >
                           {label}

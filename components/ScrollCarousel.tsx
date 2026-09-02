@@ -174,9 +174,9 @@ export default function ScrollCarousel() {
                     <div className="scroll-brandathon-center-art" aria-hidden="true">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={MEDIA.images.brandathonTurtle}
-                        alt="Brandathon Kurma Golden Turtle"
-                        className="scroll-brandathon-turtle-img"
+                        src={MEDIA.images.brandathonRath}
+                        alt="Brandathon Golden Rath"
+                        className="scroll-brandathon-rath-img"
                         draggable={false}
                       />
                     </div>
@@ -210,13 +210,13 @@ export default function ScrollCarousel() {
                         draggable={false}
                       />
                     </div>
-                  ) : item.event.slug === 'surprise-event' ? (
-                    <div className="scroll-surprise-center-art" aria-hidden="true">
+                  ) : (item.event.slug === 'pixel-perfect' || item.event.slug === 'surprise-event') ? (
+                    <div className="scroll-surprise-center-art scroll-pixel-perfect-center-art" aria-hidden="true">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={MEDIA.images.surpriseEventRath}
-                        alt="Surprise Event Golden Rath"
-                        className="scroll-surprise-rath-img"
+                        src={MEDIA.images.pixelPerfectTurtle || MEDIA.images.surpriseEventTurtle}
+                        alt="Pixel Perfect Kurma Golden Turtle"
+                        className="scroll-surprise-turtle-img scroll-pixel-perfect-turtle-img"
                         draggable={false}
                       />
                     </div>

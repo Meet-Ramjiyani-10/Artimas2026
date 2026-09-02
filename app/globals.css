@@ -7,6 +7,20 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent !important;
+}
+
+:focus:not(:focus-visible) {
+    outline: none !important;
+}
+
+img,
+svg,
+button,
+a,
+input,
+select {
+    -webkit-tap-highlight-color: transparent !important;
 }
 
 :root {
@@ -111,20 +125,26 @@ a {
    =================================== */
 .brand-logo {
     position: absolute;
-    top: clamp(-85px, -11vw, -30px);
+    top: clamp(20px, 3.5vh, 42px);
     left: 50%;
     transform: translateX(-50%);
     z-index: 30;
-    width: 95vw;
-    max-width: 675px;
+    width: min(80vw, 420px);
+    max-width: 420px;
     height: auto;
     pointer-events: none;
-    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.75));
+    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 20px rgba(201, 164, 92, 0.3));
     transition: all 1.3s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-user-drag: none !important;
+    -webkit-touch-callout: none !important;
+    outline: none !important;
 }
 
 .brand-logo.logo-starting-top {
-    top: -380px;
+    top: -240px;
     opacity: 0;
     pointer-events: none;
 }
@@ -135,7 +155,7 @@ a {
 
 @keyframes logoDescend {
     0% {
-        top: -380px;
+        top: -240px;
         opacity: 0;
         filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0));
         transform: translateX(-50%) scale(0.85);
@@ -144,9 +164,9 @@ a {
         opacity: 1;
     }
     100% {
-        top: clamp(-85px, -11vw, -30px);
+        top: clamp(20px, 3.5vh, 42px);
         opacity: 1;
-        filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.75));
+        filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 20px rgba(201, 164, 92, 0.3));
         transform: translateX(-50%) scale(1);
     }
 }
@@ -195,11 +215,11 @@ body.mode-yugas .enter-btn {
 
 body.mode-yugas .brand-logo {
     position: fixed;
-    top: clamp(-46px, -5.2vh, -28px);
-    left: clamp(14px, 2.2vw, 32px);
+    top: clamp(14px, 2vh, 24px);
+    left: clamp(16px, 2.5vw, 36px);
     transform: translateX(0);
-    width: clamp(215px, 20vw, 310px);
-    max-width: 310px;
+    width: clamp(140px, 13vw, 195px);
+    max-width: 195px;
     pointer-events: auto;
     cursor: pointer;
     filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 26px rgba(212, 136, 58, 0.5));
@@ -286,17 +306,43 @@ body.mode-yugas .brand-logo:hover {
    =================================== */
 .chakra-container {
     position: absolute;
-    top: 50%;
+    top: 54%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(90vw, 520px);
-    height: min(90vw, 520px);
+    width: min(80vw, 470px);
+    height: min(80vw, 470px);
+    max-width: calc(100vh - 240px);
+    max-height: calc(100vh - 240px);
     z-index: 3;
     pointer-events: auto;
     cursor: pointer;
     animation: wheelSpin 60s linear infinite;
     filter: sepia(0.6) hue-rotate(-20deg) saturate(2) brightness(0.9) drop-shadow(0 0 80px rgba(212, 136, 58, 0.7));
     transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1), top 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    touch-action: manipulation;
+}
+
+.chakra-container model-viewer,
+model-viewer {
+    outline: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    --poster-color: transparent;
+}
+
+.chakra-container model-viewer:focus,
+.chakra-container model-viewer:focus-visible,
+model-viewer:focus,
+model-viewer:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .chakra-container.wheel-starting-bottom {
@@ -327,7 +373,7 @@ body.mode-yugas .chakra-container {
         opacity: 1;
     }
     100% {
-        top: 50%;
+        top: 54%;
         opacity: 1;
         transform: translate(-50%, -50%) rotate(0deg) scale(1);
         filter: sepia(0.6) hue-rotate(-20deg) saturate(2) brightness(0.9) drop-shadow(0 0 80px rgba(212, 136, 58, 0.7));
@@ -342,6 +388,84 @@ body.mode-yugas .chakra-container {
     to {
         transform: translate(-50%, -50%) rotate(360deg);
     }
+}
+
+/* ===================================
+   Yuga Chakra Navigation Controls (Side Buttons)
+   =================================== */
+.chakra-nav-btn {
+    position: fixed;
+    bottom: clamp(14px, 2.5vh, 28px);
+    z-index: 50;
+    pointer-events: auto;
+    background: radial-gradient(circle, rgba(28, 20, 14, 0.94) 0%, rgba(14, 10, 8, 0.82) 60%, rgba(0, 0, 0, 0.5) 100%);
+    border: 1.5px solid rgba(212, 136, 58, 0.7);
+    border-radius: 50%;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.95), 0 0 16px rgba(212, 136, 58, 0.45), inset 0 0 10px rgba(212, 136, 58, 0.25);
+    cursor: pointer;
+    width: clamp(48px, 5vw, 62px);
+    height: clamp(48px, 5vw, 62px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), filter 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+    -webkit-tap-highlight-color: transparent !important;
+    outline: none !important;
+    user-select: none;
+    animation: fadeInYugaBtn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInYugaBtn {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chakra-nav-btn.prev {
+    left: clamp(14px, 3.5vw, 36px);
+}
+
+.chakra-nav-btn.next {
+    right: clamp(14px, 3.5vw, 36px);
+}
+
+.chakra-nav-btn.prev:hover {
+    transform: scale(1.15) translateX(-4px);
+    border-color: rgba(254, 240, 138, 0.95);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 1), 0 0 24px rgba(254, 240, 138, 0.75), inset 0 0 14px rgba(254, 240, 138, 0.35);
+}
+
+.chakra-nav-btn.next:hover {
+    transform: scale(1.15) translateX(4px);
+    border-color: rgba(254, 240, 138, 0.95);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 1), 0 0 24px rgba(254, 240, 138, 0.75), inset 0 0 14px rgba(254, 240, 138, 0.35);
+}
+
+.chakra-nav-btn:active {
+    transform: scale(0.92);
+}
+
+.chakra-nav-btn-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 12px rgba(254, 240, 138, 0.6)) brightness(1.25);
+    pointer-events: none;
+    transition: transform 0.28s ease;
+}
+
+.chakra-nav-btn-img.prev {
+    transform: rotate(-90deg);
+}
+
+.chakra-nav-btn-img.next {
+    transform: rotate(90deg);
 }
 
 /* ===================================
@@ -539,8 +663,8 @@ body.mode-yugas .yuga-title-img.active {
     top: 0;
     left: 0;
     width: 100%;
-    height: clamp(70px, 9.5vh, 98px);
-    padding: 0 clamp(16px, 3.5vw, 42px);
+    height: clamp(65px, 8.5vh, 85px);
+    padding: clamp(14px, 2vh, 24px) clamp(16px, 2.5vw, 36px);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -556,18 +680,17 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .subpage-topbar .subpage-logo {
-    width: clamp(215px, 20vw, 330px);
-    max-width: 330px;
+    width: clamp(140px, 13vw, 195px);
+    max-width: 195px;
     height: auto;
-    max-height: clamp(55px, 7.5vh, 80px);
     object-fit: contain;
-    filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 24px rgba(201, 164, 92, 0.35));
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 26px rgba(212, 136, 58, 0.5));
     transition: filter 0.3s ease, transform 0.3s ease;
 }
 
 .subpage-topbar .subpage-logo-link:hover .subpage-logo {
-    transform: scale(1.03);
-    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 1)) drop-shadow(0 0 32px rgba(201, 164, 92, 0.5));
+    transform: scale(1.04);
+    filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 1)) drop-shadow(0 0 32px rgba(254, 240, 138, 0.7));
 }
 
 .subpage-topbar .ancient-navbar {
@@ -678,18 +801,35 @@ body.mode-yugas .yuga-title-img.active {
         align-items: center;
         justify-content: center;
         height: 100%;
-        overflow: hidden;
         text-decoration: none;
-        padding-left: 28px;
+        padding-left: 24px;
+        cursor: pointer;
+        pointer-events: auto !important;
+        -webkit-tap-highlight-color: transparent !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        outline: none !important;
+    }
+
+    .mobile-nav-brand:focus,
+    .mobile-nav-brand:active {
+        outline: none !important;
+        box-shadow: none !important;
+        -webkit-tap-highlight-color: transparent !important;
     }
 
     .mobile-nav-logo-img {
-        width: 130%;
-        height: 70px;
+        max-width: 140px;
+        height: 28px;
         object-fit: contain;
         object-position: center center;
-        transform: translateY(-20px);
         filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9));
+        pointer-events: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-user-drag: none;
+        -webkit-touch-callout: none;
+        outline: none !important;
     }
 
     /* ── Hamburger button ── */
@@ -700,10 +840,12 @@ body.mode-yugas .yuga-title-img.active {
         background: transparent;
         border: none;
         cursor: pointer;
-        padding: 7px;
+        padding: 8px 10px;
         margin-right: -4px;
         color: var(--panel-highlight);
         transition: color 0.2s ease, transform 0.2s ease;
+        -webkit-tap-highlight-color: transparent !important;
+        outline: none !important;
     }
 
     .mobile-nav-toggle-btn:hover {
@@ -830,11 +972,19 @@ body.mode-yugas .yuga-title-img.active {
         text-shadow: 0 0 12px var(--active-glow-gold);
     }
 
-    /* ── Home-page brand logo ── */
+    /* ── Home-page brand logo & Chakra clearance (No Collision) ── */
     .brand-logo {
-        top: clamp(-30px, -4vh, -10px);
-        width: 88vw;
-        max-width: 320px;
+        top: clamp(14px, 2.2vh, 26px);
+        width: min(72vw, 240px);
+        max-width: 240px;
+    }
+
+    .chakra-container {
+        top: 55%;
+        width: min(74vw, 340px);
+        height: min(74vw, 340px);
+        max-height: calc(100dvh - 210px);
+        max-width: calc(100dvh - 210px);
     }
 
     body.mode-yugas .brand-logo {
@@ -852,6 +1002,64 @@ body.mode-yugas .yuga-title-img.active {
 
     .subpage-topbar .subpage-logo-link {
         display: none !important;
+    }
+
+    .chakra-nav-btn {
+        width: clamp(46px, 12.5vw, 54px);
+        height: clamp(46px, 12.5vw, 54px);
+        bottom: clamp(14px, 2.5vh, 24px);
+        padding: 6px;
+    }
+
+    .chakra-nav-btn.prev {
+        left: clamp(10px, 3vw, 20px);
+    }
+
+    .chakra-nav-btn.next {
+        right: clamp(10px, 3vw, 20px);
+    }
+}
+
+@media (max-width: 480px) {
+    /* Small phone clearance on landing hero */
+    .brand-logo {
+        top: clamp(12px, 2vh, 22px);
+        width: min(68vw, 210px);
+        max-width: 210px;
+    }
+
+    .chakra-container {
+        top: 55.5%;
+        width: min(72vw, 285px);
+        height: min(72vw, 285px);
+        max-height: calc(100dvh - 195px);
+        max-width: calc(100dvh - 195px);
+    }
+
+    body.mode-yugas .chakra-container {
+        width: min(60vw, 220px);
+        height: min(60vw, 220px);
+    }
+
+    .enter-btn {
+        bottom: clamp(26px, 4.5vh, 42px);
+        padding: 11px 28px;
+        font-size: 13.5px;
+    }
+
+    .chakra-nav-btn {
+        width: clamp(42px, 11.5vw, 48px);
+        height: clamp(42px, 11.5vw, 48px);
+        bottom: clamp(12px, 2.2vh, 20px);
+        padding: 5.5px;
+    }
+
+    .chakra-nav-btn.prev {
+        left: clamp(8px, 2.5vw, 16px);
+    }
+
+    .chakra-nav-btn.next {
+        right: clamp(8px, 2.5vw, 16px);
     }
 }
 
@@ -1551,11 +1759,11 @@ body.mode-yugas .yuga-title-img.active {
     user-select: none !important;
 }
 
-/* Custom Golden Turtle Center Art for Brandathon */
+/* Custom Golden Rath Center Art for Brandathon */
 .scroll-brandathon-center-art {
-    width: clamp(135px, 17vw, 190px);
-    max-width: 90%;
-    height: clamp(110px, 14vh, 155px);
+    width: clamp(180px, 24vw, 260px);
+    max-width: 94%;
+    height: clamp(105px, 14vh, 155px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1565,11 +1773,12 @@ body.mode-yugas .yuga-title-img.active {
     overflow: visible;
 }
 
+.scroll-brandathon-rath-img,
 .scroll-brandathon-turtle-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transform: scale(1.12);
+    transform: scale(1.18);
     transform-origin: center center;
     pointer-events: none !important;
     user-select: none !important;
@@ -1647,11 +1856,11 @@ body.mode-yugas .yuga-title-img.active {
     user-select: none !important;
 }
 
-/* Custom Golden Rath Center Art for Surprise Event */
+/* Custom Golden Kurma Turtle Center Art for Surprise Event */
 .scroll-surprise-center-art {
-    width: clamp(200px, 26vw, 300px);
-    max-width: 96%;
-    height: clamp(105px, 14vh, 155px);
+    width: clamp(140px, 18vw, 200px);
+    max-width: 90%;
+    height: clamp(110px, 14vh, 155px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1661,11 +1870,12 @@ body.mode-yugas .yuga-title-img.active {
     overflow: visible;
 }
 
+.scroll-surprise-turtle-img,
 .scroll-surprise-rath-img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transform: scale(1.18);
+    transform: scale(1.15);
     transform-origin: center center;
     pointer-events: none !important;
     user-select: none !important;
@@ -2039,6 +2249,7 @@ body.mode-yugas .yuga-title-img.active {
     box-shadow: 0 0 10px var(--active-glow-gold);
 }
 
+/* ── Responsive Scroll Carousel & Event Decrees (Mobile & Tablet) ── */
 @media (max-width: 860px) {
     .subpage-topbar {
         padding: 0 14px;
@@ -2059,39 +2270,243 @@ body.mode-yugas .yuga-title-img.active {
         margin: 0 6px;
     }
 
+    .scroll-carousel-container {
+        touch-action: pan-y;
+        width: 100%;
+    }
+
+    .scroll-carousel-stage {
+        min-height: clamp(420px, 68vh, 560px);
+        perspective: 1100px;
+    }
+
+    .scroll-card {
+        width: min(84vw, 380px);
+        max-height: calc(100dvh - 140px);
+    }
+
     .scroll-card.prev {
-        transform: translate(-50%, -50%) translateX(calc(-50% - min(14vw, 160px))) scale(0.72) rotateY(14deg);
+        transform: translate(-50%, -50%) translateX(calc(-50% - min(14vw, 130px))) scale(0.74) rotateY(12deg) translateZ(-40px);
+        opacity: 0.38;
+        filter: blur(1.5px) brightness(0.65);
     }
 
     .scroll-card.next {
-        transform: translate(-50%, -50%) translateX(calc(50% + min(14vw, 160px))) scale(0.72) rotateY(-14deg);
+        transform: translate(-50%, -50%) translateX(calc(50% + min(14vw, 130px))) scale(0.74) rotateY(-12deg) translateZ(-40px);
+        opacity: 0.38;
+        filter: blur(1.5px) brightness(0.65);
+    }
+
+    .scroll-card .decree-card-panel {
+        padding: clamp(20px, 3.2vw, 32px) clamp(18px, 3vw, 28px);
+    }
+
+    .scroll-card .decree-inner-frame {
+        padding: clamp(14px, 2vh, 22px) clamp(12px, 2vw, 18px);
+        gap: clamp(4px, 0.8vh, 8px);
+    }
+
+    .scroll-card .decree-title {
+        font-size: clamp(18px, 2.8vw, 24px);
+    }
+
+    .scroll-card .decree-description {
+        font-size: clamp(15px, 2.2vw, 18px);
+        max-width: 320px;
+        line-height: 1.35;
+    }
+
+    .scroll-card .decree-btn-group {
+        gap: 8px;
+    }
+
+    .scroll-card .decree-btn {
+        padding: 7px 12px;
+        min-width: 100px;
+        font-size: 11.5px;
     }
 }
 
 @media (max-width: 640px) {
+    .subpage-wrapper.headerless .subpage-container {
+        padding-top: 56px;
+        padding-bottom: 6px;
+        min-height: 100dvh;
+        height: 100dvh;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .scroll-carousel-container {
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+    }
+
+    .scroll-carousel-stage {
+        min-height: clamp(380px, 66vh, 500px);
+        perspective: 900px;
+    }
+
+    .scroll-card {
+        width: min(86vw, 340px);
+        max-height: calc(100dvh - 130px);
+        aspect-ratio: 1128 / 1558;
+    }
+
+    .scroll-card.prev {
+        transform: translate(-50%, -50%) translateX(calc(-50% - min(10vw, 65px))) scale(0.68) rotateY(10deg) translateZ(-40px);
+        opacity: 0.28;
+        filter: blur(1px) brightness(0.6);
+        pointer-events: none;
+    }
+
+    .scroll-card.next {
+        transform: translate(-50%, -50%) translateX(calc(50% + min(10vw, 65px))) scale(0.68) rotateY(-10deg) translateZ(-40px);
+        opacity: 0.28;
+        filter: blur(1px) brightness(0.6);
+        pointer-events: none;
+    }
+
     .decree-card-panel {
         padding: 18px 14px;
         min-height: 380px;
     }
 
-    .scroll-card.prev {
-        transform: translate(-50%, -50%) translateX(calc(-50% - min(10vw, 90px))) scale(0.68);
-        opacity: 0.3;
+    .scroll-card .decree-card-panel {
+        padding: clamp(14px, 2.2vh, 22px) clamp(12px, 3vw, 18px);
     }
 
-    .scroll-card.next {
-        transform: translate(-50%, -50%) translateX(calc(50% + min(10vw, 90px))) scale(0.68);
-        opacity: 0.3;
+    .scroll-card .decree-inner-frame {
+        padding: clamp(10px, 1.6vh, 16px) clamp(10px, 2.5vw, 14px);
+        gap: clamp(2px, 0.5vh, 6px);
+        justify-content: space-between;
+    }
+
+    .scroll-mythic-crest-box {
+        width: clamp(24px, 3vh, 30px);
+        height: clamp(24px, 3vh, 30px);
+        margin-bottom: 0;
+    }
+
+    .scroll-card .decree-title {
+        font-size: clamp(15.5px, 2.3vh, 19.5px);
+        line-height: 1.15;
+        margin: 1px 0;
+    }
+
+    /* Scaled center artwork on small screens */
+    .scroll-datathon-center-art,
+    .scroll-prompt-relay-center-art,
+    .scroll-brandathon-center-art,
+    .scroll-hackmatrix-center-art,
+    .scroll-ctf-center-art,
+    .scroll-among-us-center-art,
+    .scroll-surprise-center-art,
+    .scroll-houdini-center-art {
+        width: 100%;
+        max-width: clamp(130px, 34vw, 180px);
+        height: clamp(52px, 7.8vh, 76px);
+        margin: clamp(2px, 0.5vh, 6px) auto clamp(2px, 0.4vh, 4px) auto;
+    }
+
+    .scroll-card .decree-description {
+        font-size: clamp(13.5px, 1.8vh, 15.5px);
+        line-height: 1.32;
+        margin: 2px 0;
+        max-width: 100%;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .scroll-card .decree-btn-group {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+        width: 100%;
+        margin-top: 2px;
+    }
+
+    .scroll-card .decree-btn {
+        flex: 1;
+        min-width: 0;
+        padding: clamp(6px, 1.1vh, 8.5px) 4px;
+        font-size: clamp(9.5px, 1.25vh, 11px);
+        letter-spacing: 0.08em;
+        white-space: nowrap;
+        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .carousel-arrow {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
+        opacity: 0.85;
+    }
+
+    .carousel-arrow.prev {
+        left: 6px;
+    }
+
+    .carousel-arrow.next {
+        right: 6px;
     }
 
     .carousel-arrow svg {
+        width: 15px;
+        height: 15px;
+    }
+
+    .carousel-pagination {
+        margin-top: 4px;
+        margin-bottom: 6px;
+        padding: 4px 12px;
+        gap: 6px;
+    }
+
+    .pagination-dot {
+        width: 6px;
+        height: 6px;
+    }
+
+    .pagination-dot.active {
         width: 16px;
-        height: 16px;
+    }
+}
+
+@media (max-width: 380px) {
+    .scroll-card {
+        width: min(88vw, 305px);
+    }
+
+    .scroll-card .decree-title {
+        font-size: 14.5px;
+    }
+
+    .scroll-datathon-center-art,
+    .scroll-prompt-relay-center-art,
+    .scroll-brandathon-center-art,
+    .scroll-hackmatrix-center-art,
+    .scroll-ctf-center-art,
+    .scroll-among-us-center-art,
+    .scroll-surprise-center-art,
+    .scroll-houdini-center-art {
+        height: clamp(45px, 6.8vh, 60px);
+    }
+
+    .scroll-card .decree-description {
+        font-size: 13px;
+        -webkit-line-clamp: 2;
+    }
+
+    .scroll-card .decree-btn {
+        padding: 5px 3px;
+        font-size: 9px;
+        letter-spacing: 0.05em;
     }
 }
 
@@ -4164,17 +4579,17 @@ body.mode-yugas .yuga-title-img.active {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: transform 10s cubic-bezier(0.16, 1, 0.3, 1),
-            box-shadow 10s cubic-bezier(0.16, 1, 0.3, 1),
-            border-color 6s ease,
-            filter 6s ease;
-        animation: yugaCardFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
-        will-change: transform, box-shadow;
+        transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+            border-color 0.4s ease,
+            filter 0.4s ease;
+        will-change: transform, box-shadow, opacity;
     }
 
     .yuga-decree-card:nth-child(1) {
         transform: perspective(1200px) translateX(-35px) translateY(2px) translateZ(0px) rotateY(9deg) rotateZ(-2.5deg);
         transform-origin: center right;
+        animation: yugaCardRiseLeft 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     .yuga-decree-card:nth-child(1):hover {
@@ -4186,6 +4601,7 @@ body.mode-yugas .yuga-title-img.active {
         transform: perspective(1200px) translateX(35px) translateY(2px) translateZ(0px) rotateY(-9deg) rotateZ(2.5deg);
         transform-origin: center left;
         z-index: 5;
+        animation: yugaCardRiseRight 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
     .yuga-decree-card:nth-child(2):hover {
@@ -4203,8 +4619,8 @@ body.mode-yugas .yuga-title-img.active {
     body.mode-yugas .chakra-container {
         top: 100%;
         left: 50%;
-        width: min(85vw, 360px);
-        height: min(85vw, 360px);
+        width: min(68vw, 270px);
+        height: min(68vw, 270px);
     }
 
     .yuga-titles-wrapper {
@@ -4242,6 +4658,7 @@ body.mode-yugas .yuga-title-img.active {
         transform: none !important;
         touch-action: pan-y !important;
         overflow: visible !important;
+        animation: yugaShowcaseRiseMobile 0.85s cubic-bezier(0.16, 1, 0.3, 1) both !important;
     }
 
     .yuga-decree-card,
@@ -4484,14 +4901,57 @@ body.mode-yugas .yuga-title-img.active {
     }
 }
 
-@keyframes yugaCardFadeUp {
-    from {
+@keyframes yugaCardRiseLeft {
+    0% {
         opacity: 0;
-        transform: translateY(22px) scale(0.94);
+        transform: perspective(1200px) translateX(-35px) translateY(calc(100vh + 120px)) translateZ(-160px) rotateX(24deg) rotateY(16deg) rotateZ(-5deg) scale(0.68);
+        filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0)) brightness(0.4);
     }
 
-    to {
+    35% {
+        opacity: 0.85;
+    }
+
+    100% {
         opacity: 1;
+        transform: perspective(1200px) translateX(-35px) translateY(2px) translateZ(0px) rotateY(9deg) rotateZ(-2.5deg) scale(1);
+        filter: drop-shadow(0 18px 45px rgba(0, 0, 0, 0.75)) brightness(1);
+    }
+}
+
+@keyframes yugaCardRiseRight {
+    0% {
+        opacity: 0;
+        transform: perspective(1200px) translateX(35px) translateY(calc(100vh + 120px)) translateZ(-160px) rotateX(24deg) rotateY(-16deg) rotateZ(5deg) scale(0.68);
+        filter: drop-shadow(0 0 0 rgba(0, 0, 0, 0)) brightness(0.4);
+    }
+
+    35% {
+        opacity: 0.85;
+    }
+
+    100% {
+        opacity: 1;
+        transform: perspective(1200px) translateX(35px) translateY(2px) translateZ(0px) rotateY(-9deg) rotateZ(2.5deg) scale(1);
+        filter: drop-shadow(0 18px 45px rgba(0, 0, 0, 0.75)) brightness(1);
+    }
+}
+
+@keyframes yugaShowcaseRiseMobile {
+    0% {
+        opacity: 0;
+        transform: translateY(calc(100vh + 80px)) scale(0.8);
+        filter: brightness(0.4);
+    }
+
+    40% {
+        opacity: 0.9;
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: brightness(1);
     }
 }
 
@@ -4672,8 +5132,9 @@ body.mode-yugas .yuga-title-img.active {
     transform: scale(1.18);
 }
 
+.yuga-brandathon-rath,
 .yuga-brandathon-turtle {
-    transform: scale(1.18);
+    transform: scale(1.22);
 }
 
 .yuga-hackmatrix-art {
@@ -4688,8 +5149,9 @@ body.mode-yugas .yuga-title-img.active {
     transform: rotate(-90deg) scale(1.45);
 }
 
+.yuga-surprise-turtle,
 .yuga-surprise-rath {
-    transform: scale(1.22);
+    transform: scale(1.18);
 }
 
 .yuga-houdini-gada {
@@ -4795,35 +5257,265 @@ body.mode-yugas .yuga-title-img.active {
     transform: translateY(-1px);
 }
 
-@media (max-width: 960px) {
-    .yuga-events-showcase {
-        top: 52%;
-        width: 95vw;
-        max-height: 56vh;
-        overflow-x: auto;
-        overflow-y: hidden;
-        justify-content: flex-start;
-        padding: 10px 14px 14px;
-        scroll-snap-type: x mandatory;
-        gap: 14px;
-        perspective: none;
-    }
+/* ===================================
+   Mythic Page Transition Loader
+   =================================== */
+.mythic-page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+    animation: loaderFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 
-    .yuga-decree-card {
-        flex: 0 0 275px;
-        scroll-snap-align: center;
-        transform: none !important;
+.mythic-page-loader.loader-fade-out {
+    animation: loaderFadeOut 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: none;
+}
+
+@keyframes loaderFadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
     }
 }
 
-@media (max-width: 640px) {
-    .yuga-events-showcase {
-        top: 50%;
-        max-height: 54vh;
+@keyframes loaderFadeOut {
+    from {
+        opacity: 1;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        transform: scale(1);
     }
-
-    .yuga-decree-card {
-        flex: 0 0 250px;
-        padding: 14px 12px;
+    to {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+        transform: scale(1.025);
     }
 }
+
+.loader-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(16, 11, 8, 0.93) 0%, rgba(7, 5, 4, 0.98) 100%);
+    pointer-events: none;
+}
+
+.loader-glow-orb {
+    position: absolute;
+    width: clamp(280px, 45vw, 480px);
+    height: clamp(280px, 45vw, 480px);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212, 136, 58, 0.28) 0%, rgba(201, 164, 92, 0.08) 50%, transparent 70%);
+    filter: blur(45px);
+    pointer-events: none;
+    animation: loaderPulseOrb 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes loaderPulseOrb {
+    0% {
+        transform: scale(0.85);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(1.15);
+        opacity: 1;
+    }
+}
+
+.loader-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 90vw;
+    padding: clamp(16px, 4vw, 32px);
+    animation: loaderContentRise 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes loaderContentRise {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Sacred Geometry Astrolabe Spinner */
+.astrolabe-spinner {
+    position: relative;
+    width: clamp(84px, 12vw, 110px);
+    height: clamp(84px, 12vw, 110px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.astrolabe-ring {
+    position: absolute;
+    border-radius: 50%;
+    border-style: solid;
+}
+
+.astrolabe-ring.outer-ring {
+    inset: 0;
+    border-width: 1.5px;
+    border-color: rgba(212, 136, 58, 0.65) transparent rgba(254, 240, 138, 0.8) transparent;
+    box-shadow: 0 0 20px rgba(212, 136, 58, 0.35), inset 0 0 14px rgba(212, 136, 58, 0.2);
+    animation: astrolabeSpinClockwise 4.5s linear infinite;
+}
+
+.astrolabe-ring.middle-ring {
+    inset: 12px;
+    border-width: 1px;
+    border-style: dashed;
+    border-color: rgba(254, 240, 138, 0.6) transparent rgba(212, 136, 58, 0.5) transparent;
+    animation: astrolabeSpinCounter 3s linear infinite;
+}
+
+.astrolabe-ring.inner-ring {
+    inset: 24px;
+    border-width: 1.5px;
+    border-color: rgba(212, 136, 58, 0.8) transparent transparent rgba(254, 240, 138, 0.9);
+    animation: astrolabeSpinClockwise 2s linear infinite;
+}
+
+.astrolabe-core {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.core-glyph {
+    font-size: clamp(22px, 3.2vw, 30px);
+    color: #fef08a;
+    text-shadow: 0 0 16px rgba(254, 240, 138, 0.95), 0 0 28px rgba(212, 136, 58, 0.8);
+    animation: coreGlyphPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes astrolabeSpinClockwise {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes astrolabeSpinCounter {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(-360deg);
+    }
+}
+
+@keyframes coreGlyphPulse {
+    0% {
+        transform: scale(0.92) rotate(0deg);
+        filter: brightness(0.9);
+    }
+    50% {
+        transform: scale(1.08) rotate(180deg);
+        filter: brightness(1.3);
+    }
+    100% {
+        transform: scale(0.92) rotate(360deg);
+        filter: brightness(0.9);
+    }
+}
+
+/* Typography & Subtitles */
+.loader-mantra {
+    font-family: var(--font-body), serif;
+    font-size: clamp(13px, 2vw, 16px);
+    font-weight: 600;
+    color: var(--accent-gold);
+    letter-spacing: 0.18em;
+    margin-top: 20px;
+    text-shadow: 0 0 14px rgba(212, 136, 58, 0.7);
+    opacity: 0.92;
+}
+
+.loader-title {
+    font-family: var(--font-title), serif;
+    font-size: clamp(15px, 2.5vw, 21px);
+    font-weight: 700;
+    color: var(--heading-ivory);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin: 8px 0 0 0;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9), 0 0 20px rgba(201, 164, 92, 0.5);
+}
+
+.loader-subtitle {
+    font-family: var(--font-body), serif;
+    font-size: clamp(12px, 1.8vw, 14.5px);
+    color: var(--text-parchment-muted);
+    letter-spacing: 0.09em;
+    margin: 6px 0 0 0;
+    opacity: 0.85;
+}
+
+/* Progress Beam */
+.loader-progress-track {
+    width: clamp(180px, 35vw, 260px);
+    height: 2px;
+    background: rgba(212, 136, 58, 0.2);
+    border-radius: 2px;
+    margin-top: 22px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 8px rgba(212, 136, 58, 0.15);
+}
+
+.loader-progress-shimmer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, rgba(212, 136, 58, 0.8) 0%, rgba(254, 240, 138, 0.95) 85%, #ffffff 100%);
+    box-shadow: 0 0 12px rgba(254, 240, 138, 0.9);
+    border-radius: 2px;
+    animation: loaderProgressFill 1.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes loaderProgressFill {
+    0% {
+        width: 0%;
+        opacity: 0.85;
+    }
+    40% {
+        width: 48%;
+        opacity: 0.95;
+    }
+    75% {
+        width: 82%;
+        opacity: 1;
+    }
+    100% {
+        width: 100%;
+        opacity: 1;
+    }
+}

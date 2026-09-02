@@ -18,7 +18,7 @@ const SCHEDULE_DAYS = [
       { time: '11:00 AM', title: 'Datathon — The Cosmic Data Odyssey' },
       { time: '02:00 PM', title: 'Prompt Relay — Generative AI Duel' },
       { time: '04:30 PM', title: 'Brandathon — Brand Genesis Sprint' },
-      { time: '07:00 PM', title: 'Surprise Event Revelation & Lightning Tech Talks' },
+      { time: '07:00 PM', title: 'Pixel Perfect — Photography Trial & Visual Showcase' },
     ],
   },
   {

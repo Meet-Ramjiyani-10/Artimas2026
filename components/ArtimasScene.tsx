@@ -358,7 +358,10 @@ export default function ArtimasScene() {
           />
 
           {/* ── Top-Right Navigation Islands ──────────────────────────────── */}
-          <NavIslands showMobile={isYugasMode} />
+          <NavIslands
+            showMobile={isYugasMode}
+            onLogoClick={isYugasMode ? exitYugasMode : undefined}
+          />
 
           {/* ── Enter Button ──────────────────────────────────────────────── */}
           <button className="enter-btn" type="button" onClick={enterYugasMode}>
@@ -511,9 +514,9 @@ export default function ArtimasScene() {
                         <div className="yuga-card-center-art brandathon-art" aria-hidden="true">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={MEDIA.images.brandathonTurtle}
-                            alt="Brandathon Kurma Golden Turtle"
-                            className="yuga-art-img yuga-brandathon-turtle"
+                            src={MEDIA.images.brandathonRath}
+                            alt="Brandathon Golden Rath"
+                            className="yuga-art-img yuga-brandathon-rath"
                             draggable={false}
                           />
                         </div>
@@ -547,13 +550,13 @@ export default function ArtimasScene() {
                             draggable={false}
                           />
                         </div>
-                      ) : evt.slug === 'surprise-event' ? (
-                        <div className="yuga-card-center-art surprise-art" aria-hidden="true">
+                      ) : (evt.slug === 'pixel-perfect' || evt.slug === 'surprise-event') ? (
+                        <div className="yuga-card-center-art surprise-art pixel-perfect-art" aria-hidden="true">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={MEDIA.images.surpriseEventRath}
-                            alt="Surprise Event Golden Rath"
-                            className="yuga-art-img yuga-surprise-rath"
+                            src={MEDIA.images.pixelPerfectTurtle || MEDIA.images.surpriseEventTurtle}
+                            alt="Pixel Perfect Kurma Golden Turtle"
+                            className="yuga-art-img yuga-surprise-turtle"
                             draggable={false}
                           />
                         </div>
@@ -634,6 +637,48 @@ export default function ArtimasScene() {
               activeYuga={activeYuga}
               onSelectYuga={goToYuga}
             />
+          )}
+
+          {/* ── Yuga Chakra Navigation Controls (Beside Wheel) ──── */}
+          {isYugasMode && (
+            <>
+              <button
+                type="button"
+                className="chakra-nav-btn prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  rotateChakra(-90);
+                }}
+                title="Previous Yuga"
+                aria-label="Previous Yuga"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={MEDIA.images.chakraRotateBtn}
+                  alt="Previous Yuga"
+                  className="chakra-nav-btn-img prev"
+                  draggable={false}
+                />
+              </button>
+              <button
+                type="button"
+                className="chakra-nav-btn next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  rotateChakra(90);
+                }}
+                title="Next Yuga"
+                aria-label="Next Yuga"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={MEDIA.images.chakraRotateBtn}
+                  alt="Next Yuga"
+                  className="chakra-nav-btn-img next"
+                  draggable={false}
+                />
+              </button>
+            </>
           )}
         </div>
 
