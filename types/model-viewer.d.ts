@@ -10,6 +10,8 @@ type ModelViewerElement = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLEle
   'disable-tap'?: boolean;
   'shadow-intensity'?: string;
   exposure?: string;
+  loading?: string;
+  'seamless-poster'?: boolean;
   style?: React.CSSProperties;
 };
 
