@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { EVENTS } from '@/lib/events';
 import { MEDIA } from '@/lib/media';
+import MythicCrestIcon from './MythicCrestIcon';
 
-const TOTAL_SCROLLS = 8;
+const TOTAL_SCROLLS = EVENTS.length;
 const SCROLL_ITEMS = EVENTS.map((event, i) => ({
   id: event.id,
   index: i + 1,
@@ -121,6 +122,17 @@ export default function ScrollCarousel() {
               }}
             >
               <div className="decree-card-panel">
+                {/* Background Illustrated Event Card Graphic */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={MEDIA.images.eventCard}
+                  alt=""
+                  className="decree-card-bg-img"
+                  draggable={false}
+                  loading={isActive ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+
                 {/* Ornamental Decree Corner Brackets */}
                 <div className="decree-corner top-left" aria-hidden="true" />
                 <div className="decree-corner top-right" aria-hidden="true" />
@@ -128,38 +140,109 @@ export default function ScrollCarousel() {
                 <div className="decree-corner bottom-right" aria-hidden="true" />
 
                 {/* Inner Double-Border Frame */}
-                <div className="decree-inner-frame">
-                  {/* Category & Yuga Metadata */}
-                  <div className="decree-category-tag">
-                    <span className="decree-tag-sparkle">❖</span>
-                    <span>{item.event.yuga} · {item.event.category}</span>
-                    <span className="decree-tag-sparkle">❖</span>
+                <div className={`decree-inner-frame${(item.event.slug === 'datathon' || item.event.slug === 'prompt-relay' || item.event.slug === 'brandathon' || item.event.slug === 'hackmatrix' || item.event.slug === 'capture-the-flag' || item.event.slug === 'among-us' || item.event.slug === 'surprise-event' || item.event.slug === 'houdini-heist') ? ' custom-art-frame' : ''}`}>
+                  {/* Top Header Group (Crest + Title moved up) */}
+                  <div className="scroll-card-header-group">
+                    <div className="scroll-mythic-crest-box" aria-hidden="true">
+                      <MythicCrestIcon type={item.event.mythicCrest || 'lotus'} />
+                    </div>
+                    <h2 className="decree-title">{item.event.name}</h2>
                   </div>
 
-                  {/* Main Event Title: HACKMATRIX */}
-                  <h2 className="decree-title">{item.event.name}</h2>
-
-                  {/* Subtitle: THE TRIAL OF INGENUITY */}
-                  <div className="decree-trial-subtitle">
-                    {item.event.trialSubtitle || item.event.tagline}
-                  </div>
-
-                  {/* Ornamental Divider Line */}
-                  <div className="decree-ornament-divider" aria-hidden="true">
-                    <span className="decree-divider-line" />
-                    <span className="decree-divider-gem">◆</span>
-                    <span className="decree-divider-line" />
-                  </div>
+                  {/* Custom Center Art (Datathon Fish, Prompt Relay Lotus, Brandathon Turtle, Hackmatrix, CTF Feather, Among Us Art, Surprise Rath, Houdini Heist, or Standard Divider) */}
+                  {item.event.slug === 'datathon' ? (
+                    <div className="scroll-datathon-center-art" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={MEDIA.images.datathonFish}
+                        alt="Datathon Matsya Golden Fish"
+                        className="scroll-datathon-fish-img"
+                        draggable={false}
+                      />
+                    </div>
+                  ) : item.event.slug === 'prompt-relay' ? (
+                    <div className="scroll-prompt-relay-center-art" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={MEDIA.images.promptRelayLotus}
+                        alt="Prompt Relay Golden Lotus"
+                        className="scroll-prompt-relay-lotus-img"
+                        draggable={false}
+                      />
+                    </div>
+                  ) : item.event.slug === 'brandathon' ? (
+                    <div className="scroll-brandathon-center-art" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={MEDIA.images.brandathonTurtle}
+                        alt="Brandathon Kurma Golden Turtle"
+                        className="scroll-brandathon-turtle-img"
+                        draggable={false}
+                      />
+                    </div>
+                  ) : item.event.slug === 'hackmatrix' ? (
+                    <div className="scroll-hackmatrix-center-art" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={MEDIA.images.hackmatrixArt}
+                        alt="HackMatrix Golden Emblem"
+                        className="scroll-hackmatrix-art-img"
+                        draggable={false}
+                      />
+                    </div>
+                  ) : item.event.slug === 'capture-the-flag' ? (
+                    <div className="scroll-ctf-center-art" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={MEDIA.images.ctfFeather}
+                        alt="CTF Golden Peacock Feather"
+                        className="scroll-ctf-feather-img"
+                        draggable={false}
+                      />
+                    </div>
+                  ) : item.event.slug === 'among-us' ? (
+                    <div className="scroll-among-us-center-art" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={MEDIA.images.amongUsArt}
+                        alt="Among Us Golden Cosmic Blade"
+                        className="scroll-among-us-art-img"
+                        draggable={false}
+                      />
+                    </div>
+                  ) : item.event.slug === 'surprise-event' ? (
+                    <div className="scroll-surprise-center-art" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={MEDIA.images.surpriseEventRath}
+                        alt="Surprise Event Golden Rath"
+                        className="scroll-surprise-rath-img"
+                        draggable={false}
+                      />
+                    </div>
+                  ) : item.event.slug === 'houdini-heist' ? (
+                    <div className="scroll-houdini-center-art" aria-hidden="true">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={MEDIA.images.houdiniHeistArt}
+                        alt="Houdini Heist Golden Mace"
+                        className="scroll-houdini-gada-img"
+                        draggable={false}
+                      />
+                    </div>
+                  ) : (
+                    /* Ornamental Divider Line */
+                    <div className="decree-ornament-divider" aria-hidden="true">
+                      <span className="decree-divider-line" />
+                      <span className="decree-divider-gem">◆</span>
+                      <span className="decree-divider-line" />
+                    </div>
+                  )}
 
                   {/* Short Description */}
                   <p className="decree-description">
                     {item.event.shortDescription || item.event.description}
                   </p>
-
-                  {/* Date & Mode */}
-                  <div className="decree-date-location">
-                    {item.event.dateLocation || '18 OCTOBER 2026  ·  ONLINE'}
-                  </div>
 
                   {/* Action Buttons: VIEW RULEBOOK & ENTER THE TRIAL */}
                   <div className="decree-btn-group">

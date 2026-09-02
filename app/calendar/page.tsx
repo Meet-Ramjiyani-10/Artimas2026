@@ -8,32 +8,32 @@ export const metadata: Metadata = {
 
 const SCHEDULE_DAYS = [
   {
-    day: 'Day 1 • Inception',
-    yuga: 'Satya Yuga',
-    badge: 'Opening & Hacks',
-    desc: 'Grand Opening Ceremony, Keynote Addresses, 36-Hour Hackathon Theme Reveal, Guild Assembly, and Workshop Tracks.',
-    highlights: ['10:00 AM — Opening Keynote', '02:00 PM — Hackathon Kickoff', '06:00 PM — Lightning Talks'],
+    day: 'Day 1 • Inception & Genesis',
+    yuga: 'Satya & Treta Yuga',
+    date: '18 - 19 OCTOBER 2026',
+    badge: 'Genesis & Trials',
+    desc: 'The inaugural epochs of Artimas. Guild assembly, ceremonial opening keynotes, and the commencement of foundational artificial intelligence & design trials.',
+    milestones: [
+      { time: '09:30 AM', title: 'Grand Opening Keynote & Guild Assembly' },
+      { time: '11:00 AM', title: 'Datathon — The Cosmic Data Odyssey' },
+      { time: '02:00 PM', title: 'Prompt Relay — Generative AI Duel' },
+      { time: '04:30 PM', title: 'Brandathon — Brand Genesis Sprint' },
+      { time: '07:00 PM', title: 'Surprise Event Revelation & Lightning Tech Talks' },
+    ],
   },
   {
-    day: 'Day 2 • The Duels',
-    yuga: 'Treta Yuga',
-    badge: 'Arena & CTF',
-    desc: 'Hackathon mid-evaluations, Robotics Arena Qualifiers, Celestial Astra CTF Launch, and AI Developer Workshops.',
-    highlights: ['09:00 AM — CTF Starts', '01:00 PM — Robotics Qualifiers', '08:00 PM — Midnight Gaming'],
-  },
-  {
-    day: 'Day 3 • The Crucible',
-    yuga: 'Dwapara Yuga',
-    badge: 'Finals & Demos',
-    desc: 'Final Project Submissions, Expo Showcase, Stage Demos, Elite Judging Rounds, and Robotics Finals.',
-    highlights: ['11:00 AM — Code Freeze', '02:00 PM — Expo Judging', '05:00 PM — Robotics Finals'],
-  },
-  {
-    day: 'Day 4 • Ascendance',
-    yuga: 'Kali Yuga',
-    badge: 'Gala & Finale',
-    desc: 'Grand Finale, Winner Felicitations, Cash Prize Ceremony, Cultural Gala, Cosmic Laser Showcase, and Afterparty.',
-    highlights: ['04:00 PM — Awards Ceremony', '07:00 PM — Cultural Gala', '09:00 PM — Afterparty'],
+    day: 'Day 2 • Duels & Ascendance',
+    yuga: 'Dwapara & Kali Yuga',
+    date: '20 OCTOBER 2026',
+    badge: 'Arena & Grand Finale',
+    desc: 'The battleground and transformative finale. High-octane tactical challenges, cyber warfare, escape room enigmas, 24-hour hackathons, and closing celebrations.',
+    milestones: [
+      { time: '09:00 AM', title: 'Capture the Flag (CTF) — Cyber Warfare Arena' },
+      { time: '11:30 AM', title: 'Houdini Heist — The Enigma of Escape Room' },
+      { time: '02:00 PM', title: 'Among Us — Cosmic Social Deduction Tournament' },
+      { time: '04:30 PM', title: 'HackMatrix — Final Prototype Demos & Judging' },
+      { time: '07:00 PM', title: 'Grand Finale, Cash Prize Ceremony & Cultural Gala' },
+    ],
   },
 ];
 
@@ -42,30 +42,38 @@ export default function CalendarPage() {
     <SubpageLayout
       tag="Artimas • Chronicles of Time"
       title="Festival Schedule"
-      description="The timeline across all four epochs of Artimas. Mark your calendar for keynotes, hacking sprints, battle rounds, and closing celebrations."
+      description="The timeline across both grand festival days. Mark your calendar for keynotes, hacking sprints, battle duels, and closing celebrations."
     >
-      <div className="island-content-grid">
+      <div className="calendar-dual-grid">
         {SCHEDULE_DAYS.map(day => (
-          <div key={day.day} className="island-card-item">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+          <div key={day.day} className="calendar-panel">
+            {/* Ornamental Decree Corner Brackets */}
+            <div className="decree-corner top-left" aria-hidden="true" />
+            <div className="decree-corner top-right" aria-hidden="true" />
+            <div className="decree-corner bottom-left" aria-hidden="true" />
+            <div className="decree-corner bottom-right" aria-hidden="true" />
+
+            <div className="calendar-panel-header">
               <div>
-                <div className="island-card-title">{day.day}</div>
-                <div style={{ fontSize: '12px', color: 'var(--panel-highlight)', letterSpacing: '1px', textTransform: 'uppercase', fontFamily: 'var(--font-title)' }}>
-                  {day.yuga}
-                </div>
+                <h2 className="calendar-panel-title">{day.day}</h2>
+                <div className="calendar-panel-yuga">❖ {day.yuga} · {day.date}</div>
               </div>
-              <span className="island-card-badge">{day.badge}</span>
+              <span className="calendar-panel-badge">{day.badge}</span>
             </div>
-            <div className="island-card-desc" style={{ marginTop: '10px' }}>
-              {day.desc}
-            </div>
-            <div style={{ marginTop: '12px', borderTop: '1px solid rgba(118, 85, 47, 0.35)', paddingTop: '10px' }}>
-              <div style={{ fontSize: '11px', letterSpacing: '1.5px', textTransform: 'uppercase', color: 'var(--panel-highlight)', marginBottom: '4px', fontFamily: 'var(--font-body)', fontWeight: 600 }}>
-                Key Milestones
+
+            <p className="calendar-panel-desc">{day.desc}</p>
+
+            <div className="calendar-milestones-box">
+              <div className="calendar-milestones-heading">
+                <span>✦</span> Key Schedule &amp; Milestones
               </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '13px', color: 'var(--heading-ivory)' }}>
-                {day.highlights.map(h => (
-                  <li key={h} style={{ marginBottom: '3px' }}>• {h}</li>
+              <ul className="calendar-milestones-list">
+                {day.milestones.map((m) => (
+                  <li key={m.title} className="calendar-milestone-item">
+                    <span className="calendar-milestone-dot">◆</span>
+                    <span className="calendar-milestone-time">{m.time}</span>
+                    <span className="calendar-milestone-name">{m.title}</span>
+                  </li>
                 ))}
               </ul>
             </div>
