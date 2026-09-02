@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function TeamPage() {
   return (
-    <SubpageLayout showHeader={false}>
+    <SubpageLayout showHeader={false} fullWidth={true} showFooter={true}>
       <TeamCarousel />
     </SubpageLayout>
   );

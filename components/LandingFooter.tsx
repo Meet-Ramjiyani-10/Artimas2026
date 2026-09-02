@@ -124,6 +124,7 @@ export default function LandingFooter() {
 
       {/* ── Footer Bottom Copyright & Credits ── */}
       <div className="footer-bottom-bar">
+        <p className="footer-motto">|| एम्सा कुटुम्बकम् ||</p>
         <p className="footer-credits">
           Crafted with <span className="heart-icon">❤️</span> by the <strong className="gold-tech-team">ARTIMAS Tech Team</strong>
         </p>

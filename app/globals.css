@@ -43,6 +43,29 @@ body {
     overflow-x: hidden;
     overflow-y: auto;
     scroll-behavior: smooth;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+/* Universal Invisible Scrollbars across all browsers */
+html,
+body,
+* {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+::-webkit-scrollbar {
+    width: 0px !important;
+    height: 0px !important;
+    display: none !important;
+    background: transparent !important;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb {
+    background: transparent !important;
+    border: none !important;
 }
 
 body.mode-yugas {
@@ -88,16 +111,44 @@ a {
    =================================== */
 .brand-logo {
     position: absolute;
-    top: clamp(-60px, -8vw, -20px);
+    top: clamp(-85px, -11vw, -30px);
     left: 50%;
     transform: translateX(-50%);
     z-index: 30;
-    width: 90vw;
-    max-width: 450px;
+    width: 95vw;
+    max-width: 675px;
     height: auto;
     pointer-events: none;
-    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.7));
+    filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.75));
     transition: all 1.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-logo.logo-starting-top {
+    top: -380px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.brand-logo.logo-emerged {
+    animation: logoDescend 5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes logoDescend {
+    0% {
+        top: -380px;
+        opacity: 0;
+        filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0));
+        transform: translateX(-50%) scale(0.85);
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        top: clamp(-85px, -11vw, -30px);
+        opacity: 1;
+        filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.75));
+        transform: translateX(-50%) scale(1);
+    }
 }
 
 .enter-btn {
@@ -144,19 +195,19 @@ body.mode-yugas .enter-btn {
 
 body.mode-yugas .brand-logo {
     position: fixed;
-    top: clamp(-38px, -4.5vh, -22px);
+    top: clamp(-46px, -5.2vh, -28px);
     left: clamp(14px, 2.2vw, 32px);
     transform: translateX(0);
-    width: clamp(170px, 17vw, 230px);
-    max-width: 230px;
+    width: clamp(215px, 20vw, 310px);
+    max-width: 310px;
     pointer-events: auto;
     cursor: pointer;
-    filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 20px rgba(212, 136, 58, 0.45));
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 26px rgba(212, 136, 58, 0.5));
 }
 
 body.mode-yugas .brand-logo:hover {
     transform: scale(1.04);
-    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 1)) drop-shadow(0 0 28px rgba(254, 240, 138, 0.65));
+    filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 1)) drop-shadow(0 0 32px rgba(254, 240, 138, 0.7));
 }
 
 /* ===================================
@@ -248,10 +299,39 @@ body.mode-yugas .brand-logo:hover {
     transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1), top 1.8s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+.chakra-container.wheel-starting-bottom {
+    top: 135%;
+    opacity: 0;
+    pointer-events: none;
+    animation: none;
+}
+
+.chakra-container.wheel-emerged {
+    animation: wheelRiseUp 5s cubic-bezier(0.16, 1, 0.3, 1) forwards, wheelSpin 60s linear 5s infinite;
+}
+
 body.mode-yugas .chakra-container {
     top: 100%;
     left: 50%;
-    animation: none;
+    animation: none !important;
+}
+
+@keyframes wheelRiseUp {
+    0% {
+        top: 135%;
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(-60deg) scale(0.85);
+        filter: sepia(0.6) hue-rotate(-20deg) saturate(2) brightness(0.4) drop-shadow(0 0 20px rgba(212, 136, 58, 0.2));
+    }
+    35% {
+        opacity: 1;
+    }
+    100% {
+        top: 50%;
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(0deg) scale(1);
+        filter: sepia(0.6) hue-rotate(-20deg) saturate(2) brightness(0.9) drop-shadow(0 0 80px rgba(212, 136, 58, 0.7));
+    }
 }
 
 @keyframes wheelSpin {
@@ -459,7 +539,7 @@ body.mode-yugas .yuga-title-img.active {
     top: 0;
     left: 0;
     width: 100%;
-    height: clamp(65px, 9vh, 90px);
+    height: clamp(70px, 9.5vh, 98px);
     padding: 0 clamp(16px, 3.5vw, 42px);
     display: flex;
     align-items: center;
@@ -476,18 +556,18 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .subpage-topbar .subpage-logo {
-    width: clamp(175px, 16vw, 245px);
-    max-width: 245px;
+    width: clamp(215px, 20vw, 330px);
+    max-width: 330px;
     height: auto;
-    max-height: clamp(52px, 7.8vh, 76px);
+    max-height: clamp(55px, 7.5vh, 80px);
     object-fit: contain;
-    filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 20px rgba(201, 164, 92, 0.3));
+    filter: drop-shadow(0 3px 12px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 24px rgba(201, 164, 92, 0.35));
     transition: filter 0.3s ease, transform 0.3s ease;
 }
 
 .subpage-topbar .subpage-logo-link:hover .subpage-logo {
     transform: scale(1.03);
-    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 1)) drop-shadow(0 0 28px rgba(201, 164, 92, 0.45));
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 1)) drop-shadow(0 0 32px rgba(201, 164, 92, 0.5));
 }
 
 .subpage-topbar .ancient-navbar {
@@ -531,6 +611,251 @@ body.mode-yugas .yuga-title-img.active {
     user-select: none;
 }
 
+/* ── Navbar Visibility Helpers ─────────────────────────────────────── */
+.mobile-nav-only {
+    display: none;
+}
+
+.desktop-nav-only {
+    display: inline-flex;
+}
+
+/* ── Mobile Capsule Navbar & Drawer (≤ 768px) ─────────────────────── */
+@media (max-width: 768px) {
+
+    /* hide desktop bar */
+    .desktop-nav-only {
+        display: none !important;
+    }
+
+    /* show mobile capsule */
+    .mobile-nav-only {
+        display: block !important;
+    }
+
+    /* ── Floating pill wrapper ── */
+    .mobile-nav-wrapper {
+        position: fixed;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(92vw, 360px);
+        z-index: 990;
+        pointer-events: auto;
+    }
+
+    /* ── The pill itself ── */
+    .mobile-nav-pill {
+        position: relative;
+        width: 100%;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px 0 16px;
+        background: linear-gradient(180deg, rgba(32, 20, 12, 0.97) 0%, rgba(14, 9, 6, 0.99) 100%);
+        border: 1.5px solid var(--border-bronze);
+        border-radius: 9999px;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow:
+            0 8px 24px rgba(0, 0, 0, 0.85),
+            inset 0 0 0 1px rgba(201, 164, 92, 0.22),
+            0 0 16px rgba(201, 164, 92, 0.14);
+        transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        box-sizing: border-box;
+    }
+
+    .mobile-nav-pill.drawer-active {
+        border-color: var(--panel-highlight);
+        box-shadow: 0 0 22px rgba(201, 164, 92, 0.45);
+    }
+
+    /* ── Logo link: centered in the pill ── */
+    .mobile-nav-brand {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        overflow: hidden;
+        text-decoration: none;
+        padding-left: 28px;
+    }
+
+    .mobile-nav-logo-img {
+        width: 130%;
+        height: 70px;
+        object-fit: contain;
+        object-position: center center;
+        transform: translateY(-20px);
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.9));
+    }
+
+    /* ── Hamburger button ── */
+    .mobile-nav-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 7px;
+        margin-right: -4px;
+        color: var(--panel-highlight);
+        transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    .mobile-nav-toggle-btn:hover {
+        color: #fff;
+    }
+
+    .mobile-toggle-icon {
+        width: 22px;
+        height: 22px;
+        stroke: var(--panel-highlight);
+        filter: drop-shadow(0 0 4px rgba(201, 164, 92, 0.5));
+        transition: stroke 0.2s ease;
+    }
+
+    /* ── Backdrop ── */
+    .mobile-nav-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.68);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 980;
+        animation: fadeInBackdrop 0.22s ease forwards;
+    }
+
+    @keyframes fadeInBackdrop {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* ── Dropdown drawer card ── */
+    .mobile-nav-drawer-card {
+        position: absolute;
+        top: 58px;
+        left: 0;
+        width: 100%;
+        background:
+            radial-gradient(ellipse at 50% 20%, rgba(184, 148, 90, 0.14) 0%, rgba(38, 24, 15, 0.93) 60%, rgba(12, 8, 5, 0.98) 100%),
+            linear-gradient(165deg, rgba(46, 30, 18, 0.97) 0%, rgba(16, 11, 7, 0.99) 100%);
+        border: 1.5px solid var(--border-bronze);
+        border-radius: 16px;
+        padding: 16px;
+        z-index: 995;
+        box-sizing: border-box;
+        box-shadow:
+            0 20px 50px rgba(0, 0, 0, 0.95),
+            inset 0 0 0 1px rgba(201, 164, 92, 0.28),
+            0 0 28px rgba(201, 164, 92, 0.18);
+        overflow: hidden;
+        animation: drawerSlideDown 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes drawerSlideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-8px) scale(0.97);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* ── Drawer interior: links only ── */
+    .mobile-drawer-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mobile-drawer-map-box {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(201, 164, 92, 0.38);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+    }
+
+    .mobile-drawer-map-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .mobile-drawer-map-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(20, 12, 6, 0.18) 0%, rgba(10, 6, 3, 0.38) 100%);
+        pointer-events: none;
+    }
+
+    .mobile-drawer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 6px 4px;
+    }
+
+    .mobile-drawer-link {
+        font-family: var(--font-title, 'Cinzel Decorative', serif);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        color: var(--heading-ivory);
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: color 0.2s ease, transform 0.2s ease, text-shadow 0.2s ease;
+        display: flex;
+        align-items: center;
+    }
+
+    .mobile-drawer-link:hover,
+    .mobile-drawer-link.active-link {
+        color: var(--panel-highlight);
+        transform: translateX(6px);
+        text-shadow: 0 0 12px var(--active-glow-gold);
+    }
+
+    /* ── Home-page brand logo ── */
+    .brand-logo {
+        top: clamp(-30px, -4vh, -10px);
+        width: 88vw;
+        max-width: 320px;
+    }
+
+    body.mode-yugas .brand-logo {
+        display: none;
+    }
+
+    /* ── Subpage topbar → hidden; capsule pill handles nav ── */
+    .subpage-topbar {
+        position: static !important;
+        height: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        pointer-events: none !important;
+    }
+
+    .subpage-topbar .subpage-logo-link {
+        display: none !important;
+    }
+}
+
+
 /* ===================================
    Dedicated Open Subpages
    =================================== */
@@ -545,47 +870,59 @@ body.mode-yugas .yuga-title-img.active {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: clamp(75px, 9vh, 95px) clamp(16px, 3vw, 40px) 45px clamp(16px, 3vw, 40px);
+    padding: 0;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
 }
 
 .subpage-wrapper::before {
     content: '';
     position: fixed;
     inset: 0;
-    background: linear-gradient(
-        rgba(8, 10, 12, 0.35),
-        rgba(8, 10, 12, 0.72)
-    );
+    background: linear-gradient(rgba(8, 10, 12, 0.35),
+            rgba(8, 10, 12, 0.72));
     pointer-events: none;
     z-index: 0;
 }
 
 .subpage-wrapper.headerless {
-    padding: clamp(55px, 7.5vh, 75px) clamp(12px, 2vw, 32px) clamp(8px, 1.5vh, 18px);
-    justify-content: center;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .subpage-container {
     position: relative;
     width: 100%;
-    height: 100%;
-    max-width: 1280px;
+    min-height: calc(100dvh - 80px);
+    max-width: 1320px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    padding: clamp(80px, 10.5vh, 110px) clamp(16px, 3.5vw, 48px) clamp(36px, 5vh, 60px);
     color: var(--text-parchment);
-    overflow: hidden;
     animation: subpageOpenIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     z-index: 1;
+    flex: 1 0 auto;
+    box-sizing: border-box;
 }
 
 .subpage-container.full-width {
     max-width: 100%;
+    padding-left: clamp(10px, 2vw, 32px);
+    padding-right: clamp(10px, 2vw, 32px);
+}
+
+.subpage-wrapper.headerless .subpage-container {
+    padding-top: clamp(65px, 8.5vh, 85px);
+    padding-bottom: clamp(20px, 3vh, 35px);
+    min-height: calc(100dvh - 10px);
+    justify-content: center;
 }
 
 @keyframes subpageOpenIn {
@@ -671,7 +1008,7 @@ body.mode-yugas .yuga-title-img.active {
 
 .subpage-body {
     width: 100%;
-    height: 100%;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -687,7 +1024,7 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .island-card-item {
-    background: 
+    background:
         radial-gradient(ellipse at 50% 30%, rgba(184, 148, 90, 0.12) 0%, rgba(38, 24, 15, 0.82) 60%, rgba(10, 8, 6, 0.95) 100%),
         linear-gradient(165deg, rgba(46, 30, 18, 0.92) 0%, rgba(18, 12, 8, 0.96) 100%);
     border: 1px solid var(--border-bronze);
@@ -695,7 +1032,7 @@ body.mode-yugas .yuga-title-img.active {
     padding: 24px 26px;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    box-shadow: 
+    box-shadow:
         inset 0 0 0 1px var(--border-bronze),
         inset 0 0 0 4px rgba(8, 10, 12, 0.8),
         0 8px 30px rgba(0, 0, 0, 0.65);
@@ -704,11 +1041,11 @@ body.mode-yugas .yuga-title-img.active {
 
 .island-card-item:hover {
     border-color: var(--panel-highlight);
-    background: 
+    background:
         radial-gradient(ellipse at 50% 30%, rgba(184, 148, 90, 0.18) 0%, rgba(48, 30, 18, 0.88) 60%, rgba(12, 9, 7, 0.98) 100%),
         linear-gradient(165deg, rgba(55, 35, 20, 0.95) 0%, rgba(22, 14, 9, 0.98) 100%);
     transform: translateY(-3px);
-    box-shadow: 
+    box-shadow:
         inset 0 0 0 1px var(--panel-highlight),
         inset 0 0 0 4px rgba(8, 10, 12, 0.8),
         0 14px 40px rgba(0, 0, 0, 0.85),
@@ -745,20 +1082,225 @@ body.mode-yugas .yuga-title-img.active {
     border: 1px solid var(--btn-border-gold);
 }
 
+/* ── Calendar Dual Long Panels System ── */
+.calendar-dual-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 40px);
+    width: 100%;
+    max-width: 1320px;
+    margin: 18px auto 0;
+    box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+    .calendar-dual-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        width: 100%;
+        max-width: 680px;
+    }
+}
+
+.calendar-panel {
+    position: relative;
+    background:
+        radial-gradient(ellipse at 50% 18%, rgba(184, 148, 90, 0.16) 0%, rgba(38, 24, 15, 0.88) 60%, rgba(10, 8, 6, 0.98) 100%),
+        linear-gradient(165deg, rgba(46, 30, 18, 0.95) 0%, rgba(16, 11, 7, 0.98) 100%);
+    border: 1px solid var(--border-bronze);
+    border-radius: 6px;
+    padding: clamp(18px, 3.2vw, 42px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow:
+        inset 0 0 0 1px var(--border-bronze),
+        inset 0 0 0 4.5px rgba(8, 10, 12, 0.85),
+        inset 0 0 0 6px rgba(169, 130, 61, 0.38),
+        0 18px 50px rgba(0, 0, 0, 0.88);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.calendar-panel:hover {
+    border-color: var(--panel-highlight);
+    box-shadow:
+        inset 0 0 0 1px var(--panel-highlight),
+        inset 0 0 0 4.5px rgba(8, 10, 12, 0.85),
+        inset 0 0 0 6px rgba(201, 164, 92, 0.55),
+        0 24px 60px rgba(0, 0, 0, 0.95),
+        0 0 25px var(--active-glow-gold);
+    transform: translateY(-3px);
+}
+
+.calendar-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    border-bottom: 1px solid rgba(118, 85, 47, 0.35);
+    padding-bottom: 14px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.calendar-panel-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(18px, 1.8vw, 25px);
+    color: var(--heading-ivory);
+    margin: 0 0 4px 0;
+    letter-spacing: 1.2px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 12px rgba(118, 85, 47, 0.4);
+    word-break: break-word;
+}
+
+.calendar-panel-yuga {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(11px, 1vw, 12.5px);
+    color: var(--panel-highlight);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    word-break: break-word;
+}
+
+.calendar-panel-badge {
+    display: inline-block;
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 4px;
+    background: rgba(58, 36, 21, 0.85);
+    color: var(--heading-ivory);
+    border: 1px solid var(--btn-border-gold);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    align-self: flex-start;
+}
+
+.calendar-panel-desc {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: clamp(14px, 1.15vw, 17px);
+    color: var(--text-parchment);
+    line-height: 1.6;
+    margin: 0;
+    word-break: break-word;
+}
+
+.calendar-milestones-box {
+    margin-top: 4px;
+    border-top: 1px dashed rgba(118, 85, 47, 0.4);
+    padding-top: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.calendar-milestones-heading {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--panel-highlight);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.calendar-milestones-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    width: 100%;
+}
+
+.calendar-milestone-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: clamp(13.5px, 1.15vw, 16.5px);
+    color: var(--heading-ivory);
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.calendar-milestone-dot {
+    color: var(--panel-highlight);
+    font-size: 10px;
+    margin-top: 3px;
+    flex-shrink: 0;
+}
+
+.calendar-milestone-time {
+    color: var(--panel-highlight);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    min-width: 76px;
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    flex-shrink: 0;
+}
+
+.calendar-milestone-name {
+    color: var(--heading-ivory);
+    word-break: break-word;
+}
+
+@media (max-width: 640px) {
+    .calendar-panel {
+        padding: 20px 14px;
+        gap: 12px;
+    }
+
+    .calendar-panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .calendar-panel-badge {
+        font-size: 10.5px;
+        padding: 3px 9px;
+    }
+
+    .calendar-milestone-item {
+        gap: 8px;
+        font-size: 13.5px;
+    }
+
+    .calendar-milestone-time {
+        min-width: 68px;
+        font-size: 12.5px;
+    }
+}
+
 /* ===================================
    3D Scroll Coverflow Carousel System
    =================================== */
 .scroll-carousel-container {
     position: relative;
     width: 100%;
-    height: 100%;
+    min-height: clamp(520px, calc(100dvh - clamp(100px, 14vh, 150px)), 780px);
+    height: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 0;
     user-select: none;
-    overflow: hidden;
+    overflow: visible;
     cursor: grab;
 }
 
@@ -770,8 +1312,7 @@ body.mode-yugas .yuga-title-img.active {
     position: relative;
     width: 100%;
     flex: 1;
-    min-height: 0;
-    max-height: calc(100dvh - clamp(100px, 13vh, 140px));
+    min-height: clamp(440px, 60vh, 580px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -784,7 +1325,9 @@ body.mode-yugas .yuga-title-img.active {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: min(88vw, 680px);
+    width: min(88vw, 470px);
+    max-height: calc(100dvh - clamp(140px, 18vh, 180px));
+    aspect-ratio: 1128 / 1558;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -858,12 +1401,12 @@ body.mode-yugas .yuga-title-img.active {
     position: relative;
     width: 100%;
     min-height: 430px;
-    background: 
+    background:
         radial-gradient(ellipse at 50% 30%, rgba(184, 148, 90, 0.16) 0%, rgba(38, 24, 15, 0.88) 60%, rgba(10, 8, 6, 0.98) 100%),
         linear-gradient(165deg, rgba(46, 30, 18, 0.95) 0%, rgba(18, 12, 8, 0.98) 100%);
     border: 1px solid var(--border-bronze);
     border-radius: 4px;
-    box-shadow: 
+    box-shadow:
         inset 0 0 0 1px var(--border-bronze),
         inset 0 0 0 5px rgba(8, 10, 12, 0.85),
         inset 0 0 0 6.5px rgba(169, 130, 61, 0.45),
@@ -880,8 +1423,308 @@ body.mode-yugas .yuga-title-img.active {
     user-select: none;
 }
 
+/* Event Carousel Card using custom illustrated eventCard graphic */
+.scroll-card .decree-card-panel {
+    width: 100%;
+    height: 100%;
+    min-height: unset;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px;
+    box-shadow: none !important;
+    padding: clamp(26px, 3.8vw, 42px) clamp(24px, 3.5vw, 38px);
+    overflow: hidden;
+}
+
+.decree-card-bg-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+    z-index: 1;
+    filter: drop-shadow(0 20px 45px rgba(0, 0, 0, 0.95));
+    transition: filter 0.35s ease;
+}
+
+.scroll-card.active .decree-card-bg-img {
+    filter: drop-shadow(0 25px 60px rgba(0, 0, 0, 0.98)) drop-shadow(0 0 24px rgba(201, 164, 92, 0.35));
+}
+
+.scroll-card .decree-corner {
+    display: none;
+}
+
+.scroll-card .decree-inner-frame {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 100%;
+    height: 100%;
+    gap: clamp(6px, 1vh, 12px);
+    padding: clamp(18px, 2.2vh, 28px) clamp(16px, 2vw, 24px);
+    background: radial-gradient(ellipse at 50% 45%, rgba(18, 10, 5, 0.58) 0%, rgba(10, 6, 3, 0.82) 100%);
+    border-radius: 4px;
+    border: 1px solid rgba(201, 164, 92, 0.32);
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 16px rgba(0, 0, 0, 0.45);
+}
+
+/* Top Header Group on Scroll Cards */
+.scroll-card-header-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    margin-top: clamp(0px, 0.5vh, 4px);
+    width: 100%;
+}
+
+.scroll-mythic-crest-box {
+    width: clamp(32px, 3.8vh, 40px);
+    height: clamp(32px, 3.8vh, 40px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: -2px;
+    color: var(--panel-highlight);
+    filter: drop-shadow(0 2px 8px rgba(201, 164, 92, 0.45));
+    pointer-events: none;
+    user-select: none;
+}
+
+.scroll-mythic-crest-box .yuga-mythic-icon {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Custom Golden Fish Center Art for Datathon (Perfect Center Alignment) */
+.scroll-datathon-center-art {
+    width: clamp(280px, 38vw, 420px);
+    max-width: 100%;
+    height: clamp(120px, 16vh, 175px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto clamp(6px, 1vh, 12px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+}
+
+.scroll-datathon-fish-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: rotate(13.5deg) scale(1.18);
+    transform-origin: center center;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Custom Golden Lotus Center Art for Prompt Relay */
+.scroll-prompt-relay-center-art {
+    width: clamp(140px, 18vw, 200px);
+    max-width: 90%;
+    height: clamp(105px, 13.5vh, 150px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto clamp(6px, 1vh, 12px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+}
+
+.scroll-prompt-relay-lotus-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1.12);
+    transform-origin: center center;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Custom Golden Turtle Center Art for Brandathon */
+.scroll-brandathon-center-art {
+    width: clamp(135px, 17vw, 190px);
+    max-width: 90%;
+    height: clamp(110px, 14vh, 155px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto clamp(6px, 1vh, 12px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+}
+
+.scroll-brandathon-turtle-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1.12);
+    transform-origin: center center;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Custom Golden Emblem Center Art for HackMatrix */
+.scroll-hackmatrix-center-art {
+    width: clamp(140px, 18vw, 200px);
+    max-width: 90%;
+    height: clamp(110px, 14vh, 155px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto clamp(6px, 1vh, 12px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+}
+
+.scroll-hackmatrix-art-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1.12);
+    transform-origin: center center;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Custom Golden Peacock Feather Center Art for Capture the Flag (CTF) */
+.scroll-ctf-center-art {
+    width: clamp(220px, 30vw, 320px);
+    max-width: 96%;
+    height: clamp(95px, 12.5vh, 140px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto clamp(6px, 1vh, 12px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+}
+
+.scroll-ctf-feather-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1.15);
+    transform-origin: center center;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Custom Golden Art for Among Us (Bow & Arrow Enlarged & Rotated 90deg anticlockwise) */
+.scroll-among-us-center-art {
+    width: clamp(220px, 28vw, 320px);
+    max-width: 96%;
+    height: clamp(115px, 15vh, 165px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto clamp(4px, 0.8vh, 10px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+}
+
+.scroll-among-us-art-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: rotate(-90deg) scale(1.52);
+    transform-origin: center center;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Custom Golden Rath Center Art for Surprise Event */
+.scroll-surprise-center-art {
+    width: clamp(200px, 26vw, 300px);
+    max-width: 96%;
+    height: clamp(105px, 14vh, 155px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto clamp(4px, 0.8vh, 10px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+}
+
+.scroll-surprise-rath-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1.18);
+    transform-origin: center center;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Custom Golden Mace Center Art for Houdini Heist */
+.scroll-houdini-center-art {
+    width: clamp(140px, 18vw, 200px);
+    max-width: 90%;
+    height: clamp(110px, 14vh, 155px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto clamp(4px, 0.8vh, 10px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+}
+
+.scroll-houdini-gada-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1.15);
+    transform-origin: center center;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+.scroll-card .custom-art-frame,
+.scroll-card .datathon-frame {
+    justify-content: space-evenly;
+    padding-top: clamp(16px, 2.2vh, 26px);
+    padding-bottom: clamp(16px, 2.2vh, 26px);
+}
+
+.scroll-card .decree-title {
+    font-size: clamp(20px, 2.5vw, 30px);
+}
+
+.scroll-card .decree-description {
+    font-size: clamp(21.5px, 1.95vw, 23.5px);
+    max-width: 410px;
+    line-height: 1.35;
+}
+
+.scroll-card .decree-btn-group {
+    gap: 10px;
+    margin-top: 2px;
+}
+
+.scroll-card .decree-btn {
+    padding: 8px 16px;
+    min-width: 120px;
+    font-size: clamp(11px, 0.95vw, 13px);
+}
+
 .scroll-card.active .decree-card-panel:hover {
-    box-shadow: 
+    box-shadow:
         inset 0 0 0 1px var(--panel-highlight),
         inset 0 0 0 5px rgba(8, 10, 12, 0.85),
         inset 0 0 0 6.5px rgba(201, 164, 92, 0.6),
@@ -1079,7 +1922,7 @@ body.mode-yugas .yuga-title-img.active {
     justify-content: center;
     border-radius: 4px;
     overflow: hidden;
-    box-shadow: 
+    box-shadow:
         0 14px 40px rgba(0, 0, 0, 0.85),
         0 0 20px rgba(8, 10, 12, 0.9);
     border: 1px solid var(--border-bronze);
@@ -1226,26 +2069,6 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 @media (max-width: 640px) {
-    .subpage-topbar {
-        padding: 0 10px;
-        height: 52px;
-    }
-
-    .ancient-navbar {
-        padding: 5px 8px;
-        top: 12px;
-        right: 10px;
-    }
-
-    .ancient-nav-link {
-        font-size: 10px;
-        letter-spacing: 0.08em;
-    }
-
-    .ancient-nav-divider {
-        margin: 0 4px;
-    }
-
     .decree-card-panel {
         padding: 18px 14px;
         min-height: 380px;
@@ -2358,6 +3181,7 @@ body.mode-yugas .yuga-title-img.active {
         opacity: 0;
         transform: scale(0.85) rotate(-15deg);
     }
+
     to {
         opacity: 1;
         transform: scale(1) rotate(0deg);
@@ -2371,7 +3195,7 @@ body.mode-yugas .yuga-title-img.active {
     border-radius: 50%;
     background: radial-gradient(circle, rgba(28, 16, 10, 0.82) 0%, rgba(10, 6, 4, 0.92) 100%);
     border: 1.5px solid rgba(201, 164, 92, 0.45);
-    box-shadow: 
+    box-shadow:
         0 14px 40px rgba(0, 0, 0, 0.85),
         0 0 22px rgba(8, 10, 12, 0.7),
         inset 0 0 16px rgba(201, 164, 92, 0.15);
@@ -2385,7 +3209,7 @@ body.mode-yugas .yuga-title-img.active {
 
 .circular-yuga-dial:hover {
     transform: scale(1.05);
-    box-shadow: 
+    box-shadow:
         0 20px 48px rgba(0, 0, 0, 0.9),
         0 0 28px var(--active-glow-gold),
         inset 0 0 20px rgba(201, 164, 92, 0.25);
@@ -2494,16 +3318,19 @@ body.mode-yugas .yuga-title-img.active {
     left: 50%;
     transform: translateX(-50%);
 }
+
 .dial-epoch-node.pos-right {
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
 }
+
 .dial-epoch-node.pos-bottom {
     bottom: 8px;
     left: 50%;
     transform: translateX(-50%);
 }
+
 .dial-epoch-node.pos-left {
     left: 8px;
     top: 50%;
@@ -2529,19 +3356,33 @@ body.mode-yugas .yuga-title-img.active {
 .dial-epoch-node:hover {
     color: var(--heading-ivory);
 }
-.dial-epoch-node.pos-top:hover { transform: translateX(-50%) scale(1.15); }
-.dial-epoch-node.pos-right:hover { transform: translateY(-50%) scale(1.15); }
-.dial-epoch-node.pos-bottom:hover { transform: translateX(-50%) scale(1.15); }
-.dial-epoch-node.pos-left:hover { transform: translateY(-50%) scale(1.15); }
+
+.dial-epoch-node.pos-top:hover {
+    transform: translateX(-50%) scale(1.15);
+}
+
+.dial-epoch-node.pos-right:hover {
+    transform: translateY(-50%) scale(1.15);
+}
+
+.dial-epoch-node.pos-bottom:hover {
+    transform: translateX(-50%) scale(1.15);
+}
+
+.dial-epoch-node.pos-left:hover {
+    transform: translateY(-50%) scale(1.15);
+}
 
 .dial-epoch-node.active {
     color: var(--heading-ivory);
 }
+
 .dial-epoch-node.active .node-icon {
     color: var(--panel-highlight);
     transform: scale(1.25);
     filter: drop-shadow(0 0 6px var(--panel-highlight));
 }
+
 .dial-epoch-node.active .node-label {
     color: var(--heading-ivory);
     text-shadow: 0 0 6px var(--panel-highlight);
@@ -2586,7 +3427,7 @@ body.mode-yugas .yuga-title-img.active {
     background: linear-gradient(180deg, rgba(28, 16, 10, 0.78) 0%, rgba(10, 6, 4, 0.9) 100%);
     border: 1px solid rgba(201, 164, 92, 0.4);
     border-radius: 30px;
-    box-shadow: 
+    box-shadow:
         0 14px 40px rgba(0, 0, 0, 0.85),
         0 0 20px rgba(8, 10, 12, 0.6),
         inset 0 0 12px rgba(201, 164, 92, 0.12);
@@ -2603,6 +3444,7 @@ body.mode-yugas .yuga-title-img.active {
         opacity: 0;
         transform: translateY(-50%) translateX(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(-50%) translateX(0);
@@ -2993,8 +3835,18 @@ body.mode-yugas .yuga-title-img.active {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     text-align: center;
+}
+
+.footer-motto {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(14px, 1.25vw, 17px);
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--heading-ivory);
+    text-shadow: 0 0 10px rgba(201, 164, 92, 0.45), 0 0 20px rgba(201, 164, 92, 0.2);
+    margin: 0;
 }
 
 .footer-credits {
@@ -3011,6 +3863,7 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 @keyframes heartBeat {
+
     0%,
     100% {
         transform: scale(1);
@@ -3173,45 +4026,19 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 /* ==========================================================================
-   Home Page: Yuga Event Showcase Cards (Creative Translucent & 3D Angled)
+   Home Page: Yuga Event Showcase Cards (Mobile Deck & Desktop 3D)
    ========================================================================== */
 
-.yuga-events-showcase {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(95vw, 1200px);
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-    gap: clamp(14px, 2.2vw, 28px);
-    z-index: 22;
-    pointer-events: auto;
-    perspective: 1400px;
-    transform-style: preserve-3d;
-}
-
+/* Base Card & Theme Aura Properties */
 .yuga-decree-card {
-    position: relative;
-    flex: 1 1 0;
-    max-width: 365px;
-    min-width: 260px;
-    /* Translucent Ancient Frosted Obsidian Glass */
     background: linear-gradient(155deg, rgba(28, 18, 12, 0.72) 0%, rgba(12, 7, 5, 0.82) 100%);
     border: 1px solid rgba(201, 164, 92, 0.4);
     border-radius: 6px;
-    padding: clamp(16px, 2vw, 22px) clamp(14px, 1.6vw, 20px);
-    box-shadow: 
+    box-shadow:
         0 18px 45px rgba(0, 0, 0, 0.75),
         0 0 24px rgba(8, 10, 12, 0.6),
         inset 0 1px 0 rgba(232, 216, 176, 0.25),
         inset 0 0 20px rgba(0, 0, 0, 0.4);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-    animation: yugaCardFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
     overflow: hidden;
@@ -3229,152 +4056,431 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 /* ── Epoch Specific Translucent Tints & Auras ── */
-
-/* Satya Yuga (0° - Golden Age of Truth & Lotus Wisdom) */
 .yuga-card-0 {
     border-color: rgba(201, 164, 92, 0.5);
     background: linear-gradient(155deg, rgba(36, 24, 16, 0.72) 0%, rgba(14, 10, 8, 0.82) 100%);
 }
+
 .yuga-card-0:hover {
     border-color: #E8D8B0 !important;
     box-shadow: 0 30px 65px rgba(0, 0, 0, 0.9), 0 0 32px rgba(232, 216, 176, 0.4) !important;
 }
+
 .yuga-card-0 .yuga-mythic-icon {
     color: #E8D8B0;
     filter: drop-shadow(0 0 8px rgba(232, 216, 176, 0.6));
 }
+
 .yuga-card-0 .yuga-card-dharma-badge {
     color: #E8D8B0;
     border-color: rgba(232, 216, 176, 0.5);
 }
 
-/* Treta Yuga (90° - Silver Age of Sacred Solar Valor) */
 .yuga-card-90 {
     border-color: rgba(212, 115, 60, 0.5);
     background: linear-gradient(155deg, rgba(42, 20, 14, 0.74) 0%, rgba(16, 8, 6, 0.84) 100%);
 }
+
 .yuga-card-90:hover {
     border-color: #E28743 !important;
     box-shadow: 0 30px 65px rgba(0, 0, 0, 0.9), 0 0 32px rgba(226, 135, 67, 0.45) !important;
 }
+
 .yuga-card-90 .yuga-mythic-icon {
     color: #E28743;
     filter: drop-shadow(0 0 8px rgba(226, 135, 67, 0.65));
 }
+
 .yuga-card-90 .yuga-card-dharma-badge {
     color: #E28743;
     border-color: rgba(226, 135, 67, 0.5);
 }
 
-/* Dwapara Yuga (180° - Bronze Age of Duality & Sudarshana Strategy) */
 .yuga-card-180 {
     border-color: rgba(100, 140, 195, 0.5);
     background: linear-gradient(155deg, rgba(18, 26, 38, 0.74) 0%, rgba(8, 10, 16, 0.84) 100%);
 }
+
 .yuga-card-180:hover {
     border-color: #8EB0D8 !important;
     box-shadow: 0 30px 65px rgba(0, 0, 0, 0.9), 0 0 32px rgba(142, 176, 216, 0.45) !important;
 }
+
 .yuga-card-180 .yuga-mythic-icon {
     color: #8EB0D8;
     filter: drop-shadow(0 0 8px rgba(142, 176, 216, 0.65));
 }
+
 .yuga-card-180 .yuga-card-dharma-badge {
     color: #8EB0D8;
     border-color: rgba(142, 176, 216, 0.5);
 }
 
-/* Kali Yuga (270° - Iron Age of Quantum Entropy & Kalki Twilight) */
 .yuga-card-270 {
     border-color: rgba(200, 70, 55, 0.5);
     background: linear-gradient(155deg, rgba(38, 14, 14, 0.74) 0%, rgba(14, 6, 6, 0.84) 100%);
 }
+
 .yuga-card-270:hover {
     border-color: #E89078 !important;
     box-shadow: 0 30px 65px rgba(0, 0, 0, 0.9), 0 0 32px rgba(232, 144, 120, 0.45) !important;
 }
+
 .yuga-card-270 .yuga-mythic-icon {
     color: #E89078;
     filter: drop-shadow(0 0 8px rgba(232, 144, 120, 0.65));
 }
+
 .yuga-card-270 .yuga-card-dharma-badge {
     color: #E89078;
     border-color: rgba(232, 144, 120, 0.5);
 }
 
-/* ── Creative 3D Angles & Fan Orientation (Desktop) ── */
+/* ── Desktop 3D Layout (min-width: 961px) ── */
 @media (min-width: 961px) {
-    /* Left Card: Angled inward from left */
-    .yuga-decree-card:nth-child(1) {
-        transform: rotateY(8deg) rotateZ(-1.8deg) translateY(10px) translateZ(-12px);
-        transform-origin: center right;
+    .yuga-events-showcase {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: min(96vw, 1340px);
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+        gap: clamp(90px, 14vw, 240px);
+        z-index: 22;
+        pointer-events: auto;
+        perspective: 1400px;
+        transform-style: preserve-3d;
     }
 
-    /* Center Hero Card: Lifted & Elevated */
-    .yuga-decree-card:nth-child(2) {
-        transform: translateZ(26px) translateY(-8px) scale(1.03);
-        z-index: 5;
-        border-color: rgba(201, 164, 92, 0.5);
-        box-shadow: 
-            0 24px 55px rgba(0, 0, 0, 0.8),
-            0 0 28px rgba(201, 164, 92, 0.25),
-            inset 0 1px 0 rgba(255, 240, 200, 0.35);
-    }
-
-    /* Right Card: Angled inward from right */
-    .yuga-decree-card:nth-child(3) {
-        transform: rotateY(-8deg) rotateZ(1.8deg) translateY(10px) translateZ(-12px);
-        transform-origin: center left;
-    }
-
-    /* Dynamic Hover Elevation & Straightening */
-    .yuga-decree-card:hover {
-        transform: translateY(-16px) translateZ(60px) rotateY(0deg) rotateZ(0deg) scale(1.06) !important;
-        z-index: 20 !important;
-        background: linear-gradient(155deg, rgba(38, 24, 16, 0.72) 0%, rgba(16, 9, 6, 0.82) 100%) !important;
-        backdrop-filter: blur(24px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-        border-color: var(--panel-highlight) !important;
-        box-shadow: 
-            0 30px 65px rgba(0, 0, 0, 0.9),
-            0 0 35px var(--active-glow-gold),
-            inset 0 1px 0 rgba(255, 240, 200, 0.45) !important;
-    }
-
-    /* Subtle focus effect: unfocused cards stay clearly visible without heavy dimming */
-    .yuga-events-showcase:hover .yuga-decree-card:not(:hover) {
-        opacity: 0.90;
-        transform: scale(0.98);
-    }
-}
-
-/* ── 2-Card Layout (Specific for Treta Yuga - Extra Generous Spacing & Elongated Proportion) ── */
-.yuga-showcase-90 {
-    max-width: min(96vw, 1220px);
-    gap: clamp(60px, 11vw, 170px);
-}
-
-.yuga-showcase-90 .yuga-decree-card {
-    min-height: clamp(420px, 48vh, 520px);
-    padding: clamp(20px, 2.4vw, 28px) clamp(18px, 2vw, 24px);
-}
-
-@media (min-width: 961px) {
-    .yuga-showcase-90 .yuga-decree-card {
+    .yuga-decree-card {
+        position: relative;
+        flex: 1 1 0;
         max-width: 425px;
+        min-width: 280px;
+        min-height: clamp(440px, 50vh, 540px);
+        padding: clamp(20px, 2.4vw, 28px) clamp(18px, 2vw, 24px);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 10s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 10s cubic-bezier(0.16, 1, 0.3, 1),
+            border-color 6s ease,
+            filter 6s ease;
+        animation: yugaCardFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        will-change: transform, box-shadow;
     }
-    .yuga-showcase-90 .yuga-decree-card:nth-child(1) {
-        transform: perspective(1200px) rotateY(5deg) rotateZ(-1deg) translateX(-20px) translateY(2px);
+
+    .yuga-decree-card:nth-child(1) {
+        transform: perspective(1200px) translateX(-35px) translateY(2px) translateZ(0px) rotateY(9deg) rotateZ(-2.5deg);
         transform-origin: center right;
     }
-    .yuga-showcase-90 .yuga-decree-card:nth-child(2) {
-        transform: perspective(1200px) rotateY(-5deg) rotateZ(1deg) translateX(20px) translateY(2px);
+
+    .yuga-decree-card:nth-child(1):hover {
+        transform: perspective(1200px) translateX(-35px) translateY(-14px) translateZ(24px) rotateY(9deg) rotateZ(-2.5deg) !important;
+        z-index: 15 !important;
+    }
+
+    .yuga-decree-card:nth-child(2) {
+        transform: perspective(1200px) translateX(35px) translateY(2px) translateZ(0px) rotateY(-9deg) rotateZ(2.5deg);
         transform-origin: center left;
         z-index: 5;
     }
-    .yuga-showcase-90 .yuga-decree-card:hover {
-        transform: perspective(1200px) translateY(-14px) translateZ(40px) rotateY(0deg) rotateZ(0deg) scale(1.04) !important;
+
+    .yuga-decree-card:nth-child(2):hover {
+        transform: perspective(1200px) translateX(35px) translateY(-14px) translateZ(24px) rotateY(-9deg) rotateZ(2.5deg) !important;
         z-index: 15 !important;
+    }
+
+    .mobile-deck-indicator {
+        display: none;
+    }
+}
+
+/* ── Mobile Deck of Cards System (max-width: 960px) ── */
+@media (max-width: 960px) {
+    body.mode-yugas .chakra-container {
+        top: 100%;
+        left: 50%;
+        width: min(85vw, 360px);
+        height: min(85vw, 360px);
+    }
+
+    .yuga-titles-wrapper {
+        top: 64px !important;
+        height: clamp(80px, 14vw, 120px) !important;
+        max-width: min(92vw, 420px) !important;
+        width: min(92vw, 420px) !important;
+    }
+
+    body.mode-yugas .yuga-title-img.active {
+        transform: translate(-50%, -50%) scale(1.22) !important;
+    }
+
+    /* Exactly covers the designated screen area from logo to wheel */
+    .yuga-events-showcase,
+    .yuga-showcase-0,
+    .yuga-showcase-90,
+    .yuga-showcase-180,
+    .yuga-showcase-270 {
+        position: fixed !important;
+        top: calc(64px + clamp(80px, 14vw, 120px) + 8px) !important;
+        bottom: calc(min(85vw, 360px) * 0.44 + 8px) !important;
+        left: clamp(12px, 3.2vw, 24px) !important;
+        right: clamp(12px, 3.2vw, 24px) !important;
+        width: auto !important;
+        max-width: 440px !important;
+        height: auto !important;
+        margin: 0 auto !important;
+        display: block !important;
+        perspective: 1200px !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+        z-index: 22 !important;
+        gap: 0 !important;
+        transform: none !important;
+        touch-action: pan-y !important;
+        overflow: visible !important;
+    }
+
+    .yuga-decree-card,
+    .yuga-showcase-0 .yuga-decree-card,
+    .yuga-showcase-90 .yuga-decree-card,
+    .yuga-showcase-180 .yuga-decree-card,
+    .yuga-showcase-270 .yuga-decree-card {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        padding: clamp(12px, 1.8vh, 18px) clamp(14px, 3.5vw, 20px) !important;
+        box-sizing: border-box !important;
+        transform-origin: center center !important;
+        animation: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        transition: transform 0.42s cubic-bezier(0.2, 0.9, 0.3, 1),
+            opacity 0.42s cubic-bezier(0.2, 0.9, 0.3, 1),
+            box-shadow 0.42s ease,
+            filter 0.42s ease !important;
+        will-change: transform, opacity !important;
+        user-select: none !important;
+    }
+
+    .yuga-decree-inner {
+        height: 100% !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        text-align: center !important;
+        gap: clamp(1px, 0.4vh, 4px) !important;
+        box-sizing: border-box !important;
+    }
+
+    .yuga-card-header-bar {
+        padding-bottom: 2px !important;
+        margin-bottom: 0px !important;
+        width: 100% !important;
+    }
+
+    .yuga-card-sanskrit {
+        font-size: clamp(9.5px, 1.3vh, 11px) !important;
+    }
+
+    .yuga-card-dharma-badge {
+        font-size: clamp(8.5px, 1.1vh, 9.5px) !important;
+    }
+
+    .yuga-mythic-crest-box {
+        width: clamp(24px, 3.2vh, 32px) !important;
+        height: clamp(24px, 3.2vh, 32px) !important;
+        margin: 0 !important;
+    }
+
+    .yuga-decree-tag {
+        font-size: clamp(8.5px, 1.1vh, 9.5px) !important;
+        margin: 0 !important;
+    }
+
+    .yuga-decree-title {
+        font-size: clamp(15px, 2.2vh, 20px) !important;
+        margin: 0 !important;
+        line-height: 1.15 !important;
+    }
+
+    .yuga-decree-subtitle {
+        font-size: clamp(9.5px, 1.2vh, 11px) !important;
+        line-height: 1.15 !important;
+    }
+
+    .decree-ornament-divider {
+        margin: 1px 0 2px !important;
+        max-width: 180px !important;
+    }
+
+    .yuga-card-center-art {
+        max-width: clamp(135px, 34vw, 190px) !important;
+        height: clamp(48px, 6.8vh, 72px) !important;
+        margin: clamp(4px, 0.8vh, 8px) auto !important;
+    }
+
+    .yuga-decree-desc {
+        font-size: clamp(16px, 1.95vh, 18px) !important;
+        line-height: 1.35 !important;
+        margin: 1px 0 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 3 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+    }
+
+    .yuga-card-meta-row {
+        margin: 1px 0 3px 0 !important;
+        font-size: clamp(9.5px, 1.2vh, 11.5px) !important;
+        width: 100% !important;
+    }
+
+    .yuga-decree-actions {
+        display: flex !important;
+        gap: 8px !important;
+        width: 100% !important;
+        justify-content: center !important;
+        margin-top: 1px !important;
+    }
+
+    .yuga-decree-btn {
+        flex: 1 !important;
+        padding: clamp(6px, 1.1vh, 9px) 6px !important;
+        font-size: clamp(10px, 1.2vh, 11.5px) !important;
+        min-width: unset !important;
+        text-align: center !important;
+    }
+
+    /* Front Active Card — takes up ~85% width, anchored left */
+    .yuga-decree-card.deck-front {
+        left: 0 !important;
+        right: 16% !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: auto !important;
+        height: 100% !important;
+        transform: none !important;
+        z-index: 10 !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        filter: none !important;
+        box-shadow: 0 22px 50px rgba(0, 0, 0, 0.96), 0 0 28px rgba(201, 164, 92, 0.32) !important;
+    }
+
+    /* Back Peeking Card — peeks from the right edge */
+    .yuga-decree-card.deck-back {
+        left: auto !important;
+        right: 0 !important;
+        top: 8px !important;
+        bottom: 8px !important;
+        width: 22% !important;
+        height: auto !important;
+        transform: none !important;
+        z-index: 4 !important;
+        opacity: 0.9 !important;
+        filter: brightness(0.65) !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7) !important;
+        border-radius: 10px !important;
+        overflow: hidden !important;
+        animation: swipeHint 1.8s cubic-bezier(0.4, 0, 0.2, 1) 0.7s 2 both !important;
+    }
+
+    .yuga-decree-card.deck-back:active {
+        filter: brightness(0.85) !important;
+        opacity: 1 !important;
+    }
+
+    .yuga-decree-card.deck-back * {
+        pointer-events: none !important;
+    }
+
+    /* Hide cramped content on the peeking back card — it's a visual hint only */
+    .yuga-decree-card.deck-back .yuga-decree-inner,
+    .yuga-decree-card.deck-back .decree-corner {
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
+
+    /* "SWIPE ←" label pointing towards the active front card */
+    .yuga-decree-card.deck-back::after {
+        content: 'SWIPE ↑';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-90deg);
+        white-space: nowrap;
+        font-family: var(--font-title, 'Cinzel Decorative', serif);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: var(--panel-highlight);
+        text-shadow: 0 0 10px rgba(201, 164, 92, 0.8);
+        pointer-events: none;
+        z-index: 20;
+        opacity: 1;
+        animation: swipeTextPulse 1.8s ease-in-out 0.7s 2 both;
+    }
+
+    @keyframes swipeTextPulse {
+        0% {
+            opacity: 0.7;
+        }
+
+        30% {
+            opacity: 1;
+            text-shadow: 0 0 18px rgba(201, 164, 92, 1);
+        }
+
+        60% {
+            opacity: 0.7;
+        }
+
+        100% {
+            opacity: 0.7;
+        }
+    }
+
+    .mobile-deck-indicator {
+        position: absolute;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 25;
+        pointer-events: auto;
+    }
+
+    .mobile-deck-indicator .deck-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(118, 85, 47, 0.6);
+        border: 1px solid var(--btn-border-gold);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-deck-indicator .deck-dot.active {
+        width: 18px;
+        border-radius: 4px;
+        background: var(--heading-ivory);
+        box-shadow: 0 0 10px var(--active-glow-gold);
     }
 }
 
@@ -3383,8 +4489,32 @@ body.mode-yugas .yuga-title-img.active {
         opacity: 0;
         transform: translateY(22px) scale(0.94);
     }
+
     to {
         opacity: 1;
+    }
+}
+
+/* Swipe hint: peek card nudges left to signal it's tappable/swipeable */
+@keyframes swipeHint {
+    0% {
+        transform: translateX(0);
+        opacity: 0.9;
+    }
+
+    30% {
+        transform: translateX(-10px);
+        opacity: 1;
+    }
+
+    60% {
+        transform: translateX(0);
+        opacity: 0.9;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 0.9;
     }
 }
 
@@ -3400,11 +4530,11 @@ body.mode-yugas .yuga-title-img.active {
     gap: 4px;
 }
 
-/* ── Top Header Bar (Sanskrit Lore + Dharma Badge) ── */
+/* ── Top Header Bar (Sanskrit Lore) ── */
 .yuga-card-header-bar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     width: 100%;
     padding-bottom: 4px;
     border-bottom: 1px dashed rgba(118, 85, 47, 0.35);
@@ -3420,7 +4550,8 @@ body.mode-yugas .yuga-title-img.active {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 65%;
+    max-width: 100%;
+    text-align: center;
 }
 
 .yuga-card-dharma-badge {
@@ -3433,6 +4564,18 @@ body.mode-yugas .yuga-title-img.active {
     border: 1px solid var(--border-bronze);
     background: rgba(10, 6, 4, 0.6);
     text-transform: uppercase;
+}
+
+/* ── Top Header Group: Crest + Title ── */
+.yuga-card-header-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 2px;
+    margin-bottom: clamp(6px, 1vh, 12px);
+    gap: 3px;
 }
 
 /* ── Mythic Crest Icon Box ── */
@@ -3496,9 +4639,66 @@ body.mode-yugas .yuga-title-img.active {
     line-height: 1.2;
 }
 
+/* ===================================
+   Yuga Mode Decree Cards Center Art
+   =================================== */
+.yuga-card-center-art {
+    width: 100%;
+    max-width: clamp(170px, 17vw, 235px);
+    height: clamp(75px, 10vh, 110px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: clamp(6px, 1vh, 12px) auto clamp(4px, 0.8vh, 8px) auto;
+    pointer-events: none !important;
+    user-select: none !important;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+.yuga-art-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+.yuga-datathon-fish {
+    transform: rotate(13.5deg) scale(1.22);
+}
+
+.yuga-prompt-relay-lotus {
+    transform: scale(1.18);
+}
+
+.yuga-brandathon-turtle {
+    transform: scale(1.18);
+}
+
+.yuga-hackmatrix-art {
+    transform: scale(1.18);
+}
+
+.yuga-ctf-feather {
+    transform: scale(1.22);
+}
+
+.yuga-among-us-art {
+    transform: rotate(-90deg) scale(1.45);
+}
+
+.yuga-surprise-rath {
+    transform: scale(1.22);
+}
+
+.yuga-houdini-gada {
+    transform: scale(1.22);
+}
+
 .yuga-decree-desc {
     font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: clamp(12.5px, 1.05vw, 14px);
+    font-size: clamp(17.5px, 1.45vw, 19px);
     font-weight: 400;
     font-style: italic;
     color: var(--text-parchment);
@@ -3510,7 +4710,7 @@ body.mode-yugas .yuga-title-img.active {
 .yuga-card-meta-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     width: 100%;
     margin: 2px 0 6px 0;
     gap: 6px;

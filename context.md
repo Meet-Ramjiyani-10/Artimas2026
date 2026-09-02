@@ -75,13 +75,13 @@ The application cycles through four mythological epochs, each mapped to a specif
 | **Satya Yuga** | `0°` / `720°+` | `0°` | `Satyayug.mp4` | Era of Truth, pure golden enlightenment, and genesis. |
 | **Treta Yuga** | `+90°` | `90°` | `Tretayug_enhanced.mp4` | Era of Righteousness, ritual flame, and divine order. |
 | **Dwapara Yuga** | `+180°` | `180°` | `Dwaparayug_enhanced.mp4` | Era of Energy, duality, technological duels, and crucible tests. |
-| **Kali Yuga** | `+270°` | `270°` | `Kalyug.mp4` | Era of Darkness and Transformation, cybernetic future, and cosmic ascendance. |
-
+| **Kali Yuga** | `+270°` | `270°` | `Kalyug_EnhancedR.mp4` | Era of Darkness and Transformation, cybernetic future, and cosmic ascendance. |
+ 
 ---
 
 ## 5. Media & CDN Architecture (`lib/media.ts`)
 
-All media is hosted on Cloudinary (`res.cloudinary.com/qllarlul/`) and managed centrally via [`lib/media.ts`](file:///c:/Users/haric/Desktop/ActualArtimas26/lib/media.ts).
+All media is hosted on Cloudinary (`res.cloudinary.com/qllarlul/`) and managed centrally via [`lib/media.ts`](file:///c:/Users/haric/Desktop/Artimas2026/lib/media.ts).
 
 ### Automated CDN Transformations:
 - `f_auto`: Automatically converts images to WebP/AVIF and videos to H.264/VP9/AV1 based on the client browser.
@@ -91,10 +91,11 @@ All media is hosted on Cloudinary (`res.cloudinary.com/qllarlul/`) and managed c
 ```typescript
 export const MEDIA = {
   videos: {
-    satyug: '.../video/upload/f_auto,q_auto/v1788219763/Satyayug.mp4',
+    intro:  '.../video/upload/v1788276601/I_WANT_THIS_EXACT_SAME_VIDEO_no_watermark.mp4',
+    satyug: '.../video/upload/f_auto,q_auto/v1788258448/SatyaYuga_EnhancedR.mp4',
     treta:  '.../video/upload/f_auto,q_auto/v1788219875/Tretayug_enhanced.mp4',
-    dwapar: '.../video/upload/f_auto,q_auto/v1788219861/Dwaparayug_enhanced.mp4',
-    kalyug: '.../video/upload/f_auto,q_auto/v1788219744/Kalyug.mp4',
+    dwapar: '.../video/upload/f_auto,q_auto/v1788258632/DwaparaYugaEnhancedR.mp4',
+    kalyug: '.../video/upload/f_auto,q_auto/v1788293488/Kalyug_EnhancedR.mp4',
   },
   models: {
     chakraMedallion: '.../image/upload/v1788219745/chakra_medallion.glb',

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MEDIA } from '@/lib/media';
+import { setHasSeenIntro } from '@/lib/introState';
 
 interface IntroVideoOverlayProps {
   onComplete: () => void;
@@ -15,6 +16,10 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
   const handleFinish = () => {
     if (isFadingOut) return;
     setIsFadingOut(true);
+    setHasSeenIntro(true);
+    try {
+      sessionStorage.removeItem('artimas_has_seen_intro');
+    } catch {}
     setTimeout(() => {
       onComplete();
     }, 700);

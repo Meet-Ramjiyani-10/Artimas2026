@@ -3,28 +3,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MEDIA } from '@/lib/media';
 
-const TOTAL_TEAM_MEMBERS = 6;
-const TEAM_ITEMS = Array.from({ length: TOTAL_TEAM_MEMBERS }, (_, i) => ({
+const TOTAL_CARDS = 6;
+const CARDS = Array.from({ length: TOTAL_CARDS }, (_, i) => ({
   id: i,
   index: i + 1,
 }));
 
-export default function TeamCarousel() {
+export default function SponsorsCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
   const isDragging = useRef(false);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const hasDragged = useRef(false);
 
-  const nextCard = useCallback(() => {
-    setActiveIndex(prev => (prev + 1) % TOTAL_TEAM_MEMBERS);
+  const nextScroll = useCallback(() => {
+    setActiveIndex(prev => (prev + 1) % TOTAL_CARDS);
   }, []);
 
-  const prevCard = useCallback(() => {
-    setActiveIndex(prev => (prev - 1 + TOTAL_TEAM_MEMBERS) % TOTAL_TEAM_MEMBERS);
+  const prevScroll = useCallback(() => {
+    setActiveIndex(prev => (prev - 1 + TOTAL_CARDS) % TOTAL_CARDS);
   }, []);
 
-  const goToCard = useCallback((index: number) => {
+  const goToScroll = useCallback((index: number) => {
     setActiveIndex(index);
   }, []);
 
@@ -32,14 +32,14 @@ export default function TeamCarousel() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
-        nextCard();
+        nextScroll();
       } else if (e.key === 'ArrowLeft') {
-        prevCard();
+        prevScroll();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nextCard, prevCard]);
+  }, [nextScroll, prevScroll]);
 
   // Touch & Mouse Drag handlers
   const handleDragStart = (clientX: number) => {
@@ -62,14 +62,14 @@ export default function TeamCarousel() {
     isDragging.current = false;
     const diff = touchStartX.current - touchEndX.current;
     if (Math.abs(diff) > 40) {
-      if (diff > 0) nextCard();
-      else prevCard();
+      if (diff > 0) nextScroll();
+      else prevScroll();
     }
   };
 
   const handleCardClick = (index: number) => {
     if (hasDragged.current) return;
-    goToCard(index);
+    goToScroll(index);
   };
 
   return (
@@ -87,20 +87,20 @@ export default function TeamCarousel() {
       <button
         className="carousel-arrow prev"
         type="button"
-        aria-label="Previous Team Member"
-        onClick={prevCard}
+        aria-label="Previous Sponsor Card"
+        onClick={prevScroll}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </button>
 
-      {/* ── 3D Coverflow Stage (Parchment Event Cards Without Data) ────── */}
+      {/* ── 3D Coverflow Stage (Placeholder Scroll Cards) ──────────────── */}
       <div className="scroll-carousel-stage">
-        {TEAM_ITEMS.map((item, index) => {
+        {CARDS.map((item, index) => {
           let offset = index - activeIndex;
-          if (offset > TOTAL_TEAM_MEMBERS / 2) offset -= TOTAL_TEAM_MEMBERS;
-          if (offset < -TOTAL_TEAM_MEMBERS / 2) offset += TOTAL_TEAM_MEMBERS;
+          if (offset > TOTAL_CARDS / 2) offset -= TOTAL_CARDS;
+          if (offset < -TOTAL_CARDS / 2) offset += TOTAL_CARDS;
 
           const isActive = offset === 0;
           const isPrev = offset === -1;
@@ -162,8 +162,8 @@ export default function TeamCarousel() {
       <button
         className="carousel-arrow next"
         type="button"
-        aria-label="Next Team Member"
-        onClick={nextCard}
+        aria-label="Next Sponsor Card"
+        onClick={nextScroll}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="9 18 15 12 9 6" />
@@ -172,13 +172,13 @@ export default function TeamCarousel() {
 
       {/* ── Pagination Dots Indicator ──────────────────────────────────── */}
       <div className="carousel-pagination">
-        {TEAM_ITEMS.map((item, index) => (
+        {CARDS.map((item, index) => (
           <button
             key={item.id}
             type="button"
             className={`pagination-dot${activeIndex === index ? ' active' : ''}`}
-            aria-label={`Go to team card ${item.index}`}
-            onClick={() => goToCard(index)}
+            aria-label={`Go to sponsor card ${item.index}`}
+            onClick={() => goToScroll(index)}
           />
         ))}
       </div>

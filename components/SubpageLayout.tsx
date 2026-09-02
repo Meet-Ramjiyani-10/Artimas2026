@@ -1,8 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import NavIslands from './NavIslands';
+import LandingFooter from './LandingFooter';
 import { MEDIA } from '@/lib/media';
+import { setHasSeenIntro } from '@/lib/introState';
 
 interface SubpageLayoutProps {
   tag?: string;
@@ -10,6 +13,7 @@ interface SubpageLayoutProps {
   description?: string;
   showHeader?: boolean;
   fullWidth?: boolean;
+  showFooter?: boolean;
   children: React.ReactNode;
 }
 
@@ -17,10 +21,17 @@ export default function SubpageLayout({
   tag,
   title,
   description,
-  showHeader = false,
+  showHeader = true,
   fullWidth = false,
+  showFooter = true,
   children,
 }: SubpageLayoutProps) {
+  useEffect(() => {
+    setHasSeenIntro(true);
+    try {
+      sessionStorage.removeItem('artimas_has_seen_intro');
+    } catch {}
+  }, []);
   return (
     <>
       {/* ── Fixed Top Navbar (Logo + Navigation Islands) ──────────────── */}
@@ -79,6 +90,9 @@ export default function SubpageLayout({
             {children}
           </section>
         </div>
+
+        {/* ── Subpage Footer ─────────────────────────────────────────── */}
+        {showFooter && <LandingFooter />}
       </main>
     </>
   );
