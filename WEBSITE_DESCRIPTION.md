@@ -74,7 +74,7 @@ The festival's visual identity, event categorization, and interactive storytelli
 ### 3. 🟣 Dwapara Yuga — The Age of Strategy & Architectural Mastery
 *The Epoch of complex strategy, epic conflict, and mastery over skill.*
 * **HackMatrix (Golden Emblem)**: A 24-hour overnight hackathon demanding full-stack architectural engineering, rapid prototyping, and scalable system deployment.
-* **Capture the Flag (CTF) (Golden Peacock Feather)**: A cybersecurity proving ground spanning reverse engineering, web security, cryptography, binary exploitation, and digital forensics.
+* **Capture the Flag (Golden Peacock Feather)**: A cybersecurity proving ground spanning reverse engineering, web security, cryptography, binary exploitation, and digital forensics.
 
 ---
 

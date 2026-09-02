@@ -486,6 +486,9 @@ export default function ArtimasScene() {
                         <div className="yuga-mythic-crest-box" aria-hidden="true">
                           <MythicCrestIcon type={evt.mythicCrest || 'lotus'} />
                         </div>
+                        {evt.overheadTitle && (
+                          <span className="yuga-decree-overhead-title">{evt.overheadTitle}</span>
+                        )}
                         <h3 className="yuga-decree-title">{evt.name}</h3>
                       </div>
 

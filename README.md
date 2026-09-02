@@ -123,7 +123,7 @@ Artimas2026/
 | **Pixel Perfect** | Competitive Photography | Satya Yuga | ₹100 | 1 (Solo) | Exciting Rewards |
 | **Prompt Relay** | Generative AI Sprint | Treta Yuga | ₹150 | 1 - 3 | ₹20,000 |
 | **Brandathon** | Design & Strategy | Treta Yuga | ₹150 | 2 - 4 | ₹25,000 |
-| **Capture the Flag (CTF)** | Cybersecurity & War Games | Dwapara Yuga | ₹150 | 1 - 3 | ₹25,000 |
+| **Capture the Flag** | Cybersecurity & War Games | Dwapara Yuga | ₹150 | 1 - 3 | ₹25,000 |
 | **Houdini Heist** | Mystery & Escape Quest | Dwapara Yuga | ₹150 | Exactly 3 | ₹20,000 |
 | **Among Us** | Gaming & Social Deduction | Kali Yuga | ₹50 | 1 (Solo) | ₹10,000 |
 | **HackMatrix** | 24h Hackathon & Engineering | Kali Yuga | ₹150 | 2 - 4 | ₹30,000 |

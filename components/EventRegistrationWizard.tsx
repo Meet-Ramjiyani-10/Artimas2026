@@ -193,6 +193,9 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
             {/* ── Step 0: Team Name Step ── */}
             {step === 0 && !isSuccess && (
               <form onSubmit={handleTeamNameNext} className="reg-form-step">
+                {event.overheadTitle && (
+                  <span className="decree-overhead-title reg-overhead-title">{event.overheadTitle}</span>
+                )}
                 <h1 className="decree-title reg-title">{event.name}</h1>
                 <p className="decree-trial-subtitle reg-subtitle">
                   {event.ruleSubtitle || `${event.category.toUpperCase()} | REGISTRATION`}

@@ -9,6 +9,7 @@ export interface TeamConfig {
 export interface EventItem {
   id: number;
   slug: string;
+  overheadTitle?: string;
   name: string;
   category: string;
   yuga: string;
@@ -120,6 +121,7 @@ export const EVENTS: EventItem[] = [
   {
     id: 4,
     slug: 'brandathon',
+    overheadTitle: 'Abhikalp',
     name: 'Brandathon',
     category: 'Design & Strategy',
     yuga: 'Treta Yuga',
@@ -143,14 +145,15 @@ export const EVENTS: EventItem[] = [
       memberLabelPrefix: 'Member',
       addMemberPrompt: '+ Add Member (Max 4 Members)',
     },
-    aliases: ['brand-thon'],
+    aliases: ['brand-thon', 'abhikalp'],
   },
 
   // ── DWAPARA YUGA: THE BRONZE AGE OF STRATEGY & WARRIORS (2 Events) ──
   {
     id: 8,
     slug: 'capture-the-flag',
-    name: 'Capture the Flag (CTF)',
+    overheadTitle: 'Kurukshetra',
+    name: 'Capture the Flag',
     category: 'Cybersecurity & War Games',
     yuga: 'Dwapara Yuga',
     tagline: 'Celestial Cyber Warfare & Exploitation Arena',
@@ -173,7 +176,7 @@ export const EVENTS: EventItem[] = [
       memberLabelPrefix: 'Member',
       addMemberPrompt: '+ Add Member (Max 3 Members)',
     },
-    aliases: ['ctf'],
+    aliases: ['ctf', 'kurukshetra'],
   },
   {
     id: 9,

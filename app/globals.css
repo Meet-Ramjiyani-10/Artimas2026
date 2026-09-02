@@ -1502,6 +1502,18 @@ body.mode-yugas .yuga-title-img.active {
     word-break: break-word;
 }
 
+.calendar-milestone-overhead {
+    display: block;
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--panel-highlight);
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
 @media (max-width: 640px) {
     .calendar-panel {
         padding: 20px 14px;
@@ -1844,7 +1856,7 @@ body.mode-yugas .yuga-title-img.active {
     user-select: none !important;
 }
 
-/* Custom Golden Peacock Feather Center Art for Capture the Flag (CTF) */
+/* Custom Golden Peacock Feather Center Art for Capture the Flag */
 .scroll-ctf-center-art {
     width: clamp(220px, 30vw, 320px);
     max-width: 96%;
@@ -2039,6 +2051,22 @@ body.mode-yugas .yuga-title-img.active {
 .decree-tag-sparkle {
     font-size: 9px;
     color: var(--border-bronze);
+}
+
+.decree-overhead-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(8.5px, 0.75vw, 10.5px);
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--panel-highlight);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(201, 164, 92, 0.35);
+    line-height: 1.1;
+    margin-bottom: 2px;
+    display: block;
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
 }
 
 .decree-title {
@@ -5734,6 +5762,22 @@ body.mode-yugas .yuga-title-img.active {
 .yuga-decree-tag span {
     font-size: 7px;
     opacity: 0.75;
+}
+
+.yuga-decree-overhead-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(7.5px, 0.65vw, 9.5px);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--panel-highlight);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 6px rgba(201, 164, 92, 0.3);
+    line-height: 1.1;
+    margin-bottom: 1px;
+    display: block;
+    text-align: center;
+    pointer-events: none;
+    user-select: none;
 }
 
 .yuga-decree-title {

@@ -37,6 +37,9 @@ export default async function RulebookPage({ params }: RulebookPageProps) {
             <div className="decree-corner bottom-right" aria-hidden="true" />
 
             <div className="decree-inner-frame rulebook-inner-frame">
+              {event.overheadTitle && (
+                <span className="decree-overhead-title rulebook-overhead-title">{event.overheadTitle}</span>
+              )}
               <h1 className="decree-title rulebook-main-title">{event.name}</h1>
               <p className="decree-trial-subtitle rulebook-subtitle">
                 {event.ruleSubtitle || event.trialSubtitle || 'OFFICIAL RULES & GUIDELINES'}

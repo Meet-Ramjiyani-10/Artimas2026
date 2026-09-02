@@ -12,7 +12,7 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [videoSrc, setVideoSrc] = useState(MEDIA.videos.intro);
+  const [videoSrc, setVideoSrc] = useState<string>(MEDIA.videos.intro);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

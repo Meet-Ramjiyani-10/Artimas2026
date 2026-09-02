@@ -17,7 +17,7 @@ const SCHEDULE_DAYS = [
       { time: '09:30 AM', title: 'Grand Opening Keynote & Guild Assembly' },
       { time: '11:00 AM', title: 'Datathon — The Cosmic Data Odyssey' },
       { time: '02:00 PM', title: 'Prompt Relay — Generative AI Duel' },
-      { time: '04:30 PM', title: 'Brandathon — Brand Genesis Sprint' },
+      { time: '04:30 PM', overhead: 'Abhikalp', title: 'Brandathon — Brand Genesis Sprint' },
       { time: '07:00 PM', title: 'Pixel Perfect — Photography Trial & Visual Showcase' },
     ],
   },
@@ -28,7 +28,7 @@ const SCHEDULE_DAYS = [
     badge: 'Arena & Grand Finale',
     desc: 'The battleground and transformative finale. High-octane tactical challenges, cyber warfare, escape room enigmas, 24-hour hackathons, and closing celebrations.',
     milestones: [
-      { time: '09:00 AM', title: 'Capture the Flag (CTF) — Cyber Warfare Arena' },
+      { time: '09:00 AM', overhead: 'Kurukshetra', title: 'Capture the Flag — Cyber Warfare Arena' },
       { time: '11:30 AM', title: 'Houdini Heist — The Enigma of Escape Room' },
       { time: '02:00 PM', title: 'Among Us — Cosmic Social Deduction Tournament' },
       { time: '04:30 PM', title: 'HackMatrix — Final Prototype Demos & Judging' },
@@ -72,7 +72,12 @@ export default function CalendarPage() {
                   <li key={m.title} className="calendar-milestone-item">
                     <span className="calendar-milestone-dot">◆</span>
                     <span className="calendar-milestone-time">{m.time}</span>
-                    <span className="calendar-milestone-name">{m.title}</span>
+                    <span className="calendar-milestone-name">
+                      {m.overhead && (
+                        <span className="calendar-milestone-overhead">{m.overhead}</span>
+                      )}
+                      {m.title}
+                    </span>
                   </li>
                 ))}
               </ul>

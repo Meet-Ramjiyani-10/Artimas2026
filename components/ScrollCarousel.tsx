@@ -148,6 +148,9 @@ export default function ScrollCarousel() {
                     <div className="scroll-mythic-crest-box" aria-hidden="true">
                       <MythicCrestIcon type={item.event.mythicCrest || 'lotus'} />
                     </div>
+                    {item.event.overheadTitle && (
+                      <span className="decree-overhead-title">{item.event.overheadTitle}</span>
+                    )}
                     <h2 className="decree-title">{item.event.name}</h2>
                   </div>
 
