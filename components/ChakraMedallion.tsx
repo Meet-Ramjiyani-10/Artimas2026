@@ -37,6 +37,7 @@ export default function ChakraMedallion() {
       disable-zoom
       disable-pan
       disable-tap
+      tabIndex={-1}
       shadow-intensity="0"
       exposure="0.8"
       style={{
@@ -46,6 +47,11 @@ export default function ChakraMedallion() {
         display: 'block',
         opacity: isCustomElementReady ? 1 : 0.95,
         transition: 'opacity 0.4s ease',
+        outline: 'none',
+        WebkitTapHighlightColor: 'transparent',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        touchAction: 'manipulation',
       }}
     />
   );

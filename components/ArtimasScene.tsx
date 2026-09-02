@@ -358,7 +358,10 @@ export default function ArtimasScene() {
           />
 
           {/* ── Top-Right Navigation Islands ──────────────────────────────── */}
-          <NavIslands showMobile={isYugasMode} />
+          <NavIslands
+            showMobile={isYugasMode}
+            onLogoClick={isYugasMode ? exitYugasMode : undefined}
+          />
 
           {/* ── Enter Button ──────────────────────────────────────────────── */}
           <button className="enter-btn" type="button" onClick={enterYugasMode}>
@@ -511,9 +514,9 @@ export default function ArtimasScene() {
                         <div className="yuga-card-center-art brandathon-art" aria-hidden="true">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={MEDIA.images.brandathonTurtle}
-                            alt="Brandathon Kurma Golden Turtle"
-                            className="yuga-art-img yuga-brandathon-turtle"
+                            src={MEDIA.images.brandathonRath}
+                            alt="Brandathon Golden Rath"
+                            className="yuga-art-img yuga-brandathon-rath"
                             draggable={false}
                           />
                         </div>
@@ -551,9 +554,9 @@ export default function ArtimasScene() {
                         <div className="yuga-card-center-art surprise-art" aria-hidden="true">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={MEDIA.images.surpriseEventRath}
-                            alt="Surprise Event Golden Rath"
-                            className="yuga-art-img yuga-surprise-rath"
+                            src={MEDIA.images.surpriseEventTurtle}
+                            alt="Surprise Event Kurma Golden Turtle"
+                            className="yuga-art-img yuga-surprise-turtle"
                             draggable={false}
                           />
                         </div>
