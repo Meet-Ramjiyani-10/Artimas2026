@@ -16,7 +16,6 @@ export default function Loading() {
 
         <div className="loader-mantra">॥ कालचक्रं प्रवर्तते ॥</div>
         <h2 className="loader-title">UNVEILING THE REALM</h2>
-        <p className="loader-subtitle">Traversing the Cosmic Dimensions</p>
 
         <div className="loader-progress-track">
           <div className="loader-progress-shimmer" />

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import SubpageLayout from '@/components/SubpageLayout';
-import SponsorsCarousel from '@/components/SponsorsCarousel';
+import SponsorsGrid from '@/components/SponsorsGrid';
 
 export const metadata: Metadata = {
   title: 'Honored Sponsors & Partners • Artimas',
@@ -9,9 +9,15 @@ export const metadata: Metadata = {
 
 export default function SponsorsPage() {
   return (
-    <SubpageLayout showHeader={false} fullWidth={true}>
-      <SponsorsCarousel />
+    <SubpageLayout
+      tag="PATRONS & PARTNERS"
+      title="HONORED SPONSORS"
+      description="The visionary organizations and industry leaders empowering the festival of cosmic epochs."
+      showHeader={true}
+      fullWidth={false}
+      showFooter={true}
+    >
+      <SponsorsGrid />
     </SubpageLayout>
   );
 }
-

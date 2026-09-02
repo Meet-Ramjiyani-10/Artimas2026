@@ -2,16 +2,16 @@
 
 import { MEDIA } from '@/lib/media';
 
-const TOTAL_CARDS = 6;
-const CARDS = Array.from({ length: TOTAL_CARDS }, (_, i) => ({
+const TOTAL_TEAM_MEMBERS = 6;
+const TEAM_ITEMS = Array.from({ length: TOTAL_TEAM_MEMBERS }, (_, i) => ({
   id: i,
   index: i + 1,
 }));
 
-export default function SponsorsCarousel() {
+export default function TeamGrid() {
   return (
-    <div className="decree-showcase-grid" aria-label="Sponsors Grid">
-      {CARDS.map((item, idx) => (
+    <div className="decree-showcase-grid" aria-label="Team Council Grid">
+      {TEAM_ITEMS.map((item, idx) => (
         <div
           key={item.id}
           className="decree-grid-card"
@@ -22,7 +22,7 @@ export default function SponsorsCarousel() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={MEDIA.images.eventCard}
-              alt={`Sponsor Card ${item.index}`}
+              alt={`Team Member Card ${item.index}`}
               className="decree-card-bg-img"
               draggable={false}
               loading="lazy"

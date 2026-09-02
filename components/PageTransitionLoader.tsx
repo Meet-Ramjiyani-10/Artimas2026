@@ -3,25 +3,21 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
-const ROUTE_TITLES: Record<string, { title: string; subtitle: string; mantra: string }> = {
+const ROUTE_TITLES: Record<string, { title: string; mantra: string }> = {
   '/events': {
     title: 'INSCRIBING THE CHRONICLES',
-    subtitle: 'Loading Quests, Trials & Epoch Challenges',
     mantra: '॥ यतो धर्मस्ततो जयः ॥',
   },
   '/sponsors': {
     title: 'SUMMONING OUR PATRONS',
-    subtitle: 'Honoring The Grand Alliances & Visionaries',
     mantra: '॥ सह वीर्यं करवावहै ॥',
   },
   '/team': {
     title: 'ASSEMBLING THE GUILD',
-    subtitle: 'Convening The Council of Architects & Sages',
     mantra: '॥ संघे शक्तिः कलौ युगे ॥',
   },
   '/calendar': {
     title: 'ALIGNING THE TIME DIALS',
-    subtitle: 'Synchronizing Schedule & Cosmic Epochs',
     mantra: '॥ कालचक्रं प्रवर्तते ॥',
   },
 };
@@ -90,7 +86,6 @@ export default function PageTransitionLoader() {
     ? ROUTE_TITLES[activeRouteKey]
     : {
         title: 'UNVEILING THE REALM',
-        subtitle: 'Traversing the Cosmic Dimensions',
         mantra: '॥ कालचक्रं प्रवर्तते ॥',
       };
 
@@ -118,9 +113,8 @@ export default function PageTransitionLoader() {
         {/* Luminous Sanskrit Inscription */}
         <div className="loader-mantra">{meta.mantra}</div>
 
-        {/* Action Title & Subtitle */}
+        {/* Action Title */}
         <h2 className="loader-title">{meta.title}</h2>
-        <p className="loader-subtitle">{meta.subtitle}</p>
 
         {/* Energy Shimmer Progress Bar */}
         <div className="loader-progress-track">

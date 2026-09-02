@@ -41,7 +41,7 @@ const VIDEO_KEY: Record<YugaAngle, string> = {
   270: 'kalyug',
 };
 
-const SCROLL_COOLDOWN_MS = 2000;
+const SCROLL_COOLDOWN_MS = 1200;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -466,7 +466,7 @@ export default function ArtimasScene() {
                   <div
                     key={evt.id}
                     className={`yuga-decree-card yuga-card-${activeYuga} ${isFront ? 'deck-front' : 'deck-back'}`}
-                    style={{ animationDelay: `${idx * 0.12}s` }}
+                    style={{ animationDelay: `${idx * 0.08}s` }}
                     onClick={(e) => {
                       e.stopPropagation();
                       if (!isFront) {

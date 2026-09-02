@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import SubpageLayout from '@/components/SubpageLayout';
-import TeamCarousel from '@/components/TeamCarousel';
+import TeamGrid from '@/components/TeamGrid';
 
 export const metadata: Metadata = {
   title: 'The Council & Leads • Artimas',
@@ -9,8 +9,15 @@ export const metadata: Metadata = {
 
 export default function TeamPage() {
   return (
-    <SubpageLayout showHeader={false} fullWidth={true} showFooter={true}>
-      <TeamCarousel />
+    <SubpageLayout
+      tag="THE ARCHITECTS"
+      title="COUNCIL & LEADS"
+      description="The organizers, developers, designers, and leads orchestrating the Artimas experience."
+      showHeader={true}
+      fullWidth={false}
+      showFooter={true}
+    >
+      <TeamGrid />
     </SubpageLayout>
   );
 }

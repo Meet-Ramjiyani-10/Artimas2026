@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { EVENTS } from '@/lib/events';
 import { MEDIA } from '@/lib/media';
 import MythicCrestIcon from './MythicCrestIcon';
+import LinearEventsSlider from './LinearEventsSlider';
 
 const TOTAL_SCROLLS = EVENTS.length;
+const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 const SCROLL_ITEMS = EVENTS.map((event, i) => ({
   id: event.id,
   index: i + 1,
@@ -239,29 +241,32 @@ export default function ScrollCarousel() {
                     </div>
                   )}
 
-                  {/* Short Description */}
-                  <p className="decree-description">
-                    {item.event.shortDescription || item.event.description}
-                  </p>
+                  {/* Text and Actions Container */}
+                  <div className="decree-bottom-box">
+                    {/* Short Description */}
+                    <p className="decree-description">
+                      {item.event.shortDescription || item.event.description}
+                    </p>
 
-                  {/* Action Buttons: VIEW RULEBOOK & ENTER THE TRIAL */}
-                  <div className="decree-btn-group">
-                    <Link
-                      href={item.event.rulebookUrl}
-                      className="decree-btn rulebook-action-btn"
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={`View Rulebook for ${item.event.name}`}
-                    >
-                      VIEW RULEBOOK
-                    </Link>
-                    <Link
-                      href={item.event.registerUrl}
-                      className="decree-btn register-action-btn"
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={`Enter The Trial for ${item.event.name}`}
-                    >
-                      ENTER THE TRIAL
-                    </Link>
+                    {/* Action Buttons: VIEW RULEBOOK & ENTER THE TRIAL */}
+                    <div className="decree-btn-group">
+                      <Link
+                        href={item.event.rulebookUrl}
+                        className="decree-btn rulebook-action-btn"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`View Rulebook for ${item.event.name}`}
+                      >
+                        VIEW RULEBOOK
+                      </Link>
+                      <Link
+                        href={item.event.registerUrl}
+                        className="decree-btn register-action-btn"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Enter The Trial for ${item.event.name}`}
+                      >
+                        ENTER THE TRIAL
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -305,6 +310,83 @@ export default function ScrollCarousel() {
           />
         ))}
       </div>
+
+      {/* ── Mobile-Only Fast Navigation Rail (Hidden on Desktop) ────────── */}
+      <div className="mobile-events-nav-bar" aria-label="Mobile Events Navigation">
+        {/* Active Event Pill Badge */}
+        <div className="mobile-events-active-badge">
+          <span className="mobile-events-roman">{ROMAN_NUMERALS[activeIndex] || `${activeIndex + 1}`}</span>
+          <span className="mobile-events-name">{SCROLL_ITEMS[activeIndex].event.name}</span>
+        </div>
+
+        {/* Horizontal Navigation Capsule */}
+        <div className="mobile-events-capsule">
+          <button
+            type="button"
+            className="mobile-events-arrow prev"
+            aria-label="Previous Event"
+            onClick={prevScroll}
+          >
+            ◀
+          </button>
+
+          <div
+            className="mobile-events-track"
+            onClick={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const clickX = e.clientX - rect.left;
+              const fraction = Math.max(0, Math.min(1, clickX / rect.width));
+              const targetIdx = Math.min(TOTAL_SCROLLS - 1, Math.floor(fraction * TOTAL_SCROLLS));
+              goToScroll(targetIdx);
+            }}
+          >
+            <div className="mobile-events-rail" />
+            <div
+              className="mobile-events-rail-fill"
+              style={{ width: `${(activeIndex / (TOTAL_SCROLLS - 1)) * 100}%` }}
+            />
+            <div
+              className="mobile-events-thumb"
+              style={{ left: `${(activeIndex / (TOTAL_SCROLLS - 1)) * 100}%` }}
+            >
+              <span className="mobile-events-thumb-gem">✦</span>
+            </div>
+
+            {SCROLL_ITEMS.map((item, idx) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`mobile-events-step${activeIndex === idx ? ' active' : ''}`}
+                style={{ left: `${(idx / (TOTAL_SCROLLS - 1)) * 100}%` }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToScroll(idx);
+                }}
+                aria-label={`Go to ${item.event.name}`}
+              >
+                <div className="mobile-events-pip">
+                  <span className="pip-inner" />
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className="mobile-events-arrow next"
+            aria-label="Next Event"
+            onClick={nextScroll}
+          >
+            ▶
+          </button>
+        </div>
+      </div>
+
+      {/* ── Side Linear Events Fast Navigation Slider ──────────────────── */}
+      <LinearEventsSlider
+        activeIndex={activeIndex}
+        onSelectEvent={goToScroll}
+      />
     </div>
   );
 }

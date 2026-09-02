@@ -9,7 +9,14 @@ export const metadata: Metadata = {
 
 export default function EventsPage() {
   return (
-    <SubpageLayout showHeader={false} fullWidth={true}>
+    <SubpageLayout
+      tag="CHRONICLES & TRIALS"
+      title="EVENTS & CHALLENGES"
+      description="Explore the trials, hackathons, cyber arenas, and creative duels across all four cosmic epochs."
+      showHeader={true}
+      fullWidth={false}
+      showFooter={true}
+    >
       <ScrollCarousel />
     </SubpageLayout>
   );

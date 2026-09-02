@@ -12,6 +12,16 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [videoSrc, setVideoSrc] = useState(MEDIA.videos.intro);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isMobile = window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches;
+      if (isMobile) {
+        setVideoSrc(MEDIA.videos.introMobile);
+      }
+    }
+  }, []);
 
   const handleFinish = () => {
     if (isFadingOut) return;
@@ -34,7 +44,7 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
       vid.muted = true;
       vid.play().catch(() => {});
     });
-  }, []);
+  }, [videoSrc]);
 
   const toggleSound = () => {
     if (videoRef.current) {
@@ -48,7 +58,8 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
     <div className={`intro-video-overlay${isFadingOut ? ' fading-out' : ''}`}>
       <video
         ref={videoRef}
-        src={MEDIA.videos.intro}
+        key={videoSrc}
+        src={videoSrc}
         className="intro-video-player"
         playsInline
         autoPlay

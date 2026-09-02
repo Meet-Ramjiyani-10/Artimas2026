@@ -57,6 +57,9 @@ export default function NavIslands({ showMobile = false, onLogoClick }: NavIslan
 
   return (
     <>
+      {/* ── Subtle Top Header Backdrop Blur ────────────────────────── */}
+      <div className="ancient-top-band desktop-nav-only" aria-hidden="true" />
+
       {/* ── Desktop Navbar (> 768px) ──────────────────────────────────── */}
       <nav className="ancient-navbar desktop-nav-only" aria-label="Main Navigation">
         {desktopLinks.map(({ href, label }, idx) => {

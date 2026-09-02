@@ -8,7 +8,7 @@ const CARDS = Array.from({ length: TOTAL_CARDS }, (_, i) => ({
   index: i + 1,
 }));
 
-export default function SponsorsCarousel() {
+export default function SponsorsGrid() {
   return (
     <div className="decree-showcase-grid" aria-label="Sponsors Grid">
       {CARDS.map((item, idx) => (

@@ -7,6 +7,7 @@
 export const MEDIA = {
   videos: {
     intro: 'https://res.cloudinary.com/qllarlul/video/upload/v1788308031/Video_Project_5.webm',
+    introMobile: 'https://res.cloudinary.com/qllarlul/video/upload/v1788360704/Video_Project_10.webm',
     satyug: 'https://res.cloudinary.com/qllarlul/video/upload/f_auto,q_auto/v1788258448/SatyaYuga_EnhancedR.mp4',
     treta: 'https://res.cloudinary.com/qllarlul/video/upload/f_auto,q_auto/v1788219875/Tretayug_enhanced.mp4',
     dwapar: 'https://res.cloudinary.com/qllarlul/video/upload/f_auto,q_auto/v1788258632/DwaparaYugaEnhancedR.mp4',
