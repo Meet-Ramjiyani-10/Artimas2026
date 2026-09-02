@@ -14,6 +14,12 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
   const [isMuted, setIsMuted] = useState(true);
   const [videoSrc, setVideoSrc] = useState<string>(MEDIA.videos.intro);
 
+  // Initial loader state before video plays
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [isLoaderFading, setIsLoaderFading] = useState(false);
+  const videoReadyRef = useRef(false);
+  const minTimePassedRef = useRef(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const isMobile = window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches;
@@ -35,15 +41,57 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
     }, 700);
   };
 
+  const attemptDismissLoader = () => {
+    if (videoReadyRef.current && minTimePassedRef.current) {
+      setIsLoaderFading(true);
+      setTimeout(() => {
+        setIsVideoLoading(false);
+      }, 600);
+    }
+  };
+
+  // Enforce a smooth minimum duration for the loading animation (800ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      minTimePassedRef.current = true;
+      attemptDismissLoader();
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
+
+    const onReady = () => {
+      videoReadyRef.current = true;
+      attemptDismissLoader();
+    };
+
+    vid.addEventListener('playing', onReady);
+    vid.addEventListener('canplaythrough', onReady);
+    vid.addEventListener('canplay', onReady);
 
     vid.play().catch(() => {
       // Ensure muted autoplay succeeds in all browsers
       vid.muted = true;
       vid.play().catch(() => {});
     });
+
+    // Safety fallback: if buffering is slow, dismiss loader after 3.5s
+    const fallbackTimer = setTimeout(() => {
+      videoReadyRef.current = true;
+      minTimePassedRef.current = true;
+      attemptDismissLoader();
+    }, 3500);
+
+    return () => {
+      vid.removeEventListener('playing', onReady);
+      vid.removeEventListener('canplaythrough', onReady);
+      vid.removeEventListener('canplay', onReady);
+      clearTimeout(fallbackTimer);
+    };
   }, [videoSrc]);
 
   const toggleSound = () => {
@@ -56,6 +104,22 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
 
   return (
     <div className={`intro-video-overlay${isFadingOut ? ' fading-out' : ''}`}>
+      {/* ── Simple Preloader Animation before Video Starts ── */}
+      {isVideoLoading && (
+        <div
+          className={`initial-loader-overlay${isLoaderFading ? ' fade-out' : ''}`}
+          aria-live="polite"
+          aria-label="Loading website"
+        >
+          <div className="initial-loader-content">
+            <div className="initial-loader-spinner" />
+            <p className="initial-loader-text">
+              Loading<span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+            </p>
+          </div>
+        </div>
+      )}
+
       <video
         ref={videoRef}
         key={videoSrc}
@@ -68,27 +132,29 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
         onEnded={handleFinish}
       />
 
-      <div className="intro-controls-bar">
-        {/* Sound Toggle */}
-        <button
-          type="button"
-          className="intro-control-btn sound-btn"
-          onClick={toggleSound}
-          aria-label={isMuted ? "Unmute intro video" : "Mute intro video"}
-        >
-          {isMuted ? "UNMUTE 🔈" : "SOUND ON 🔊"}
-        </button>
+      {!isVideoLoading && (
+        <div className="intro-controls-bar">
+          {/* Sound Toggle */}
+          <button
+            type="button"
+            className="intro-control-btn sound-btn"
+            onClick={toggleSound}
+            aria-label={isMuted ? "Unmute intro video" : "Mute intro video"}
+          >
+            {isMuted ? "UNMUTE 🔈" : "SOUND ON 🔊"}
+          </button>
 
-        {/* Skip Intro Button */}
-        <button
-          type="button"
-          className="intro-control-btn skip-btn"
-          onClick={handleFinish}
-          aria-label="Skip intro video"
-        >
-          SKIP INTRO →
-        </button>
-      </div>
+          {/* Skip Intro Button */}
+          <button
+            type="button"
+            className="intro-control-btn skip-btn"
+            onClick={handleFinish}
+            aria-label="Skip intro video"
+          >
+            SKIP INTRO →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

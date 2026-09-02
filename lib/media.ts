@@ -33,6 +33,14 @@ export const MEDIA = {
     surpriseEventTurtle: 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto/v1788308618/Untitled_-_September_02_2026_at_05.50.44.webp',
     houdiniHeistArt: 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto/v1788310804/Untitled_-_September_02_2026_at_06.29.10.webp',
     chakraRotateBtn: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto/v1788353112/Untitled_-_September_02_2026_at_18.13.57.webp',
+    footerLogos: {
+      aimsa: 'https://res.cloudinary.com/qllarlul/image/upload/v1788372702/xijdufnorzgujqejjosp.webp',
+      gfg: 'https://res.cloudinary.com/qllarlul/image/upload/v1788372702/d5eqjmrvn4lsuztjqwwg.webp',
+      inns: 'https://res.cloudinary.com/qllarlul/image/upload/v1788372702/g49q57qhpnovu6btzgem.webp',
+      aaai: 'https://res.cloudinary.com/qllarlul/image/upload/v1788372802/AAAI.webp',
+      ieeeCs: '/images/footer/ieee_cs.webp',
+      ieeeCis: '/images/footer/ieee_cis_max.webp',
+    },
     yugaTitles: {
       0: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_800,c_limit/v1788219529/Satya_Yuga.png',
       90: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_800,c_limit/v1788219525/Treta_Yuga.png',
