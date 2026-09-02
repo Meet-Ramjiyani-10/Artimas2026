@@ -34,7 +34,7 @@ The festival's visual identity, event categorization, and interactive storytelli
                   │    3D CHAKRA OF TIME (0°)     │
                   │          SATYA YUGA           │
                   │  • Datathon (Matsya)          │
-                  │  • Mystery Trial (Kurma)      │
+                  │  • Pixel Perfect (Kurma)      │
                   └───────────────┬───────────────┘
                                   │
     ┌─────────────────────────────┼─────────────────────────────┐
@@ -60,7 +60,7 @@ The festival's visual identity, event categorization, and interactive storytelli
 ### 1. 🟡 Satya Yuga — The Age of Truth & Pure Intellect
 *The Golden Age of virtue, wisdom, and cosmic equilibrium.*
 * **Datathon (Matsya Golden Fish)**: A data science and predictive machine learning arena challenging participants to uncover truth from massive datasets.
-* **Surprise Event (Kurma Golden Tortoise)**: A mystery multi-stage trial requiring endurance, foundational logic, and adaptive problem solving.
+* **Pixel Perfect (Kurma Golden Tortoise)**: Capture the moment through your lens! Showcase your photography skills and artistic vision in this competitive photography event. Express your creativity and tell stories through stunning images.
 
 ---
 

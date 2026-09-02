@@ -99,7 +99,7 @@ The universe of Artimas revolves around four cosmic epochs. In `mode-yugas`, rot
 
 | Epoch | Angle | Normalized Angle | Video Asset | Mythic Crest | Sanskrit Mantra | Dharma Level | Associated Events |
 |---|---|---|---|---|---|---|---|
-| **Satya Yuga** | `0°` / `720°+` | `0°` | `SatyaYuga_EnhancedR.mp4` | Lotus (`𑁍`) | ॥ सत्यं ज्ञानमनन्तं ब्रह्म ॥ | `4/4` | Datathon, Surprise Event |
+| **Satya Yuga** | `0°` / `720°+` | `0°` | `SatyaYuga_EnhancedR.mp4` | Lotus (`𑁍`) | ॥ सत्यं ज्ञानमनन्तं ब्रह्म ॥ | `4/4` | Datathon, Pixel Perfect |
 | **Treta Yuga** | `+90°` | `90°` | `Tretayug_enhanced.mp4` | Solar (`☼`) | ॥ पराक्रमेण लभ्यते विजयः ॥ | `3/4` | Prompt Relay, Brandathon |
 | **Dwapara Yuga** | `+180°` | `180°` | `DwaparaYugaEnhancedR.mp4` | Chakra (`☸`) | ॥ व्यूहरचना भेदनम् ॥ | `2/4` | Capture the Flag (CTF), Houdini Heist |
 | **Kali Yuga** | `+270°` | `270°` | `Kalyug_EnhancedR.mp4` | Blade (`⚡`) | ॥ अन्तिम रणक्षेत्रम् ॥ | `1/4` | Among Us, HackMatrix |
@@ -130,7 +130,7 @@ export const MEDIA = {
     chakraMedallion: '.../chakra_medallion.glb',
   },
   images: {
-    logo:             '.../f_auto,q_auto,w_500,c_limit/.../logo.png',
+    logo:             '.../f_auto,q_auto,w_800,c_limit/.../artimas_logo.webp',
     bgImage:          '.../f_auto,q_auto,w_1920,c_limit/.../bg_image.png',
     pillar:           '.../layer_1_pillar.png',
     eventCard:        '.../e_trim/f_auto,q_auto,w_950,c_limit/.../event-card.webp',
@@ -209,7 +209,7 @@ export const MEDIA = {
 | Event Slug | Name | Category | Epoch | Fee | Team Size | Prize Pool |
 |---|---|---|---|---|---|---|
 | `datathon` | **Datathon** | Data Science & AI | Satya Yuga | ₹150 | 1 - 2 | ₹30,000 |
-| `surprise-event` | **Surprise Event** | Secret Revelation | Satya Yuga | ₹100 | 1 (Solo) | Exciting Rewards |
+| `pixel-perfect` | **Pixel Perfect** | Competitive Photography | Satya Yuga | ₹100 | 1 (Solo) | Exciting Rewards |
 | `prompt-relay` | **Prompt Relay** | Generative AI Sprint | Treta Yuga | ₹150 | 1 - 3 | ₹20,000 |
 | `brandathon` | **Brandathon** | Design & Strategy | Treta Yuga | ₹150 | 2 - 4 | ₹25,000 |
 | `capture-the-flag` | **Capture the Flag (CTF)** | Cybersecurity & War Games | Dwapara Yuga | ₹150 | 1 - 3 | ₹25,000 |

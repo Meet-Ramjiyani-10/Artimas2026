@@ -210,13 +210,13 @@ export default function ScrollCarousel() {
                         draggable={false}
                       />
                     </div>
-                  ) : item.event.slug === 'surprise-event' ? (
-                    <div className="scroll-surprise-center-art" aria-hidden="true">
+                  ) : (item.event.slug === 'pixel-perfect' || item.event.slug === 'surprise-event') ? (
+                    <div className="scroll-surprise-center-art scroll-pixel-perfect-center-art" aria-hidden="true">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={MEDIA.images.surpriseEventTurtle}
-                        alt="Surprise Event Kurma Golden Turtle"
-                        className="scroll-surprise-turtle-img"
+                        src={MEDIA.images.pixelPerfectTurtle || MEDIA.images.surpriseEventTurtle}
+                        alt="Pixel Perfect Kurma Golden Turtle"
+                        className="scroll-surprise-turtle-img scroll-pixel-perfect-turtle-img"
                         draggable={false}
                       />
                     </div>

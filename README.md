@@ -120,7 +120,7 @@ Artimas2026/
 | Event | Category | Epoch | Entry Fee | Team Size | Prize Pool |
 |---|---|---|---|---|---|
 | **Datathon** | Data Science & AI | Satya Yuga | ₹150 | 1 - 2 | ₹30,000 |
-| **Surprise Event** | Secret Revelation | Satya Yuga | ₹100 | 1 (Solo) | Exciting Rewards |
+| **Pixel Perfect** | Competitive Photography | Satya Yuga | ₹100 | 1 (Solo) | Exciting Rewards |
 | **Prompt Relay** | Generative AI Sprint | Treta Yuga | ₹150 | 1 - 3 | ₹20,000 |
 | **Brandathon** | Design & Strategy | Treta Yuga | ₹150 | 2 - 4 | ₹25,000 |
 | **Capture the Flag (CTF)** | Cybersecurity & War Games | Dwapara Yuga | ₹150 | 1 - 3 | ₹25,000 |

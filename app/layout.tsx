@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Cinzel_Decorative, Cormorant_Garamond } from 'next/font/google';
+import PageTransitionLoader from '@/components/PageTransitionLoader';
 import './globals.css';
 
 const cinzelDecorative = Cinzel_Decorative({
@@ -27,8 +28,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${cinzelDecorative.variable} ${cormorantGaramond.variable}`}>
-      <body>{children}</body>
+    <html
+      lang="en"
+      className={`${cinzelDecorative.variable} ${cormorantGaramond.variable}`}
+      data-scroll-behavior="smooth"
+    >
+      <body>
+        <PageTransitionLoader />
+        {children}
+      </body>
     </html>
   );
 }
