@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createRegistration,
   getRegistration,
+  uploadPaymentScreenshot,
 } = require('../controllers/registrationController');
 const {
   uploadCtfScreenshot,
@@ -22,12 +23,19 @@ const handleOptionalMultipart = (req, res, next) => {
 };
 
 // ── Registration Core Routes ──
-// POST /api/registrations — Create confirmed registration (JSON or FormData, no payment file required)
+// POST /api/registrations — Create confirmed registration (JSON or FormData with payment screenshot)
 router.post(
   '/',
   handleOptionalMultipart,
   validateRegistration,
   createRegistration
+);
+
+// POST /api/registrations/upload-payment-screenshot — Pre-upload payment screenshot
+router.post(
+  '/upload-payment-screenshot',
+  upload.any(),
+  uploadPaymentScreenshot
 );
 
 // GET /api/registrations/:registrationId — Public lookup by Pass ID (non-sensitive)

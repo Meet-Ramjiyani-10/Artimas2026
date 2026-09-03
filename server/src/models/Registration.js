@@ -65,11 +65,35 @@ const registrationSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Preserved for future payment verification workflow (flexible/backward compatible)
+    // Eligibility breakdown (PCCOE vs External)
+    eligibility: {
+      allPccoeEligible: {
+        type: Boolean,
+        default: false,
+      },
+      pccoeMemberCount: {
+        type: Number,
+        default: 0,
+      },
+      totalMemberCount: {
+        type: Number,
+        default: 0,
+      },
+    },
+
+    // Payment fields calculated from official Event fee and PCCOE eligibility
     payment: {
       amount: {
         type: Number,
         default: 0,
+      },
+      required: {
+        type: Boolean,
+        default: false,
+      },
+      reason: {
+        type: String,
+        trim: true,
       },
       screenshotUrl: {
         type: String,
@@ -83,7 +107,6 @@ const registrationSchema = new mongoose.Schema(
       },
       status: {
         type: String,
-        enum: ['NOT_REQUIRED', 'PENDING', 'APPROVED', 'REJECTED'],
         default: 'NOT_REQUIRED',
       },
     },

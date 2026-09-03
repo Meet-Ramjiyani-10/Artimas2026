@@ -11,6 +11,8 @@ const { createTransporter } = require('../config/mail');
  * @param {string} [options.teamName]       Team name (for team events)
  * @param {number} [options.memberCount]    Number of team members
  * @param {string} [options.submissionToken] CTF submission token (for CTF teams)
+ * @param {number} [options.payableAmount]   Calculated registration fee
+ * @param {boolean} [options.paymentRequired] Whether payment is required
  * @returns {Promise<boolean>}              True if email sent, false if skipped/failed
  */
 const sendConfirmationEmail = async ({
@@ -21,6 +23,8 @@ const sendConfirmationEmail = async ({
   teamName,
   memberCount,
   submissionToken,
+  payableAmount = 0,
+  paymentRequired = false,
 }) => {
   const transporter = createTransporter();
 
@@ -92,6 +96,12 @@ const sendConfirmationEmail = async ({
         </tr>
         ${teamLine}
         ${memberLine}
+        <tr style="border-bottom:1px solid #1a1610;">
+          <td style="padding:10px 16px;color:#9a8866;font-size:14px;">Registration Fee</td>
+          <td style="padding:10px 16px;color:#e8d8b0;font-size:14px;font-weight:600;">
+            ${paymentRequired ? `₹${payableAmount} (Payment required)` : '₹0 (No payment required — PCCOE Eligible)'}
+          </td>
+        </tr>
         <tr>
           <td style="padding:10px 16px;color:#9a8866;font-size:14px;">Status</td>
           <td style="padding:10px 16px;color:#3a6b35;font-size:14px;font-weight:700;">✓ CONFIRMED</td>

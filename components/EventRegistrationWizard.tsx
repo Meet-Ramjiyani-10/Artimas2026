@@ -7,7 +7,7 @@ import { EventItem } from '@/lib/events';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-interface MemberData {
+export interface MemberData {
   name: string;
   email: string;
   phone: string;
@@ -19,6 +19,29 @@ interface MemberData {
 type MemberField = keyof MemberData;
 type MemberErrors = Partial<Record<MemberField, string>>;
 type MemberTouched = Partial<Record<MemberField, boolean>>;
+
+interface RegistrationSuccessData {
+  registrationId: string;
+  eventName: string;
+  passId: string;
+  teamName: string;
+  paymentRequired: boolean;
+  payableAmount: number;
+  payment?: {
+    required: boolean;
+    amount: number;
+    status: string;
+    transactionId?: string;
+    screenshotUrl?: string;
+  };
+  eligibility: {
+    allPccoeEligible: boolean;
+    pccoeMemberCount: number;
+    totalMemberCount: number;
+  };
+  status: string;
+  submissionToken?: string;
+}
 
 interface EventRegistrationWizardProps {
   event: EventItem;
@@ -36,6 +59,24 @@ const isValidIndianPhone = (phone: string): boolean => {
   const clean = String(phone).replace(/[\s\-()]/g, '');
   const regex = /^(?:(?:\+91|91|0))?[6-9]\d{9}$/;
   return regex.test(clean);
+};
+
+// ── PCCOE Batch Extraction From Email Only ──
+export const extractPccoeBatch = (email: string): string | null => {
+  if (!email) return null;
+  const trimmed = email.trim().toLowerCase();
+  if (!trimmed.endsWith('@pccoepune.org')) return null;
+  const localPart = trimmed.split('@')[0];
+  const match = localPart.match(/(\d{2})$/);
+  return match ? match[1] : null;
+};
+
+export const ELIGIBLE_PCCOE_BATCHES = ['23', '24', '25', '26'];
+
+export const isMemberPccoeEligible = (member: MemberData): boolean => {
+  if (!member || !member.email) return false;
+  const batch = extractPccoeBatch(member.email);
+  return !!(batch && ELIGIBLE_PCCOE_BATCHES.includes(batch));
 };
 
 export default function EventRegistrationWizard({ event }: EventRegistrationWizardProps) {
@@ -67,7 +108,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   // Multi-step state:
   // Step 0: Team Name / Participant Name
   // Step 1: Member Details
-  // Step 2: Confirmation Decree
+  // Step 2: Confirmation Decree & Payment
   const [step, setStep] = useState<number>(0);
   const [teamName, setTeamName] = useState<string>('');
   const [teamNameTouched, setTeamNameTouched] = useState<boolean>(false);
@@ -82,11 +123,16 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   const [fieldErrors, setFieldErrors] = useState<Record<number, MemberErrors>>({});
   const [fieldTouched, setFieldTouched] = useState<Record<number, MemberTouched>>({});
 
+  // Payment UI state (for Step 2)
+  const [transactionId, setTransactionId] = useState<string>('');
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string>('');
+  const [paymentErrors, setPaymentErrors] = useState<{ transactionId?: string; screenshot?: string }>({});
+
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
-  const [registrationCode, setRegistrationCode] = useState<string>('');
-  const [submissionToken, setSubmissionToken] = useState<string>('');
+  const [registrationResult, setRegistrationResult] = useState<RegistrationSuccessData | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   // ── Single Field Validator ──
@@ -107,6 +153,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       case 'email':
         if (!val) return 'Email ID is required.';
         if (!isValidEmailFormat(val)) return 'Please enter a valid email address.';
+        // Duplicate check within team (case-insensitive)
         for (let i = 0; i < currentMembersList.length; i++) {
           if (i !== memberIdx && currentMembersList[i].email?.trim().toLowerCase() === val.toLowerCase()) {
             return 'This email is already used by another team member.';
@@ -117,7 +164,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       case 'phone':
         if (!val) return 'Phone number is required.';
         if (!isValidIndianPhone(val)) {
-          return 'Please enter a valid 10-digit phone number.';
+          return 'Please enter a valid 10-digit Indian mobile number.';
         }
         const cleanPhone = val.replace(/[\s\-()]/g, '').slice(-10);
         for (let i = 0; i < currentMembersList.length; i++) {
@@ -149,7 +196,14 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
 
   // ── Validate entire member form ──
   const validateMember = (memberIdx: number, membersList: MemberData[] = members): MemberErrors => {
-    const m = membersList[memberIdx] || { name: '', email: '', phone: '', college: '', year: 'FE', branch: '' };
+    const m = membersList[memberIdx] || {
+      name: '',
+      email: '',
+      phone: '',
+      college: '',
+      year: 'FE',
+      branch: '',
+    };
     const errors: MemberErrors = {};
 
     const nameErr = validateSingleField('name', m.name, memberIdx, membersList);
@@ -211,6 +265,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   };
 
   // ── Step 1: Member Field Changes & Blurs ──
+  // Preserve exact casing entered by user for all fields, especially email
   const handleFieldChange = (field: MemberField, value: string) => {
     setMembers((prev) => {
       const updated = [...prev];
@@ -289,7 +344,14 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         const current = members[currentMemberIndex];
         setMembers((prev) => [
           ...prev,
-          { name: '', email: '', phone: '', college: current?.college || '', year: 'FE', branch: '' },
+          {
+            name: '',
+            email: '',
+            phone: '',
+            college: current?.college || '',
+            year: 'FE',
+            branch: '',
+          },
         ]);
       }
       setCurrentMemberIndex(nextIdx);
@@ -336,8 +398,22 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         const last = members[members.length - 1];
         setMembers((prev) => [
           ...prev,
-          { name: '', email: '', phone: '', college: last?.college || '', year: 'FE', branch: '' },
-          { name: '', email: '', phone: '', college: last?.college || '', year: 'FE', branch: '' },
+          {
+            name: '',
+            email: '',
+            phone: '',
+            college: last?.college || '',
+            year: 'FE',
+            branch: '',
+          },
+          {
+            name: '',
+            email: '',
+            phone: '',
+            college: last?.college || '',
+            year: 'FE',
+            branch: '',
+          },
         ]);
         setCurrentMemberIndex(2);
         setStep(1);
@@ -349,7 +425,14 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       const last = members[members.length - 1];
       setMembers((prev) => [
         ...prev,
-        { name: '', email: '', phone: '', college: last?.college || '', year: 'FE', branch: '' },
+        {
+          name: '',
+          email: '',
+          phone: '',
+          college: last?.college || '',
+          year: 'FE',
+          branch: '',
+        },
       ]);
       setCurrentMemberIndex(members.length);
       setStep(1);
@@ -371,6 +454,38 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
     }
   };
 
+  // ── Screenshot File Selection ──
+  const handleScreenshotFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setPaymentErrors((prev) => ({
+        ...prev,
+        screenshot: 'Allowed formats: JPG, JPEG, PNG, or WebP.',
+      }));
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setPaymentErrors((prev) => ({
+        ...prev,
+        screenshot: 'Screenshot size must not exceed 5MB.',
+      }));
+      return;
+    }
+
+    setScreenshotFile(file);
+    setPaymentErrors((prev) => ({ ...prev, screenshot: '' }));
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setScreenshotPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   // ── Step 2: Final Submit ──
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -380,21 +495,61 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       return;
     }
 
+    // Eligibility check
+    const pccoeCount = members.filter(isMemberPccoeEligible).length;
+    const isAllPccoe = pccoeCount === members.length;
+    const paymentRequired = !isAllPccoe && event.fee > 0;
+
+    // Validate payment fields if payment is required
+    if (paymentRequired) {
+      const pErrors: { transactionId?: string; screenshot?: string } = {};
+      if (!transactionId.trim()) {
+        pErrors.transactionId = 'Transaction ID is required for payment verification.';
+      }
+      if (!screenshotFile) {
+        pErrors.screenshot = 'Payment screenshot is required.';
+      }
+
+      if (Object.keys(pErrors).length > 0) {
+        setPaymentErrors(pErrors);
+        setErrorMessage('Please provide both the Transaction ID and Payment Screenshot.');
+        return;
+      }
+    }
+
     setErrorMessage('');
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE}/registrations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventSlug: event.slug,
-          teamName: teamName.trim() || members[0]?.name || '',
-          members,
-        }),
-      });
+      let response: Response;
+
+      if (paymentRequired && screenshotFile) {
+        // Submit using FormData to stream screenshot to Cloudinary
+        const formData = new FormData();
+        formData.append('eventSlug', event.slug);
+        formData.append('teamName', teamName.trim() || members[0]?.name || '');
+        formData.append('members', JSON.stringify(members));
+        formData.append('transactionId', transactionId.trim());
+        formData.append('paymentScreenshot', screenshotFile);
+
+        response = await fetch(`${API_BASE}/registrations`, {
+          method: 'POST',
+          body: formData,
+        });
+      } else {
+        // Submit JSON for ₹0 PCCOE registrations
+        response = await fetch(`${API_BASE}/registrations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            eventSlug: event.slug,
+            teamName: teamName.trim() || members[0]?.name || '',
+            members,
+          }),
+        });
+      }
 
       const data = await response.json();
 
@@ -405,10 +560,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         throw new Error(data.message || 'Registration failed. Please verify your details.');
       }
 
-      setRegistrationCode(data.data.registrationId);
-      if (data.data.submissionToken) {
-        setSubmissionToken(data.data.submissionToken);
-      }
+      setRegistrationResult(data.data);
       setIsSuccess(true);
     } catch (error: any) {
       setErrorMessage(error.message || 'Something went wrong. Please try again.');
@@ -428,6 +580,16 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
 
   const currentErrors = fieldErrors[currentMemberIndex] || {};
   const currentTouched = fieldTouched[currentMemberIndex] || {};
+
+  // Eligibility calculation for step 2 preview
+  const pccoeMemberCount = members.filter(isMemberPccoeEligible).length;
+  const allPccoeEligible = pccoeMemberCount === members.length;
+  const paymentRequired = !allPccoeEligible && event.fee > 0;
+
+  // Derive schedule and location metadata cleanly
+  const scheduleDate = event.dateLocation?.split('·')[0]?.trim() || '18-20 October 2026';
+  const scheduleVenue = event.dateLocation?.split('·')[1]?.trim() || 'PCCOE Campus / Online Arena';
+  const eventTime = '10:00 AM – 05:00 PM IST';
 
   // If registration is closed for this event, render decree closed state
   if (!isCheckingStatus && isRegistrationClosed) {
@@ -563,8 +725,31 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                   <div className="reg-underline" />
                 </div>
 
+                {/* Prominent PCCOE Instruction Banner */}
+                <div
+                  style={{
+                    background: 'rgba(201, 164, 92, 0.12)',
+                    border: '1px solid rgba(201, 164, 92, 0.45)',
+                    borderRadius: '6px',
+                    padding: '10px 14px',
+                    marginBottom: '14px',
+                    fontSize: '13px',
+                    color: '#f0dfba',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    lineHeight: '1.4',
+                    textAlign: 'left',
+                  }}
+                >
+                  <span style={{ fontSize: '16px', color: '#c9a45c' }}>ℹ</span>
+                  <span>
+                    <strong>PCCOE students:</strong> Please use your official PCCOE college email with batch identifier (e.g. <code>name24@pccoepune.org</code>).
+                  </span>
+                </div>
+
                 <div className="reg-fields-grid">
-                  {/* Name */}
+                  {/* Full Name */}
                   <div className="reg-field-wrap">
                     <input
                       type="text"
@@ -580,15 +765,18 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                     )}
                   </div>
 
-                  {/* Email */}
+                  {/* Email ID (Preserves user typed casing) */}
                   <div className="reg-field-wrap">
                     <input
                       type="email"
                       value={members[currentMemberIndex]?.email || ''}
                       onChange={(e) => handleFieldChange('email', e.target.value)}
                       onBlur={() => handleFieldBlur('email')}
-                      placeholder="EMAIL ID"
-                      className={`reg-input full-width ${currentTouched.email && currentErrors.email ? 'reg-input-error' : ''}`}
+                      placeholder="EMAIL ID (e.g. name24@pccoepune.org)"
+                      className={`reg-input reg-input-email full-width ${currentTouched.email && currentErrors.email ? 'reg-input-error' : ''}`}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck="false"
                     />
                     {currentTouched.email && currentErrors.email && (
                       <span className="reg-field-error">⚠ {currentErrors.email}</span>
@@ -610,7 +798,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                     )}
                   </div>
 
-                  {/* Row 3: College, Year, Branch */}
+                  {/* Row 3: College, Academic Year, Branch (No separate admission batch field) */}
                   <div className="reg-row-3">
                     <div className="reg-field-wrap">
                       <input
@@ -690,7 +878,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
               </form>
             )}
 
-            {/* ── Step 2: Confirmation Decree Step ── */}
+            {/* ── Step 2: Confirmation Decree & Payment Step ── */}
             {step === 2 && !isSuccess && (
               <form onSubmit={handleFinalSubmit} noValidate className="reg-form-step">
                 <div className="reg-header-with-line">
@@ -702,6 +890,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                   Trial: <strong style={{ color: '#c9a45c' }}>{event.name}</strong>
                 </p>
 
+                {/* Team & Member Details */}
                 <div
                   style={{
                     background: 'rgba(15, 20, 25, 0.6)',
@@ -719,13 +908,132 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                     Total Members: {members.length} {isCtf ? '(2 or 4 Protocol Verified)' : ''}
                   </p>
                   <ul style={{ margin: 0, paddingLeft: '18px', color: '#c5b18a', fontSize: '13px', lineHeight: '1.6' }}>
-                    {members.map((m, idx) => (
-                      <li key={idx}>
-                        {m.name || `Member ${idx + 1}`} &lt;{m.email}&gt; • {m.phone} — {m.college || 'College'} ({m.year})
-                      </li>
-                    ))}
+                    {members.map((m, idx) => {
+                      const isPccoe = isMemberPccoeEligible(m);
+                      const batch = extractPccoeBatch(m.email);
+                      return (
+                        <li key={idx}>
+                          <strong style={{ color: '#e8d8b0' }}>{m.name || `Member ${idx + 1}`}</strong> &lt;{m.email}&gt; • {m.phone} — {m.college || 'College'} ({m.year}, {m.branch || 'Dept'})
+                          {isPccoe && (
+                            <span style={{ marginLeft: '6px', color: '#4ade80', fontSize: '11px', fontWeight: 600 }}>
+                              [PCCOE Batch 20{batch}]
+                            </span>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
+
+                {/* ── Case 1: PCCOE 100% Free Registrations ── */}
+                {allPccoeEligible && (
+                  <div
+                    style={{
+                      background: 'rgba(34, 197, 94, 0.09)',
+                      border: '1px solid rgba(34, 197, 94, 0.45)',
+                      borderRadius: '8px',
+                      padding: '18px',
+                      margin: '18px 0',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#4ade80', letterSpacing: '1px' }}>
+                        NO PAYMENT REQUIRED
+                      </span>
+                      <span style={{ fontSize: '18px', fontWeight: 700, color: '#4ade80' }}>
+                        ₹0
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#e8d8b0', lineHeight: '1.5' }}>
+                      All team members are verified PCCOE students (Batches 23-26). No payment is required for your entry.
+                    </p>
+                  </div>
+                )}
+
+                {/* ── Case 2: Payment Required (Mixed or External Teams) ── */}
+                {paymentRequired && (
+                  <div className="reg-payment-section">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#facc15', letterSpacing: '1.5px' }}>
+                        PAYMENT REQUIRED
+                      </span>
+                      <span style={{ fontSize: '18px', fontWeight: 700, color: '#e8d8b0' }}>
+                        Registration Fee: ₹{event.fee}
+                      </span>
+                    </div>
+
+                    <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#9a8866', lineHeight: '1.5' }}>
+                      At least one team member is outside the PCCOE eligibility criteria. Standard event registration fee applies to the entire team.
+                    </p>
+
+                    {/* QR Code */}
+                    <div className="reg-qr-wrapper">
+                      <img
+                        src={event.paymentQrUrl || '/images/payment-qr.svg'}
+                        alt="Payment QR Code"
+                        className="reg-qr-img"
+                      />
+                      <p className="reg-qr-instruction">Scan the QR code to make the payment.</p>
+                      <span className="reg-upi-id">UPI ID: {event.upiId || 'artimas2026@upi'}</span>
+                    </div>
+
+                    {/* Transaction ID Input */}
+                    <div className="reg-field-wrap" style={{ marginTop: '16px' }}>
+                      <label style={{ fontSize: '11px', color: '#9a8866', letterSpacing: '1px', marginBottom: '4px' }}>
+                        TRANSACTION ID / UTR NUMBER *
+                      </label>
+                      <input
+                        type="text"
+                        value={transactionId}
+                        onChange={(e) => {
+                          setTransactionId(e.target.value);
+                          if (paymentErrors.transactionId) {
+                            setPaymentErrors((prev) => ({ ...prev, transactionId: '' }));
+                          }
+                        }}
+                        placeholder="ENTER 12-DIGIT TRANSACTION ID"
+                        className={`reg-input reg-input-nocase full-width ${paymentErrors.transactionId ? 'reg-input-error' : ''}`}
+                      />
+                      {paymentErrors.transactionId && (
+                        <span className="reg-field-error">⚠ {paymentErrors.transactionId}</span>
+                      )}
+                    </div>
+
+                    {/* Payment Screenshot Upload */}
+                    <div className="reg-field-wrap" style={{ marginTop: '16px' }}>
+                      <label style={{ fontSize: '11px', color: '#9a8866', letterSpacing: '1px', marginBottom: '4px' }}>
+                        PAYMENT SCREENSHOT *
+                      </label>
+                      <div className="reg-upload-dropzone">
+                        <input
+                          type="file"
+                          id="payment-screenshot-input"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handleScreenshotFileChange}
+                          style={{ display: 'none' }}
+                        />
+                        <label htmlFor="payment-screenshot-input" className="reg-upload-trigger">
+                          {screenshotPreview ? (
+                            <div className="reg-screenshot-preview">
+                              <img src={screenshotPreview} alt="Screenshot Preview" />
+                              <span>Click to change screenshot</span>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#c5b18a', padding: '10px' }}>
+                              <span style={{ fontSize: '24px' }}>📁</span>
+                              <span style={{ fontSize: '13.5px', fontWeight: 600 }}>Click to upload payment screenshot</span>
+                              <span style={{ fontSize: '11px', color: '#9a8866' }}>Supported formats: JPG, JPEG, PNG, WebP (max 5MB)</span>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                      {paymentErrors.screenshot && (
+                        <span className="reg-field-error">⚠ {paymentErrors.screenshot}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <p style={{ color: '#9a8866', fontSize: '12px', textAlign: 'center', margin: '8px 0 20px' }}>
                   Click below to seal your entry. Your registration will be confirmed immediately.
@@ -745,25 +1053,110 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
               </form>
             )}
 
-            {/* ── Success Screen ── */}
+            {/* ── Step 3: Redesigned Simple & Easy-to-Understand Confirmation Page ── */}
             {isSuccess && (
               <div className="reg-success-view">
                 <div className="reg-success-badge">✓</div>
-                <h2 className="reg-success-title">REGISTRATION CONFIRMED!</h2>
-                <p className="reg-success-sub">You have successfully registered for {event.name}.</p>
+                <h2 className="reg-success-title">REGISTRATION CONFIRMED</h2>
+                <p className="reg-success-sub">Your entry into the trial has been sealed in the archives.</p>
 
-                <div className="reg-ticket-box">
-                  <span className="reg-ticket-label">YOUR PASS ID:</span>
-                  <span className="reg-ticket-code">{registrationCode}</span>
+                {/* Main Clean Confirmation Card */}
+                <div className="reg-confirm-card">
+                  <div className="reg-confirm-grid">
+                    <div className="reg-confirm-item">
+                      <span className="reg-confirm-label">Event</span>
+                      <span className="reg-confirm-val" style={{ color: '#c9a45c', fontSize: '17px' }}>
+                        {event.name}
+                      </span>
+                    </div>
+
+                    <div className="reg-confirm-item">
+                      <span className="reg-confirm-label">Pass ID</span>
+                      <span className="reg-confirm-val" style={{ color: '#c9a45c', fontFamily: 'monospace', letterSpacing: '2px', fontSize: '17px' }}>
+                        {registrationResult?.passId || registrationResult?.registrationId}
+                      </span>
+                    </div>
+
+                    <div className="reg-confirm-item">
+                      <span className="reg-confirm-label">{isSolo ? 'Participant' : 'Team'}</span>
+                      <span className="reg-confirm-val">
+                        {registrationResult?.teamName || teamName || members[0]?.name}
+                      </span>
+                    </div>
+
+                    <div className="reg-confirm-item">
+                      <span className="reg-confirm-label">Registration</span>
+                      <span className="reg-confirm-val" style={{ color: '#4ade80' }}>
+                        ✓ Confirmed
+                      </span>
+                    </div>
+
+                    <div className="reg-confirm-item" style={{ gridColumn: '1 / -1' }}>
+                      <span className="reg-confirm-label">Payment</span>
+                      <span
+                        className="reg-confirm-val"
+                        style={{
+                          color: registrationResult?.payment?.required || registrationResult?.paymentRequired ? '#facc15' : '#4ade80',
+                          fontSize: '15px',
+                        }}
+                      >
+                        {registrationResult?.payment?.required || registrationResult?.paymentRequired
+                          ? `₹${registrationResult?.payment?.amount || registrationResult?.payableAmount || event.fee} — Verification Pending`
+                          : 'No payment required'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* EVENT INFORMATION */}
+                  <div className="reg-confirm-section">
+                    <h3 className="reg-confirm-section-title">EVENT INFORMATION</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '13.5px' }}>
+                      <div>
+                        <span style={{ color: '#9a8866' }}>Date:</span>{' '}
+                        <strong style={{ color: '#e8d8b0' }}>{scheduleDate}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#9a8866' }}>Time:</span>{' '}
+                        <strong style={{ color: '#e8d8b0' }}>{eventTime}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: '#9a8866' }}>Venue:</span>{' '}
+                        <strong style={{ color: '#e8d8b0' }}>{scheduleVenue}</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* EVENT TIMELINE */}
+                  <div className="reg-confirm-section">
+                    <h3 className="reg-confirm-section-title">EVENT TIMELINE</h3>
+                    <p style={{ margin: 0, fontSize: '13.5px', color: '#e8d8b0', lineHeight: '1.6' }}>
+                      {event.ruleSubtitle || event.trialSubtitle || 'Round 1: Preliminary Trials • Round 2: Grand Epoch Finals'}
+                    </p>
+                  </div>
+
+                  {/* IMPORTANT */}
+                  <div className="reg-confirm-section">
+                    <h3 className="reg-confirm-section-title">IMPORTANT</h3>
+                    <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#c5b18a', lineHeight: '1.7' }}>
+                      <li>Present your <strong style={{ color: '#e8d8b0' }}>Pass ID: {registrationResult?.passId || registrationResult?.registrationId}</strong> at the venue registration desk.</li>
+                      <li>All participants must carry their original college identity cards.</li>
+                      <li>Please report to the venue at least 15 minutes prior to event commencement.</li>
+                      <li>
+                        {registrationResult?.payment?.required || registrationResult?.paymentRequired
+                          ? 'Your payment screenshot is under verification. Keep your transaction reference handy at the verification desk.'
+                          : 'All team members have been verified under the PCCOE eligibility criteria.'}
+                      </li>
+                    </ul>
+                  </div>
                 </div>
 
-                {isCtf && submissionToken && (
+                {isCtf && registrationResult?.submissionToken && (
                   <div
                     style={{
                       background: 'rgba(10, 14, 20, 0.8)',
                       border: '1px solid #76552f',
                       borderRadius: '6px',
-                      padding: '12px',
+                      padding: '14px',
                       margin: '16px 0',
                       wordBreak: 'break-all',
                     }}
@@ -771,8 +1164,8 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                     <span style={{ color: '#c9a45c', fontSize: '12px', letterSpacing: '1px', fontWeight: 600 }}>
                       CTF SUBMISSION TOKEN:
                     </span>
-                    <p style={{ color: '#e8d8b0', fontFamily: 'monospace', fontSize: '13px', margin: '4px 0 0' }}>
-                      {submissionToken}
+                    <p style={{ color: '#e8d8b0', fontFamily: 'monospace', fontSize: '14px', margin: '4px 0 0' }}>
+                      {registrationResult.submissionToken}
                     </p>
                     <span style={{ color: '#888', fontSize: '11px' }}>
                       (Save this token to submit challenge screenshots during the event)

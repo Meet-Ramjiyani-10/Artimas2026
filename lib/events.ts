@@ -29,6 +29,8 @@ export interface EventItem {
   dharmaLevel?: string;
   prizePool?: string;
   aliases?: string[];
+  paymentQrUrl?: string;
+  upiId?: string;
 }
 
 export const EVENTS: EventItem[] = [

@@ -3653,6 +3653,19 @@ body.mode-yugas .yuga-title-img.active {
     box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8), 0 0 10px var(--active-glow-gold);
 }
 
+/* Preserve user-entered casing for email & transaction IDs */
+.reg-input[type="email"],
+.reg-input.reg-input-email,
+.reg-input-nocase {
+    text-transform: none !important;
+}
+
+.reg-input[type="email"]::placeholder,
+.reg-input.reg-input-email::placeholder,
+.reg-input-nocase::placeholder {
+    text-transform: none !important;
+}
+
 /* ── Field Validation & Inline Errors ── */
 .reg-field-wrap {
     width: 100%;
@@ -3718,10 +3731,162 @@ body.mode-yugas .yuga-title-img.active {
     width: 100%;
 }
 
+.reg-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+
 @media (max-width: 580px) {
-    .reg-row-3 {
+    .reg-row-3,
+    .reg-row-2 {
         grid-template-columns: 1fr;
     }
+}
+
+/* ── Payment Section Styling ── */
+.reg-payment-section {
+    background: rgba(15, 20, 26, 0.7);
+    border: 1px solid rgba(201, 164, 92, 0.35);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 18px 0;
+    text-align: left;
+}
+
+.reg-qr-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(8, 11, 15, 0.85);
+    border: 1px solid rgba(118, 85, 47, 0.5);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px auto;
+    max-width: 260px;
+    text-align: center;
+}
+
+.reg-qr-img {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    border-radius: 6px;
+    border: 1px solid rgba(201, 164, 92, 0.3);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+.reg-qr-instruction {
+    font-size: 12.5px;
+    color: #c5b18a;
+    margin: 10px 0 4px;
+    letter-spacing: 0.5px;
+}
+
+.reg-upi-id {
+    font-size: 11px;
+    color: #9a8866;
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+.reg-upload-dropzone {
+    border: 1px dashed rgba(201, 164, 92, 0.5);
+    background: rgba(10, 14, 20, 0.6);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.reg-upload-dropzone:hover {
+    border-color: #c9a45c;
+    background: rgba(15, 22, 30, 0.8);
+}
+
+.reg-upload-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 100%;
+}
+
+.reg-screenshot-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.reg-screenshot-preview img {
+    max-width: 180px;
+    max-height: 120px;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid #76552f;
+}
+
+.reg-screenshot-preview span {
+    font-size: 11.5px;
+    color: #c9a45c;
+    text-decoration: underline;
+}
+
+/* ── Redesigned Clean Confirmation Page ── */
+.reg-confirm-card {
+    background: rgba(10, 14, 20, 0.88);
+    border: 1px solid #76552f;
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
+    text-align: left;
+    color: #c5b18a;
+}
+
+.reg-confirm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px 20px;
+    margin-bottom: 22px;
+}
+
+.reg-confirm-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.reg-confirm-label {
+    font-size: 11px;
+    color: #9a8866;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.reg-confirm-val {
+    font-size: 15px;
+    color: #e8d8b0;
+    font-weight: 600;
+}
+
+.reg-confirm-section {
+    border-top: 1px solid rgba(118, 85, 47, 0.35);
+    padding-top: 16px;
+    margin-top: 16px;
+}
+
+.reg-confirm-section-title {
+    font-size: 12px;
+    color: #c9a45c;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+    font-weight: 700;
 }
 
 /* ── Action Buttons ── */

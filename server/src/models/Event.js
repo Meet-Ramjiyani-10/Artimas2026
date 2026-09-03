@@ -139,6 +139,16 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    paymentQrUrl: {
+      type: String,
+      default: '/images/payment-qr.png',
+      trim: true,
+    },
+    upiId: {
+      type: String,
+      default: 'artimas2026@upi',
+      trim: true,
+    },
     prizePool: {
       type: String,
       trim: true,

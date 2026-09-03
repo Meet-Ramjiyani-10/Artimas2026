@@ -1,6 +1,8 @@
+const path = require('path');
 const crypto = require('crypto');
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
+const { uploadToCloudinary } = require('../config/cloudinary');
 const generateRegistrationId = require('../utils/generateRegistrationId');
 const sendConfirmationEmail = require('../utils/sendConfirmationEmail');
 
@@ -35,6 +37,38 @@ const normalizeIndianMobile = (phone) => {
   if (cleaned.startsWith('91') && cleaned.length === 12) return cleaned.slice(2);
   if (cleaned.startsWith('0') && cleaned.length === 11) return cleaned.slice(1);
   return cleaned;
+};
+
+/**
+ * Extract 2-digit batch year from official PCCOE email.
+ * E.g., "meet.ramjiyani24@pccoepune.org" -> "24"
+ * E.g., "alex23@pccoepune.org" -> "23"
+ * E.g., "senior22@pccoepune.org" -> "22"
+ */
+const extractPccoeBatch = (email) => {
+  if (!email || typeof email !== 'string') return null;
+  const trimmed = email.trim().toLowerCase();
+  if (!trimmed.endsWith('@pccoepune.org')) return null;
+  const localPart = trimmed.split('@')[0];
+  const match = localPart.match(/(\d{2})$/);
+  return match ? match[1] : null;
+};
+
+/**
+ * Eligible PCCOE batch numbers: 23, 24, 25, 26
+ */
+const ELIGIBLE_PCCOE_BATCHES = ['23', '24', '25', '26'];
+
+/**
+ * Determine if an individual participant qualifies as an eligible PCCOE student:
+ * 1. Email ends with @pccoepune.org
+ * 2. Embedded 2-digit batch is one of 23, 24, 25, 26
+ * Note: Purely determined from official email, independent of any college dropdown.
+ */
+const isMemberPccoeEligible = (member) => {
+  if (!member || !member.email) return false;
+  const batch = extractPccoeBatch(member.email);
+  return ELIGIBLE_PCCOE_BATCHES.includes(batch);
 };
 
 /**
@@ -122,6 +156,11 @@ const validateMemberAgainstFields = (member, eventFields, prefix) => {
       errors.push(`${prefix}: Valid 10-digit Indian mobile number starting with 6-9 is required`);
     }
   }
+  if (!member.college || String(member.college).trim().length === 0) {
+    if (!errors.some((e) => e.includes('college') || e.includes('College'))) {
+      errors.push(`${prefix}: College name is required`);
+    }
+  }
 
   return errors;
 };
@@ -142,13 +181,18 @@ const sanitizeMemberData = (member, eventFields) => {
       sanitized[field.name] = val;
     }
   }
-  // Ensure primary fields are included
+  // Ensure primary fields are included — PRESERVE user's entered email casing
   if (member.name) sanitized.name = String(member.name).trim();
-  if (member.email) sanitized.email = String(member.email).trim().toLowerCase();
+  if (member.email) sanitized.email = String(member.email).trim();
   if (member.phone) sanitized.phone = normalizeIndianMobile(member.phone);
   if (member.college) sanitized.college = String(member.college).trim();
   if (member.year) sanitized.year = String(member.year).trim();
   if (member.branch) sanitized.branch = String(member.branch).trim();
+
+  const pccoeBatch = extractPccoeBatch(member.email);
+  if (pccoeBatch) {
+    sanitized.batch = `20${pccoeBatch}`;
+  }
 
   return sanitized;
 };
@@ -334,11 +378,104 @@ const createRegistration = async (req, res, next) => {
       }
     }
 
-    // ── 6. Generate IDs and Submission Token ──
+    // ── 6. Calculate PCCOE Eligibility & Payment (Independently on Backend) ──
+    const pccoeMemberCount = sanitizedMembers.filter((m) => isMemberPccoeEligible(m)).length;
+    const allPccoeEligible = pccoeMemberCount === sanitizedMembers.length;
+
+    let payableAmount = 0;
+    let paymentRequired = false;
+    let paymentReason = '';
+    let paymentStatus = 'NOT_REQUIRED';
+    let transactionId = (req.body.transactionId || '').trim();
+    let screenshotUrl = (req.body.screenshotUrl || '').trim();
+    let screenshotPublicId = '';
+
+    if (allPccoeEligible) {
+      payableAmount = 0;
+      paymentRequired = false;
+      paymentReason = isTeamEvent
+        ? 'All team members are eligible PCCOE students'
+        : 'Participant is an eligible PCCOE student';
+      paymentStatus = 'NOT_REQUIRED';
+      // For PCCOE registrations where amount = 0: Do NOT require transaction ID or payment screenshot
+      transactionId = '';
+      screenshotUrl = '';
+    } else {
+      // Official registrationFee retrieved directly from the Event document in MongoDB
+      payableAmount = Number(event.registrationFee) || 0;
+      paymentRequired = payableAmount > 0;
+      paymentReason = isTeamEvent
+        ? 'Team contains a non-eligible PCCOE participant'
+        : 'Participant is outside the PCCOE eligibility criteria';
+      paymentStatus = paymentRequired ? 'PENDING' : 'NOT_REQUIRED';
+
+      if (paymentRequired) {
+        // Enforce Transaction ID
+        if (!transactionId) {
+          return res.status(400).json({
+            success: false,
+            message: 'Transaction ID is required for paid registrations.',
+          });
+        }
+
+        // Check for uploaded file in req.files or req.file
+        let uploadedFile = null;
+        if (req.file) {
+          uploadedFile = req.file;
+        } else if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+          uploadedFile =
+            req.files.find(
+              (f) =>
+                f.fieldname === 'paymentScreenshot' ||
+                f.fieldname === 'screenshot' ||
+                f.fieldname === 'file'
+            ) || req.files[0];
+        }
+
+        if (uploadedFile) {
+          const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
+          const fileExt = path.extname(uploadedFile.originalname).toLowerCase();
+          if (!allowedExts.includes(fileExt)) {
+            return res.status(400).json({
+              success: false,
+              message: `Invalid payment screenshot format (${fileExt}). Allowed formats: JPG, JPEG, PNG, WebP.`,
+            });
+          }
+
+          if (uploadedFile.size > 5 * 1024 * 1024) {
+            return res.status(400).json({
+              success: false,
+              message: 'Payment screenshot file size exceeds 5MB limit.',
+            });
+          }
+
+          try {
+            const uploadResult = await uploadToCloudinary(uploadedFile.buffer, {
+              folder: `artimas26/payments`,
+            });
+            screenshotUrl = uploadResult.secure_url;
+            screenshotPublicId = uploadResult.public_id;
+          } catch (uploadErr) {
+            console.error('Cloudinary payment upload error:', uploadErr.message);
+            return res.status(500).json({
+              success: false,
+              message: 'Failed to upload payment screenshot. Please try again.',
+            });
+          }
+        } else if (!screenshotUrl) {
+          return res.status(400).json({
+            success: false,
+            message: 'Payment screenshot is required for paid registrations.',
+          });
+        }
+      }
+    }
+
+    // ── 7. Generate IDs and Submission Token ──
     const registrationId = await generateRegistrationId();
     const submissionToken = `st_${crypto.randomBytes(18).toString('hex')}`;
 
-    // ── 7. Save Registration in MongoDB (status: CONFIRMED) ──
+    // ── 8. Save Registration in MongoDB (status: CONFIRMED) ──
     const registration = await Registration.create({
       registrationId,
       eventId: event._id,
@@ -348,14 +485,24 @@ const createRegistration = async (req, res, next) => {
       participantData: sanitizedMembers,
       submissionToken,
       status: 'CONFIRMED',
+      eligibility: {
+        allPccoeEligible,
+        pccoeMemberCount,
+        totalMemberCount: sanitizedMembers.length,
+      },
       payment: {
-        amount: event.registrationFee,
-        status: 'NOT_REQUIRED',
+        amount: payableAmount,
+        required: paymentRequired,
+        reason: paymentReason,
+        status: paymentStatus,
+        transactionId: transactionId || undefined,
+        screenshotUrl: screenshotUrl || undefined,
+        screenshotPublicId: screenshotPublicId || undefined,
       },
       emailStatus: 'PENDING',
     });
 
-    // ── 8. Dispatch Confirmation Email (Non-blocking, after successful MongoDB save) ──
+    // ── 9. Dispatch Confirmation Email (Non-blocking, after successful MongoDB save) ──
     const recipientEmail = sanitizedMembers[0]?.email;
     const recipientName = sanitizedMembers[0]?.name || registration.teamName;
 
@@ -368,6 +515,8 @@ const createRegistration = async (req, res, next) => {
         teamName: isTeamEvent ? registration.teamName : undefined,
         memberCount: sanitizedMembers.length,
         submissionToken: event.slug === 'capture-the-flag' ? registration.submissionToken : undefined,
+        payableAmount,
+        paymentRequired,
       })
         .then(async (sent) => {
           registration.emailStatus = sent ? 'SENT' : 'FAILED';
@@ -382,19 +531,31 @@ const createRegistration = async (req, res, next) => {
         });
     }
 
-    // ── 9. Return Confirmed Registration Details to Frontend ──
+    // ── 10. Return Confirmed Registration Details to Frontend ──
     res.status(201).json({
       success: true,
       message: 'Registration confirmed successfully',
       data: {
         registrationId: registration.registrationId,
-        submissionToken: registration.submissionToken,
         eventName: event.name,
-        eventSlug: event.slug,
+        passId: registration.registrationId,
         teamName: registration.teamName,
+        paymentRequired,
+        payableAmount,
+        payment: {
+          required: paymentRequired,
+          amount: payableAmount,
+          status: paymentStatus,
+          transactionId: registration.payment?.transactionId,
+          screenshotUrl: registration.payment?.screenshotUrl,
+        },
+        eligibility: {
+          allPccoeEligible,
+          pccoeMemberCount,
+          totalMemberCount: sanitizedMembers.length,
+        },
         status: registration.status,
-        memberCount: sanitizedMembers.length,
-        createdAt: registration.createdAt,
+        submissionToken: registration.submissionToken,
       },
     });
   } catch (error) {
@@ -443,6 +604,10 @@ const getRegistration = async (req, res, next) => {
           ? registration.participantData.length
           : 1,
         status: registration.status,
+        paymentRequired: registration.payment?.required || false,
+        payableAmount: registration.payment?.amount || 0,
+        paymentStatus: registration.payment?.status || 'NOT_REQUIRED',
+        eligibility: registration.eligibility,
         createdAt: registration.createdAt,
       },
     });
@@ -451,4 +616,52 @@ const getRegistration = async (req, res, next) => {
   }
 };
 
-module.exports = { createRegistration, getRegistration };
+/**
+ * @desc    Upload payment screenshot directly to Cloudinary
+ * @route   POST /api/registrations/upload-payment-screenshot
+ * @access  Public
+ */
+const uploadPaymentScreenshot = async (req, res, next) => {
+  try {
+    const file = req.file || (req.files && req.files[0]);
+    if (!file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment screenshot file is required',
+      });
+    }
+
+    const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    if (!allowedExts.includes(fileExt)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid file format (${fileExt}). Allowed formats: JPG, JPEG, PNG, WebP.`,
+      });
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment screenshot file size exceeds 5MB limit.',
+      });
+    }
+
+    const uploadResult = await uploadToCloudinary(file.buffer, {
+      folder: 'artimas26/payments',
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment screenshot uploaded successfully',
+      data: {
+        url: uploadResult.secure_url,
+        publicId: uploadResult.public_id,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { createRegistration, getRegistration, uploadPaymentScreenshot };
