@@ -7,6 +7,7 @@ import NavIslands from './NavIslands';
 import LandingFooter from './LandingFooter';
 import IntroVideoOverlay from './IntroVideoOverlay';
 import LinearYugaSlider from './LinearYugaSlider';
+import MythicCrestIcon from './MythicCrestIcon';
 import { MEDIA } from '@/lib/media';
 import { EVENTS } from '@/lib/events';
 import { getHasSeenIntro, setHasSeenIntro } from '@/lib/introState';
@@ -61,62 +62,6 @@ function normalizeToYuga(angle: number): YugaAngle {
   return (snapped as YugaAngle);
 }
 
-// ─── Mythic Crest Icons for Each Yuga Epoch ──────────────────────────────────
-
-function MythicCrestIcon({ type }: { type: 'lotus' | 'solar' | 'chakra' | 'blade' }) {
-  if (type === 'lotus') {
-    // Satya Yuga: Sacred Celestial Lotus & Triad Mandalas
-    return (
-      <svg viewBox="0 0 48 48" className="yuga-mythic-icon lotus-icon" fill="none">
-        <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1" strokeDasharray="2 3" opacity="0.6" />
-        <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="1.2" />
-        <path d="M24 8 C28 15 34 18 34 24 C34 30 24 38 24 38 C24 38 14 30 14 24 C14 18 20 15 24 8 Z" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.2" />
-        <path d="M16 16 C22 20 26 22 28 28 C22 30 18 26 16 16 Z" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1" />
-        <path d="M32 16 C26 20 22 22 20 28 C26 30 30 26 32 16 Z" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1" />
-        <circle cx="24" cy="24" r="3" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  if (type === 'solar') {
-    // Treta Yuga: Radiant Surya Sunburst & Sacred Valor Arc
-    return (
-      <svg viewBox="0 0 48 48" className="yuga-mythic-icon solar-icon" fill="none">
-        <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" opacity="0.6" />
-        <circle cx="24" cy="24" r="10" stroke="currentColor" strokeWidth="1.4" fill="currentColor" fillOpacity="0.2" />
-        <path d="M24 4 L24 10 M24 38 L24 44 M4 24 L10 24 M38 24 L44 24 M10 10 L15 15 M33 33 L38 38 M10 38 L15 33 M33 15 L38 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <polygon points="24,17 26,22 31,24 26,26 24,31 22,26 17,24 22,22" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  if (type === 'chakra') {
-    // Dwapara Yuga: Sudarshana Chakra & Duality Battlefield Blades
-    return (
-      <svg viewBox="0 0 48 48" className="yuga-mythic-icon chakra-icon" fill="none">
-        <circle cx="24" cy="24" r="21" stroke="currentColor" strokeWidth="1.2" />
-        <circle cx="24" cy="24" r="17" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" opacity="0.7" />
-        <circle cx="24" cy="24" r="6" stroke="currentColor" strokeWidth="1.4" fill="currentColor" fillOpacity="0.3" />
-        <path d="M24 3 L24 45 M3 24 L45 24 M9 9 L39 39 M9 39 L39 9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.85" />
-        <circle cx="24" cy="24" r="2" fill="currentColor" />
-        <circle cx="24" cy="3" r="1.5" fill="currentColor" />
-        <circle cx="24" cy="45" r="1.5" fill="currentColor" />
-        <circle cx="3" cy="24" r="1.5" fill="currentColor" />
-        <circle cx="45" cy="24" r="1.5" fill="currentColor" />
-      </svg>
-    );
-  }
-
-  // Kali Yuga: Kalki Twilight Star & Flaming Lightning Blade
-  return (
-    <svg viewBox="0 0 48 48" className="yuga-mythic-icon blade-icon" fill="none">
-      <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="1" strokeDasharray="1 3" opacity="0.5" />
-      <path d="M24 4 L28 18 L42 24 L28 30 L24 44 L20 30 L6 24 L20 18 Z" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M24 8 L24 40 M8 24 L40 24" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
-      <circle cx="24" cy="24" r="3.5" fill="currentColor" />
-    </svg>
-  );
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -126,6 +71,7 @@ export default function ArtimasScene() {
   const [wheelEmerging, setWheelEmerging] = useState(false);
   const [isYugasMode, setIsYugasMode] = useState(false);
   const [activeYuga, setActiveYuga] = useState<YugaAngle | null>(null);
+  const [cardsReady, setCardsReady] = useState(false);
   const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
 
   // Fetch live registration open/closed status from API
@@ -220,7 +166,7 @@ export default function ArtimasScene() {
     document.body.classList.toggle('mode-yugas', isYugasMode);
     isYugasModeRef.current = isYugasMode;
 
-    if (isYugasMode && chakraRef.current) {
+    if (isYugasMode && chakraRef.current && !chakraRef.current.classList.contains('chakra-descending')) {
       const el = chakraRef.current;
       void el.offsetWidth; // force reflow
       el.style.transform = `translate(-50%, -50%) rotate(${chakraAngle.current}deg)`;
@@ -257,20 +203,43 @@ export default function ArtimasScene() {
       return;
     }
 
-    // 1. Freeze CSS rotation at current angle
+    // 1. Freeze CSS rotation at current angle and disable spinning keyframe
     const currentAngle = getRotationAngle(el);
+    el.style.animation = 'none';
+    el.style.transition = 'none';
     el.style.transform = `translate(-50%, -50%) rotate(${currentAngle}deg)`;
+    void el.offsetWidth; // Force browser to register frozen state
 
-    // 2. Compute snap target (at least 720° ahead, aligned with 315° = Satya Yuga)
-    let target = 720 + 315;
-    while (target <= currentAngle) target += 360;
+    // 2. Compute stately forward rotation to Satya Yuga (aligned at 315°):
+    // Completes 1 full graceful turn (360°) plus alignment delta
+    const norm = ((currentAngle % 360) + 360) % 360;
+    const forwardDiff = (315 - norm + 360) % 360;
+    const target = currentAngle + forwardDiff + 360;
     chakraAngle.current = target;
 
-    // 3. Set state and play Satya Yuga video
-    setIsYugasMode(true);
-    setActiveYuga(normalizeToYuga(target));
+    // 3. Trigger the slow, synchronized 2.4s descent transition in next animation frame
+    requestAnimationFrame(() => {
+      el.classList.add('chakra-descending');
+      el.style.transition = 'transform 2.4s cubic-bezier(0.16, 1, 0.3, 1), top 2.4s cubic-bezier(0.16, 1, 0.3, 1)';
+      el.style.transform = `translate(-50%, -50%) rotate(${target}deg)`;
 
-    setTimeout(() => { isScrolling.current = false; }, SCROLL_COOLDOWN_MS);
+      setIsYugasMode(true);
+      setActiveYuga(0);
+
+      // Stagger decree cards emergence so they appear gracefully as the chakra settles into place
+      setTimeout(() => {
+        setCardsReady(true);
+      }, 1400);
+
+      // Once chakra settles into place at the bottom, restore normal transition for subsequent turns
+      setTimeout(() => {
+        if (chakraRef.current) {
+          chakraRef.current.classList.remove('chakra-descending');
+          chakraRef.current.style.transition = '';
+        }
+        isScrolling.current = false;
+      }, 2500);
+    });
   }, []);
 
   const rotateChakra = useCallback((delta: number) => {
@@ -309,10 +278,21 @@ export default function ArtimasScene() {
   const exitYugasMode = useCallback(() => {
     Object.values(vidRefs.current).forEach(ref => { ref.current?.pause(); });
     if (chakraRef.current) {
+      chakraRef.current.classList.remove('chakra-descending');
+      chakraRef.current.classList.add('chakra-ascending');
       chakraRef.current.style.transform = '';
+      chakraRef.current.style.top = '';
+      chakraRef.current.style.animation = '';
     }
     setIsYugasMode(false);
     setActiveYuga(null);
+    setCardsReady(false);
+    setTimeout(() => {
+      if (chakraRef.current) {
+        chakraRef.current.classList.remove('chakra-ascending');
+        chakraRef.current.style.transition = '';
+      }
+    }, 1900);
   }, []);
 
   // ── Event listeners (active only inside Yugas mode) ─────────────────────────
@@ -473,7 +453,7 @@ export default function ArtimasScene() {
           </div>
 
           {/* ── Yuga Event Showcase Cards (Mobile Deck & Desktop 3D) ──── */}
-          {isYugasMode && activeYuga !== null && (
+          {isYugasMode && activeYuga !== null && cardsReady && (
             <div
               className={`yuga-events-showcase yuga-showcase-${activeYuga}`}
               key={activeYuga}
@@ -513,131 +493,136 @@ export default function ArtimasScene() {
                         <h3 className="yuga-decree-title">{evt.name}</h3>
                       </div>
 
-                      {/* Custom Center Art (Datathon Fish, Prompt Relay Lotus, Brandathon Turtle, Hackmatrix, CTF Feather, Among Us Art, Surprise Rath, Houdini Heist, or Standard Divider) */}
-                      {evt.slug === 'datathon' ? (
-                        <div className="yuga-card-center-art datathon-art" aria-hidden="true">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={MEDIA.images.datathonFish}
-                            alt="Datathon Matsya Golden Fish"
-                            className="yuga-art-img yuga-datathon-fish"
-                            draggable={false}
-                          />
-                        </div>
-                      ) : evt.slug === 'prompt-relay' ? (
-                        <div className="yuga-card-center-art prompt-relay-art" aria-hidden="true">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={MEDIA.images.promptRelayLotus}
-                            alt="Prompt Relay Golden Lotus"
-                            className="yuga-art-img yuga-prompt-relay-lotus"
-                            draggable={false}
-                          />
-                        </div>
-                      ) : evt.slug === 'brandathon' ? (
-                        <div className="yuga-card-center-art brandathon-art" aria-hidden="true">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={MEDIA.images.brandathonRath}
-                            alt="Brandathon Golden Rath"
-                            className="yuga-art-img yuga-brandathon-rath"
-                            draggable={false}
-                          />
-                        </div>
-                      ) : evt.slug === 'hackmatrix' ? (
-                        <div className="yuga-card-center-art hackmatrix-art" aria-hidden="true">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={MEDIA.images.hackmatrixArt}
-                            alt="HackMatrix Golden Emblem"
-                            className="yuga-art-img yuga-hackmatrix-art"
-                            draggable={false}
-                          />
-                        </div>
-                      ) : evt.slug === 'capture-the-flag' ? (
-                        <div className="yuga-card-center-art ctf-art" aria-hidden="true">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={MEDIA.images.ctfFeather}
-                            alt="CTF Golden Peacock Feather"
-                            className="yuga-art-img yuga-ctf-feather"
-                            draggable={false}
-                          />
-                        </div>
-                      ) : evt.slug === 'among-us' ? (
-                        <div className="yuga-card-center-art among-us-art" aria-hidden="true">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={MEDIA.images.amongUsArt}
-                            alt="Among Us Golden Bow & Arrow"
-                            className="yuga-art-img yuga-among-us-art"
-                            draggable={false}
-                          />
-                        </div>
-                      ) : (evt.slug === 'pixel-perfect' || evt.slug === 'surprise-event') ? (
-                        <div className="yuga-card-center-art surprise-art pixel-perfect-art" aria-hidden="true">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={MEDIA.images.pixelPerfectTurtle || MEDIA.images.surpriseEventTurtle}
-                            alt="Pixel Perfect Kurma Golden Turtle"
-                            className="yuga-art-img yuga-surprise-turtle"
-                            draggable={false}
-                          />
-                        </div>
-                      ) : evt.slug === 'houdini-heist' ? (
-                        <div className="yuga-card-center-art houdini-art" aria-hidden="true">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={MEDIA.images.houdiniHeistArt}
-                            alt="Houdini Heist Golden Mace"
-                            className="yuga-art-img yuga-houdini-gada"
-                            draggable={false}
-                          />
-                        </div>
-                      ) : (
-                        /* Ornamental Divider with Epoch Star */
-                        <div className="decree-ornament-divider" aria-hidden="true">
-                          <span className="decree-divider-line" />
-                          <span className="decree-divider-gem">✦</span>
-                          <span className="decree-divider-line" />
-                        </div>
-                      )}
-
-                      {/* Short Description */}
-                      <p className="yuga-decree-desc">{evt.shortDescription}</p>
-
-                      {/* Prize Pool Badge */}
-                      {evt.prizePool && (
-                        <div className="yuga-card-meta-row">
-                          <span className="yuga-decree-prize-badge">{evt.prizePool}</span>
-                        </div>
-                      )}
-
-                      {/* Action Buttons */}
-                      <div className="yuga-decree-actions">
-                        <Link
-                          href={evt.rulebookUrl}
-                          className="yuga-decree-btn secondary"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          VIEW RULEBOOK
-                        </Link>
-                        {(openMap[evt.slug] !== false && openMap[evt.id] !== false) ? (
-                          <Link
-                            href={evt.registerUrl}
-                            className="yuga-decree-btn primary"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            ENTER TRIAL
-                          </Link>
+                      {/* Middle Body Group: Center Art + Short Description */}
+                      <div className="yuga-card-body">
+                        {/* Custom Center Art (Datathon Fish, Prompt Relay Lotus, Brandathon Turtle, Hackmatrix, CTF Feather, Among Us Art, Surprise Rath, Houdini Heist, or Standard Divider) */}
+                        {evt.slug === 'datathon' ? (
+                          <div className="yuga-card-center-art datathon-art" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={MEDIA.images.datathonFish}
+                              alt="Datathon Matsya Golden Fish"
+                              className="yuga-art-img yuga-datathon-fish"
+                              draggable={false}
+                            />
+                          </div>
+                        ) : evt.slug === 'prompt-relay' ? (
+                          <div className="yuga-card-center-art prompt-relay-art" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={MEDIA.images.promptRelayLotus}
+                              alt="Prompt Relay Golden Lotus"
+                              className="yuga-art-img yuga-prompt-relay-lotus"
+                              draggable={false}
+                            />
+                          </div>
+                        ) : evt.slug === 'brandathon' ? (
+                          <div className="yuga-card-center-art brandathon-art" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={MEDIA.images.brandathonRath}
+                              alt="Brandathon Golden Rath"
+                              className="yuga-art-img yuga-brandathon-rath"
+                              draggable={false}
+                            />
+                          </div>
+                        ) : evt.slug === 'hackmatrix' ? (
+                          <div className="yuga-card-center-art hackmatrix-art" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={MEDIA.images.hackmatrixArt}
+                              alt="HackMatrix Golden Emblem"
+                              className="yuga-art-img yuga-hackmatrix-art"
+                              draggable={false}
+                            />
+                          </div>
+                        ) : evt.slug === 'capture-the-flag' ? (
+                          <div className="yuga-card-center-art ctf-art" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={MEDIA.images.ctfFeather}
+                              alt="CTF Golden Peacock Feather"
+                              className="yuga-art-img yuga-ctf-feather"
+                              draggable={false}
+                            />
+                          </div>
+                        ) : evt.slug === 'among-us' ? (
+                          <div className="yuga-card-center-art among-us-art" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={MEDIA.images.amongUsArt}
+                              alt="Among Us Golden Bow & Arrow"
+                              className="yuga-art-img yuga-among-us-art"
+                              draggable={false}
+                            />
+                          </div>
+                        ) : (evt.slug === 'pixel-perfect' || evt.slug === 'surprise-event') ? (
+                          <div className="yuga-card-center-art surprise-art pixel-perfect-art" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={MEDIA.images.pixelPerfectTurtle || MEDIA.images.surpriseEventTurtle}
+                              alt="Pixel Perfect Kurma Golden Turtle"
+                              className="yuga-art-img yuga-surprise-turtle"
+                              draggable={false}
+                            />
+                          </div>
+                        ) : evt.slug === 'houdini-heist' ? (
+                          <div className="yuga-card-center-art houdini-art" aria-hidden="true">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={MEDIA.images.houdiniHeistArt}
+                              alt="Houdini Heist Golden Mace"
+                              className="yuga-art-img yuga-houdini-gada"
+                              draggable={false}
+                            />
+                          </div>
                         ) : (
-                          <div
-                            className="yuga-decree-btn closed"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            REGISTRATION CLOSED
+                          /* Ornamental Divider with Epoch Star */
+                          <div className="decree-ornament-divider" aria-hidden="true">
+                            <span className="decree-divider-line" />
+                            <span className="decree-divider-gem">✦</span>
+                            <span className="decree-divider-line" />
                           </div>
                         )}
+
+                        {/* Short Description */}
+                        <p className="yuga-decree-desc">{evt.shortDescription}</p>
+                      </div>
+
+                      {/* Footer Group: Prize Pool + Actions */}
+                      <div className="yuga-card-footer">
+                        {evt.prizePool && (
+                          <div className="yuga-card-meta-row">
+                            <span className="yuga-decree-prize-badge">{evt.prizePool}</span>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="yuga-decree-actions">
+                          <Link
+                            href={evt.rulebookUrl}
+                            className="yuga-decree-btn secondary"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            VIEW RULEBOOK
+                          </Link>
+                          {(openMap[evt.slug] !== false && openMap[evt.id] !== false) ? (
+                            <Link
+                              href={evt.registerUrl}
+                              className="yuga-decree-btn primary"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              ENTER TRIAL
+                            </Link>
+                          ) : (
+                            <div
+                              className="yuga-decree-btn closed"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              REGISTRATION CLOSED
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

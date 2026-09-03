@@ -62,18 +62,18 @@ Artimas2026/
 ├── components/
 │   ├── ArtimasScene.tsx          # Main landing state coordinator, Yugas mode engine, video cross-fader
 │   ├── ChakraMedallion.tsx       # <model-viewer> 3D component with lazy script injection
-│   ├── CircularYugaDial.tsx      # Astrolabe circular dial navigation alternative
 │   ├── EventRegistrationWizard.tsx # Multi-step interactive registration wizard & pass generator
 │   ├── IntroVideoOverlay.tsx     # Fullscreen cinematic intro video with sound toggle & skip
 │   ├── LandingFooter.tsx         # Natural flow footer with association & department info
+│   ├── LinearEventsSlider.tsx    # Linear events pagination slider
 │   ├── LinearYugaSlider.tsx      # Vertical linear slider for Yuga switching
 │   ├── MythicCrestIcon.tsx       # SVG mythic crests (Lotus, Solar, Chakra, Blade)
 │   ├── NavIslands.tsx            # Desktop navbar & mobile capsule pill drawer
-│   ├── ParticleCanvas.tsx        # 2D canvas cosmic ember emitter
+│   ├── PageTransitionLoader.tsx  # Cinematic astrolabe Sanskrit page transition loader
 │   ├── ScrollCarousel.tsx        # 3D Coverflow events carousel with custom artwork
-│   ├── SponsorsCarousel.tsx      # 3D Coverflow carousel for sponsors showcase
+│   ├── SponsorsGrid.tsx          # Sponsors decree grid showcase
 │   ├── SubpageLayout.tsx         # Unified subpage shell (topbar, parallax background, footer)
-│   └── TeamCarousel.tsx          # 3D Coverflow team carousel
+│   └── TeamGrid.tsx              # Team council decree grid showcase
 ├── lib/
 │   ├── events.ts                 # Central event catalog, team configs, fees, Sanskrit mantras
 │   ├── introState.ts             # In-memory runtime state tracking for intro video
@@ -193,14 +193,11 @@ export const MEDIA = {
 - Standardized wrapper for `/events`, `/sponsors`, `/team`, `/calendar`, and `/events/[slug]/*`.
 - Supplies topbar branding, parallax cosmic background, subtle pillar framing, and the `LandingFooter`.
 
-### 8. `TeamCarousel.tsx` & `SponsorsCarousel.tsx`
-- 3D Coverflow carousel components for presenting council leads and festival sponsors with circular carousel navigation.
+### 8. `TeamGrid.tsx` & `SponsorsGrid.tsx`
+- Decree grid components presenting council leads and festival patrons with ornamental gilded cards, double-border frames, and responsive alignment.
 
 ### 9. `LandingFooter.tsx`
 - Footer with student association logos (AIMSA, Campus Buzz, Student Network, AAAI Chapter, CIS IEEE, Tech Club), department branding (CSE AI & ML, PCCOE Pune), social links (LinkedIn, GitHub, Instagram, Phone, Email), and Sanskrit motto `|| एम्सा कुटुम्बकम् ||`.
-
-### 10. `ParticleCanvas.tsx`
-- 2D Canvas particle emitter simulating 80 gold/amber cosmic embers with randomized flicker speed, opacity drift, and screen wrapping.
 
 ---
 

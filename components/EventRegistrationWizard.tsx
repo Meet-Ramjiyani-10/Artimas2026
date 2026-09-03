@@ -79,6 +79,254 @@ export const isMemberPccoeEligible = (member: MemberData): boolean => {
   return !!(batch && ELIGIBLE_PCCOE_BATCHES.includes(batch));
 };
 
+export interface EventScheduleDetail {
+  name: string;
+  date: string;
+  time: string;
+  venue: string;
+  teamSize: string;
+  rounds: string;
+}
+
+export const EVENT_SCHEDULE_DATA: Record<string, EventScheduleDetail> = {
+  'hackmatrix': {
+    name: 'HackMatrix',
+    date: 'Oct 9–11, 2026',
+    time: '30-Hour Build Sprint',
+    venue: 'Architecture Hall, Block D',
+    teamSize: '3–4 members',
+    rounds: '2 Rounds',
+  },
+  'prompt-relay': {
+    name: 'Prompt Relay',
+    date: 'Oct 9–10, 2026',
+    time: '02:30 PM – 05:30 PM',
+    venue: 'Seminar Hall, Block A',
+    teamSize: '3 members (mandatory)',
+    rounds: '3 Rounds',
+  },
+  'brandathon': {
+    name: 'Brandathon',
+    date: 'Oct 9–11, 2026',
+    time: '09:30 AM – 12:30 PM',
+    venue: 'Old Reading Hall / Block C',
+    teamSize: '2–4 members',
+    rounds: '3 Rounds',
+  },
+  'datathon': {
+    name: 'Datathon',
+    date: 'Oct 9–10, 2026',
+    time: '05:00 PM – 08:00 PM',
+    venue: 'Data Analytics Lab, Block D',
+    teamSize: '1–2 members',
+    rounds: '2 Rounds',
+  },
+  'capture-the-flag': {
+    name: 'Capture the Flag',
+    date: 'Oct 10–11, 2026',
+    time: '01:30 PM – 04:30 PM',
+    venue: 'Seminar Hall, 5th Floor Mech Building',
+    teamSize: '2–4 members',
+    rounds: '2 Rounds',
+  },
+  'houdini-heist': {
+    name: 'Houdini Heist',
+    date: 'Oct 10–11, 2026',
+    time: '10:00 AM – 02:00 PM',
+    venue: 'Auditorium / Rooms 6517–6519',
+    teamSize: '3 members (exactly)',
+    rounds: '3 Rounds',
+  },
+  'among-us': {
+    name: 'Among Us',
+    date: 'Oct 9–11, 2026',
+    time: '03:00 PM – 07:00 PM',
+    venue: 'Main Stage / Open Air Theatre',
+    teamSize: 'Individual participation only',
+    rounds: '3 Rounds',
+  },
+};
+
+export function getEventSchedule(event: EventItem): EventScheduleDetail {
+  const slugKey = event.slug.toLowerCase().trim();
+  if (EVENT_SCHEDULE_DATA[slugKey]) {
+    return EVENT_SCHEDULE_DATA[slugKey];
+  }
+
+  const byName = Object.values(EVENT_SCHEDULE_DATA).find(
+    (item) => item.name.toLowerCase() === event.name.toLowerCase()
+  );
+  if (byName) return byName;
+
+  if (event.aliases) {
+    for (const alias of event.aliases) {
+      if (EVENT_SCHEDULE_DATA[alias]) return EVENT_SCHEDULE_DATA[alias];
+    }
+  }
+
+  return {
+    name: event.name,
+    date: event.dateLocation?.split('·')[0]?.trim() || 'Oct 9–11, 2026',
+    time: '10:00 AM – 05:00 PM',
+    venue: event.dateLocation?.split('·')[1]?.trim() || 'PCCOE Campus Arena',
+    teamSize: event.teamConfig.maxMembers === 1
+      ? 'Individual participation only'
+      : `${event.teamConfig.minMembers}–${event.teamConfig.maxMembers} members`,
+    rounds: 'Official Epoch Trial',
+  };
+}
+
+function getShortVenue(venue: string): string {
+  if (venue.includes('Data Analytics')) return 'Data Lab';
+  if (venue.includes('Architecture')) return 'Arch Hall';
+  if (venue.includes('Seminar Hall')) return 'Seminar Hall';
+  if (venue.includes('Reading Hall')) return 'Reading Hall';
+  if (venue.includes('Auditorium')) return 'Auditorium';
+  if (venue.includes('Main Stage')) return 'Main Stage';
+  if (venue.includes('/')) return venue.split('/')[0].trim();
+  if (venue.includes(',')) return venue.split(',')[0].trim();
+  return venue;
+}
+
+function getSubVenue(venue: string): string {
+  if (venue.includes('Block D')) return 'Block D';
+  if (venue.includes('Block A')) return 'Block A';
+  if (venue.includes('Block C')) return 'Block C';
+  if (venue.includes('5th Floor')) return '5th Fl Mech';
+  if (venue.includes('6517')) return 'Rooms 6517';
+  if (venue.includes('Open Air')) return 'Open Air';
+  if (venue.includes(',')) return venue.split(',').slice(1).join(',').trim();
+  if (venue.includes('/')) return venue.split('/')[1].trim();
+  return 'Campus';
+}
+
+function EventSpecsCard({ schedule }: { schedule: EventScheduleDetail }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const specItems = [
+    {
+      id: 'date',
+      label: 'DATE',
+      shortVal: schedule.date.replace(', 2026', ''),
+      subVal: '',
+      fullVal: `Date: ${schedule.date}`,
+      valClass: 'val-date',
+    },
+    {
+      id: 'team',
+      label: 'TEAM',
+      shortVal: schedule.teamSize.toLowerCase().includes('individual')
+        ? 'Solo'
+        : schedule.teamSize
+            .replace('members', '')
+            .replace('(mandatory)', '')
+            .replace('(exactly)', '')
+            .trim(),
+      subVal: schedule.teamSize.toLowerCase().includes('individual') ? 'Individual' : 'Members',
+      fullVal: `Team Size: ${schedule.teamSize}`,
+      valClass: 'val-team',
+    },
+    {
+      id: 'rounds',
+      label: 'ROUNDS',
+      shortVal: schedule.rounds.replace(/rounds?/i, '').trim() || schedule.rounds,
+      subVal: '',
+      fullVal: `Format: ${schedule.rounds}`,
+      valClass: 'val-rounds',
+    },
+  ];
+
+  const activeDetail = hoveredIndex !== null
+    ? specItems[hoveredIndex].fullVal
+    : `${schedule.name} • ${schedule.date} • ${schedule.rounds} • ${schedule.teamSize}`;
+
+  return (
+    <aside className="circular-specs-section" aria-label="Trial Specifications">
+      {/* ── Circular Header Ornament ── */}
+      <div className="circular-specs-header">
+        <div className="circular-header-line" />
+        <div className="circular-header-badge">
+          <span className="circular-gem-glyph">◯</span>
+          <span>TRIAL SPECIFICATIONS &amp; SCHEDULE</span>
+          <span className="circular-gem-glyph">◯</span>
+        </div>
+        <div className="circular-header-line" />
+      </div>
+
+      {/* ── Orbital Starlight Track with 5 Circular Astrolabe Medallions ── */}
+      <div className="circular-specs-track">
+        {specItems.map((item, idx) => {
+          const isHovered = hoveredIndex === idx;
+          return (
+            <div
+              key={item.id}
+              className={`circular-chakra-node${isHovered ? ' active-hover' : ''}`}
+              onMouseEnter={() => setHoveredIndex(idx)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              onClick={() => setHoveredIndex(idx)}
+              role="button"
+              tabIndex={0}
+              aria-label={item.fullVal}
+            >
+              {/* Concentric Astrolabe Circles SVG */}
+              <svg viewBox="0 0 130 130" className="chakra-astrolabe-svg" aria-hidden="true">
+                {/* Outer Dashed Orbit Ring */}
+                <circle
+                  cx="65"
+                  cy="65"
+                  r="61"
+                  stroke="rgba(201, 164, 92, 0.4)"
+                  strokeWidth="1"
+                  strokeDasharray="3 3"
+                  className="chakra-dash-ring"
+                />
+                {/* Metallic Bronze Bevel Ring */}
+                <circle
+                  cx="65"
+                  cy="65"
+                  r="57"
+                  stroke="rgba(169, 130, 61, 0.75)"
+                  strokeWidth="1.5"
+                />
+                {/* Inner Filigree Ring */}
+                <circle
+                  cx="65"
+                  cy="65"
+                  r="52"
+                  stroke="rgba(201, 164, 92, 0.3)"
+                  strokeWidth="0.8"
+                />
+                {/* 4 Cardinal Astrolabe Tick Marks */}
+                <line x1="65" y1="4" x2="65" y2="10" stroke="rgba(254, 240, 138, 0.7)" strokeWidth="1.5" />
+                <line x1="65" y1="120" x2="65" y2="126" stroke="rgba(254, 240, 138, 0.7)" strokeWidth="1.5" />
+                <line x1="4" y1="65" x2="10" y2="65" stroke="rgba(254, 240, 138, 0.7)" strokeWidth="1.5" />
+                <line x1="120" y1="65" x2="126" y2="65" stroke="rgba(254, 240, 138, 0.7)" strokeWidth="1.5" />
+              </svg>
+
+              {/* Inside Disc Content */}
+              <div className="chakra-core-disc">
+                <span className="chakra-field-label">{item.label}</span>
+                <span className={`chakra-field-val ${item.valClass}`}>{item.shortVal}</span>
+                {item.subVal ? <span className="chakra-field-sub">{item.subVal}</span> : null}
+              </div>
+
+              {/* Radiant Flare on Hover */}
+              <div className="chakra-glow-halo" aria-hidden="true" />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Active Detail Decree Banner below Circles ── */}
+      <div className="circular-specs-ribbon" aria-live="polite">
+        <span className="ribbon-gem">❖</span>
+        <span className="ribbon-text">{activeDetail}</span>
+        <span className="ribbon-gem">❖</span>
+      </div>
+    </aside>
+  );
+}
+
 export default function EventRegistrationWizard({ event }: EventRegistrationWizardProps) {
   const router = useRouter();
 
@@ -86,6 +334,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   const minMembers = isCtf ? 2 : (event.teamConfig?.minMembers ?? 1);
   const maxMembers = isCtf ? 4 : (event.teamConfig?.maxMembers ?? 1);
   const isSolo = maxMembers === 1;
+  const schedule = getEventSchedule(event);
 
   // Live registration status check
   const [isRegistrationClosed, setIsRegistrationClosed] = useState<boolean>(false);
@@ -644,6 +893,9 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
               </Link>
             </div>
           </div>
+
+          {/* ── Event Schedule & Trial Specifications ── */}
+          <EventSpecsCard schedule={schedule} />
         </div>
       </div>
     );
@@ -1021,7 +1273,11 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                             </div>
                           ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#c5b18a', padding: '10px' }}>
-                              <span style={{ fontSize: '24px' }}>📁</span>
+                              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#c9a45c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                              </svg>
                               <span style={{ fontSize: '13.5px', fontWeight: 600 }}>Click to upload payment screenshot</span>
                               <span style={{ fontSize: '11px', color: '#9a8866' }}>Supported formats: JPG, JPEG, PNG, WebP (max 5MB)</span>
                             </div>
@@ -1186,6 +1442,9 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
             )}
           </div>
         </div>
+
+        {/* ── Event Schedule & Trial Specifications ── */}
+        <EventSpecsCard schedule={schedule} />
       </div>
     </div>
   );

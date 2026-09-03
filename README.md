@@ -90,18 +90,18 @@ Artimas2026/
 ├── components/
 │   ├── ArtimasScene.tsx          # Landing state coordinator & Yugas transition engine
 │   ├── ChakraMedallion.tsx       # <model-viewer> 3D component with lazy script loading
-│   ├── CircularYugaDial.tsx      # Astrolabe circular dial navigation alternative
 │   ├── EventRegistrationWizard.tsx # Multi-step registration wizard & pass generator
 │   ├── IntroVideoOverlay.tsx     # Fullscreen cinematic intro video with sound toggle
 │   ├── LandingFooter.tsx         # Natural flow footer with association & department info
+│   ├── LinearEventsSlider.tsx    # Linear events pagination slider
 │   ├── LinearYugaSlider.tsx      # Vertical linear slider for Yuga switching
 │   ├── MythicCrestIcon.tsx       # SVG mythic crests (Lotus, Solar, Chakra, Blade)
 │   ├── NavIslands.tsx            # Desktop navbar & mobile capsule pill drawer
-│   ├── ParticleCanvas.tsx        # 2D canvas cosmic ember emitter
+│   ├── PageTransitionLoader.tsx  # Cinematic astrolabe Sanskrit page transition loader
 │   ├── ScrollCarousel.tsx        # 3D Coverflow events carousel
-│   ├── SponsorsCarousel.tsx      # 3D Coverflow sponsors carousel
+│   ├── SponsorsGrid.tsx          # Sponsors decree grid showcase
 │   ├── SubpageLayout.tsx         # Subpage layout wrapper (topbar, background, footer)
-│   └── TeamCarousel.tsx          # 3D Coverflow team carousel
+│   └── TeamGrid.tsx              # Team council decree grid showcase
 ├── lib/
 │   ├── events.ts                 # Central event catalog, team configs, fees, Sanskrit mantras
 │   ├── introState.ts             # In-memory runtime state tracking for intro video

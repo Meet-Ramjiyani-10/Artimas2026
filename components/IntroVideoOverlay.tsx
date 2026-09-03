@@ -19,6 +19,7 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
   const [isLoaderFading, setIsLoaderFading] = useState(false);
   const videoReadyRef = useRef(false);
   const minTimePassedRef = useRef(false);
+  const isDismissingRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -41,12 +42,33 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
     }, 700);
   };
 
+  const startVideoPlayback = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    try {
+      vid.currentTime = 0;
+      vid.muted = true;
+      const playPromise = vid.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          vid.muted = true;
+          vid.play().catch(() => {});
+        });
+      }
+    } catch (e) {
+      console.warn('Video start failed:', e);
+    }
+  };
+
   const attemptDismissLoader = () => {
-    if (videoReadyRef.current && minTimePassedRef.current) {
+    if (videoReadyRef.current && minTimePassedRef.current && !isDismissingRef.current) {
+      isDismissingRef.current = true;
       setIsLoaderFading(true);
+      // Wait for the loader fade-out animation to finish before starting video
       setTimeout(() => {
         setIsVideoLoading(false);
-      }, 600);
+        startVideoPlayback();
+      }, 500);
     }
   };
 
@@ -64,20 +86,22 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
     const vid = videoRef.current;
     if (!vid) return;
 
+    // Keep video paused at 0:00 while loading animation is active
+    vid.pause();
+    vid.currentTime = 0;
+
     const onReady = () => {
       videoReadyRef.current = true;
       attemptDismissLoader();
     };
 
-    vid.addEventListener('playing', onReady);
     vid.addEventListener('canplaythrough', onReady);
     vid.addEventListener('canplay', onReady);
+    vid.addEventListener('loadeddata', onReady);
 
-    vid.play().catch(() => {
-      // Ensure muted autoplay succeeds in all browsers
-      vid.muted = true;
-      vid.play().catch(() => {});
-    });
+    if (vid.readyState >= 2) {
+      onReady();
+    }
 
     // Safety fallback: if buffering is slow, dismiss loader after 3.5s
     const fallbackTimer = setTimeout(() => {
@@ -87,9 +111,9 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
     }, 3500);
 
     return () => {
-      vid.removeEventListener('playing', onReady);
       vid.removeEventListener('canplaythrough', onReady);
       vid.removeEventListener('canplay', onReady);
+      vid.removeEventListener('loadeddata', onReady);
       clearTimeout(fallbackTimer);
     };
   }, [videoSrc]);
@@ -126,7 +150,6 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
         src={videoSrc}
         className="intro-video-player"
         playsInline
-        autoPlay
         muted
         preload="auto"
         onEnded={handleFinish}

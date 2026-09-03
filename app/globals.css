@@ -385,6 +385,14 @@ body.mode-yugas .chakra-container {
     animation: none !important;
 }
 
+.chakra-container.chakra-descending {
+    transition: transform 2.4s cubic-bezier(0.16, 1, 0.3, 1), top 2.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.chakra-container.chakra-ascending {
+    transition: transform 1.8s cubic-bezier(0.16, 1, 0.3, 1), top 1.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
 @keyframes wheelRiseUp {
     0% {
         top: 135%;
@@ -1967,9 +1975,15 @@ body.mode-yugas .yuga-title-img.active {
 
 .scroll-card .custom-art-frame,
 .scroll-card .datathon-frame {
-    justify-content: space-evenly;
-    padding-top: clamp(16px, 2.2vh, 26px);
-    padding-bottom: clamp(16px, 2.2vh, 26px);
+    justify-content: center !important;
+    gap: clamp(8px, 1.4vh, 16px) !important;
+    padding-top: clamp(14px, 1.8vh, 22px);
+    padding-bottom: clamp(14px, 1.8vh, 22px);
+}
+
+.scroll-card .custom-art-frame .decree-bottom-box,
+.scroll-card .datathon-frame .decree-bottom-box {
+    margin-top: clamp(2px, 0.5vh, 6px) !important;
 }
 
 .scroll-card .decree-title {
@@ -3535,14 +3549,307 @@ body.mode-yugas .yuga-title-img.active {
     width: 100%;
     max-width: 680px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: clamp(16px, 2.5vh, 24px);
 }
 
 .decree-reg-panel {
     width: 100%;
     min-height: auto;
     padding: clamp(26px, 3.8vw, 40px);
+}
+
+/* ==========================================================================
+   Celestial Circular Astrolabe Specifications System
+   ========================================================================== */
+
+.circular-specs-section {
+    width: 100%;
+    max-width: 780px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: clamp(16px, 2.5vh, 26px);
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10;
+}
+
+/* ── Header with Ornamental Circle Badges ── */
+.circular-specs-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: clamp(14px, 2vh, 20px);
+}
+
+.circular-header-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(169, 130, 61, 0.45));
+}
+
+.circular-specs-header .circular-header-line:last-child {
+    background: linear-gradient(90deg, rgba(169, 130, 61, 0.45), transparent);
+}
+
+.circular-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 18px;
+    border-radius: 24px;
+    background: rgba(26, 16, 10, 0.85);
+    border: 1px solid var(--border-bronze);
+    box-shadow:
+        inset 0 0 0 1px rgba(169, 130, 61, 0.35),
+        0 4px 16px rgba(0, 0, 0, 0.7);
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(10px, 1.1vw, 12px);
+    letter-spacing: 2px;
+    color: var(--panel-highlight);
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(254, 240, 138, 0.45);
+    backdrop-filter: blur(10px);
+}
+
+.circular-gem-glyph {
+    font-size: 11px;
+    color: var(--btn-border-gold);
+}
+
+/* ── Orbital Starlight Track ── */
+.circular-specs-track {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 3.5vw, 32px);
+    flex-wrap: nowrap;
+    padding: 12px 0;
+    margin-bottom: 14px;
+}
+
+
+/* ── Individual Circular Chakra Node ── */
+.circular-chakra-node {
+    position: relative;
+    width: clamp(108px, 12.5vw, 122px);
+    height: clamp(108px, 12.5vw, 122px);
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    background: radial-gradient(circle at 40% 30%, rgba(184, 148, 90, 0.22) 0%, rgba(32, 20, 13, 0.94) 55%, rgba(10, 8, 6, 0.99) 100%);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.85),
+        inset 0 0 0 1px rgba(169, 130, 61, 0.35),
+        inset 0 0 20px rgba(0, 0, 0, 0.9);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
+    z-index: 2;
+    outline: none;
+}
+
+.circular-chakra-node:hover,
+.circular-chakra-node.active-hover,
+.circular-chakra-node:focus-visible {
+    transform: translateY(-5px) scale(1.06);
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.92),
+        0 0 24px rgba(212, 136, 58, 0.45),
+        inset 0 0 0 1.5px var(--panel-highlight),
+        inset 0 0 18px rgba(254, 240, 138, 0.25);
+}
+
+/* ── Concentric Astrolabe SVG Ring ── */
+.chakra-astrolabe-svg {
+    position: absolute;
+    inset: -3px;
+    width: calc(100% + 6px);
+    height: calc(100% + 6px);
+    pointer-events: none;
+    fill: none;
+    overflow: visible;
+}
+
+.chakra-dash-ring {
+    transform-origin: center;
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.circular-chakra-node:hover .chakra-dash-ring,
+.circular-chakra-node.active-hover .chakra-dash-ring {
+    transform: rotate(45deg);
+}
+
+/* ── Inner Core Disc ── */
+.chakra-core-disc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6px 4px;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 3;
+    gap: 2px;
+}
+
+.chakra-field-label {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(10.5px, 1.1vw, 12px);
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--panel-highlight);
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.chakra-field-val {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-weight: 800;
+    color: #FFF9EE;
+    line-height: 1.05;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    text-shadow:
+        0 0 12px rgba(254, 240, 138, 0.45),
+        0 2px 6px rgba(0, 0, 0, 0.95);
+}
+
+.chakra-field-val.val-date {
+    font-size: clamp(16.5px, 1.8vw, 18.5px);
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.chakra-field-val.val-team {
+    font-size: clamp(23px, 2.6vw, 27px);
+    font-weight: 800;
+    letter-spacing: 0.8px;
+}
+
+.chakra-field-val.val-rounds {
+    font-size: clamp(30px, 3.5vw, 36px);
+    font-weight: 800;
+    line-height: 0.95;
+}
+
+.chakra-field-sub {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: clamp(12px, 1.3vw, 14px);
+    color: #c5b18a;
+    line-height: 1.1;
+    white-space: nowrap;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+/* ── Radiant Flare on Hover ── */
+.chakra-glow-halo {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(254, 240, 138, 0.25) 0%, rgba(212, 136, 58, 0.08) 50%, transparent 75%);
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.circular-chakra-node:hover .chakra-glow-halo,
+.circular-chakra-node.active-hover .chakra-glow-halo {
+    opacity: 1;
+    transform: scale(1.15);
+}
+
+/* ── Active Detail Decree Banner below Circles ── */
+.circular-specs-ribbon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 24px;
+    border-radius: 30px;
+    background: rgba(18, 11, 7, 0.88);
+    border: 1px solid var(--border-bronze);
+    box-shadow:
+        inset 0 0 0 1px rgba(169, 130, 61, 0.3),
+        0 8px 20px rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(12px);
+    max-width: 95%;
+    box-sizing: border-box;
+    animation: ribbonPulseIn 0.3s ease;
+}
+
+.circular-specs-ribbon .ribbon-gem {
+    color: var(--panel-highlight);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.circular-specs-ribbon .ribbon-text {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: clamp(13px, 1.4vw, 15px);
+    font-weight: 600;
+    color: var(--heading-ivory);
+    letter-spacing: 0.8px;
+    text-align: center;
+}
+
+@keyframes ribbonPulseIn {
+    from {
+        opacity: 0.6;
+        transform: translateY(2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 580px) {
+    .circular-specs-track {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .circular-chakra-node {
+        width: 102px;
+        height: 102px;
+    }
+
+    .chakra-field-label {
+        font-size: 10px;
+    }
+
+    .chakra-field-val.val-date {
+        font-size: 15.5px;
+    }
+
+    .chakra-field-val.val-team {
+        font-size: 21px;
+    }
+
+    .chakra-field-val.val-rounds {
+        font-size: 28px;
+    }
+
+    .chakra-field-sub {
+        font-size: 11.5px;
+    }
 }
 
 .reg-inner-frame {
@@ -3698,8 +4005,15 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 @keyframes regFadeIn {
-    from { opacity: 0; transform: translateY(-2px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .reg-select {
@@ -3739,6 +4053,7 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 @media (max-width: 580px) {
+
     .reg-row-3,
     .reg-row-2 {
         grid-template-columns: 1fr;
@@ -5107,16 +5422,19 @@ body.mode-yugas .yuga-title-img.active {
         box-shadow: 0 0 8px rgba(230, 190, 100, 0.6);
         filter: brightness(1);
     }
+
     35% {
         transform: scale(1.12);
         box-shadow: 0 0 35px rgba(255, 215, 0, 0.95), 0 0 60px rgba(230, 180, 70, 0.8), inset 0 0 12px rgba(255, 255, 255, 0.8);
         filter: brightness(1.2);
     }
+
     70% {
         transform: scale(1.04);
         box-shadow: 0 0 25px rgba(255, 215, 0, 0.7), 0 0 40px rgba(230, 180, 70, 0.5);
         filter: brightness(1.1);
     }
+
     100% {
         transform: scale(1);
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
@@ -5129,14 +5447,17 @@ body.mode-yugas .yuga-title-img.active {
         transform: scale(0.96);
         filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.6));
     }
+
     35% {
         transform: scale(1.12);
         filter: drop-shadow(0 0 28px rgba(0, 217, 255, 1)) drop-shadow(0 0 50px rgba(0, 217, 255, 0.8)) brightness(1.25);
     }
+
     70% {
         transform: scale(1.04);
         filter: drop-shadow(0 0 18px rgba(0, 217, 255, 0.8)) brightness(1.1);
     }
+
     100% {
         transform: scale(1);
         filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.5));
@@ -5148,16 +5469,19 @@ body.mode-yugas .yuga-title-img.active {
         transform: scale(0.96);
         box-shadow: 0 0 8px rgba(70, 140, 255, 0.6);
     }
+
     35% {
         transform: scale(1.12);
         box-shadow: 0 0 35px rgba(70, 140, 255, 1), 0 0 60px rgba(40, 100, 255, 0.8), inset 0 0 12px rgba(100, 180, 255, 0.6);
         filter: brightness(1.25);
     }
+
     70% {
         transform: scale(1.04);
         box-shadow: 0 0 25px rgba(70, 140, 255, 0.7);
         filter: brightness(1.1);
     }
+
     100% {
         transform: scale(1);
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
@@ -5285,10 +5609,12 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 @keyframes heartBeat {
+
     0%,
     100% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.2);
     }
@@ -5440,6 +5766,7 @@ body.mode-yugas .yuga-title-img.active {
     0% {
         transform: rotate(0deg);
     }
+
     100% {
         transform: rotate(360deg);
     }
@@ -5481,15 +5808,20 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 @keyframes loadingDotsWave {
-    0%, 20% {
+
+    0%,
+    20% {
         opacity: 0.2;
         transform: translateY(0);
     }
+
     50% {
         opacity: 1;
         transform: translateY(-2px);
     }
-    80%, 100% {
+
+    80%,
+    100% {
         opacity: 0.2;
         transform: translateY(0);
     }
@@ -5618,6 +5950,10 @@ body.mode-yugas .yuga-title-img.active {
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
     overflow: hidden;
+    transition: transform 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 2.5s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 2.5s ease;
 }
 
 /* Shimmering glass light sheen overlay */
@@ -5638,8 +5974,8 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .yuga-card-0:hover {
-    border-color: #E8D8B0 !important;
-    box-shadow: 0 30px 65px rgba(0, 0, 0, 0.9), 0 0 32px rgba(232, 216, 176, 0.4) !important;
+    border-color: #E8D8B0;
+    box-shadow: 0 32px 75px rgba(0, 0, 0, 0.92), 0 0 36px rgba(232, 216, 176, 0.45);
 }
 
 .yuga-card-0 .yuga-mythic-icon {
@@ -5658,8 +5994,8 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .yuga-card-90:hover {
-    border-color: #E28743 !important;
-    box-shadow: 0 30px 65px rgba(0, 0, 0, 0.9), 0 0 32px rgba(226, 135, 67, 0.45) !important;
+    border-color: #E28743;
+    box-shadow: 0 32px 75px rgba(0, 0, 0, 0.92), 0 0 36px rgba(226, 135, 67, 0.5);
 }
 
 .yuga-card-90 .yuga-mythic-icon {
@@ -5678,8 +6014,8 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .yuga-card-180:hover {
-    border-color: #E58C5D !important;
-    box-shadow: 0 30px 65px rgba(0, 0, 0, 0.9), 0 0 32px rgba(229, 140, 93, 0.45) !important;
+    border-color: #E58C5D;
+    box-shadow: 0 32px 75px rgba(0, 0, 0, 0.92), 0 0 36px rgba(229, 140, 93, 0.5);
 }
 
 .yuga-card-180 .yuga-mythic-icon {
@@ -5698,8 +6034,8 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .yuga-card-270:hover {
-    border-color: #E89078 !important;
-    box-shadow: 0 30px 65px rgba(0, 0, 0, 0.9), 0 0 32px rgba(232, 144, 120, 0.45) !important;
+    border-color: #E89078;
+    box-shadow: 0 32px 75px rgba(0, 0, 0, 0.92), 0 0 36px rgba(232, 144, 120, 0.5);
 }
 
 .yuga-card-270 .yuga-mythic-icon {
@@ -5739,41 +6075,48 @@ body.mode-yugas .yuga-title-img.active {
         width: 100%;
         max-width: min(380px, 36vw);
         min-width: 240px;
-        max-height: calc(100dvh - clamp(140px, 19vh, 185px));
-        min-height: clamp(320px, 44vh, 460px);
-        padding: clamp(10px, 1.6vh, 20px) clamp(12px, 1.4vw, 20px);
+        max-height: calc(100dvh - clamp(140px, 18vh, 180px));
+        min-height: clamp(290px, 38vh, 415px);
+        padding: clamp(10px, 1.5vh, 18px) clamp(12px, 1.4vw, 20px);
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         box-sizing: border-box;
-        transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-            box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-            border-color 0.4s ease,
-            filter 0.4s ease;
-        will-change: transform, box-shadow, opacity;
+        transition: transform 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+            border-color 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+            filter 2.8s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform, box-shadow;
+    }
+
+    .yuga-decree-card:hover {
+        transition: transform 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+            border-color 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+            filter 2.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .yuga-decree-card:nth-child(1) {
-        transform: perspective(1200px) translateX(-12px) translateY(0) translateZ(0px) rotateY(6.5deg) rotateZ(-1.8deg);
+        transform: perspective(1200px) translateX(-14px) translateY(0) rotateY(5deg) rotateZ(-1.2deg);
         transform-origin: center right;
-        animation: yugaCardRiseLeft 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation: yugaCardRiseLeft 0.75s cubic-bezier(0.16, 1, 0.3, 1) backwards;
     }
 
     .yuga-decree-card:nth-child(1):hover {
-        transform: perspective(1200px) translateX(-12px) translateY(-10px) translateZ(20px) rotateY(6.5deg) rotateZ(-1.8deg) !important;
-        z-index: 15 !important;
+        transform: perspective(1200px) translateX(-14px) translateY(-16px) translateZ(32px) rotateY(5deg) rotateZ(-1.2deg);
+        z-index: 15;
     }
 
     .yuga-decree-card:nth-child(2) {
-        transform: perspective(1200px) translateX(12px) translateY(0) translateZ(0px) rotateY(-6.5deg) rotateZ(1.8deg);
+        transform: perspective(1200px) translateX(14px) translateY(0) rotateY(-5deg) rotateZ(1.2deg);
         transform-origin: center left;
         z-index: 5;
-        animation: yugaCardRiseRight 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+        animation: yugaCardRiseRight 0.75s cubic-bezier(0.16, 1, 0.3, 1) backwards;
     }
 
     .yuga-decree-card:nth-child(2):hover {
-        transform: perspective(1200px) translateX(12px) translateY(-10px) translateZ(20px) rotateY(-6.5deg) rotateZ(1.8deg) !important;
-        z-index: 15 !important;
+        transform: perspective(1200px) translateX(14px) translateY(-16px) translateZ(32px) rotateY(-5deg) rotateZ(1.2deg);
+        z-index: 15;
     }
 
     .mobile-deck-indicator {
@@ -5944,10 +6287,31 @@ body.mode-yugas .yuga-title-img.active {
         max-width: 180px !important;
     }
 
+    .yuga-card-body {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        gap: clamp(3px, 0.6vh, 6px) !important;
+        margin: clamp(1px, 0.3vh, 3px) 0 !important;
+        flex: 1 1 auto !important;
+    }
+
+    .yuga-card-footer {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        gap: 2px !important;
+        margin-top: auto !important;
+        flex-shrink: 0 !important;
+    }
+
     .yuga-card-center-art {
         max-width: clamp(135px, 34vw, 190px) !important;
         height: clamp(48px, 6.8vh, 72px) !important;
-        margin: clamp(4px, 0.8vh, 8px) auto !important;
+        margin: 0 auto !important;
     }
 
     .yuga-decree-desc {
@@ -6106,42 +6470,36 @@ body.mode-yugas .yuga-title-img.active {
 @keyframes yugaCardRiseLeft {
     0% {
         opacity: 0;
-        transform: perspective(1200px) translateX(-35px) translateY(24px) translateZ(-30px) rotateY(12deg) rotateZ(-3.5deg) scale(0.95);
-        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4)) brightness(0.7);
+        transform: perspective(1200px) translateX(-14px) translateY(32px) scale(0.95) rotateY(5deg) rotateZ(-1.2deg);
     }
 
     100% {
         opacity: 1;
-        transform: perspective(1200px) translateX(-35px) translateY(2px) translateZ(0px) rotateY(9deg) rotateZ(-2.5deg) scale(1);
-        filter: drop-shadow(0 18px 45px rgba(0, 0, 0, 0.75)) brightness(1);
+        transform: perspective(1200px) translateX(-14px) translateY(0) scale(1) rotateY(5deg) rotateZ(-1.2deg);
     }
 }
 
 @keyframes yugaCardRiseRight {
     0% {
         opacity: 0;
-        transform: perspective(1200px) translateX(35px) translateY(24px) translateZ(-30px) rotateY(-12deg) rotateZ(3.5deg) scale(0.95);
-        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4)) brightness(0.7);
+        transform: perspective(1200px) translateX(14px) translateY(32px) scale(0.95) rotateY(-5deg) rotateZ(1.2deg);
     }
 
     100% {
         opacity: 1;
-        transform: perspective(1200px) translateX(35px) translateY(2px) translateZ(0px) rotateY(-9deg) rotateZ(2.5deg) scale(1);
-        filter: drop-shadow(0 18px 45px rgba(0, 0, 0, 0.75)) brightness(1);
+        transform: perspective(1200px) translateX(14px) translateY(0) scale(1) rotateY(-5deg) rotateZ(1.2deg);
     }
 }
 
 @keyframes yugaShowcaseRiseMobile {
     0% {
         opacity: 0;
-        transform: translateY(18px) scale(0.97);
-        filter: brightness(0.75);
+        transform: translateY(22px) scale(0.97);
     }
 
     100% {
         opacity: 1;
         transform: translateY(0) scale(1);
-        filter: brightness(1);
     }
 }
 
@@ -6229,7 +6587,7 @@ body.mode-yugas .yuga-title-img.active {
 .yuga-mythic-icon {
     width: 100%;
     height: 100%;
-    transition: transform 0.3s ease;
+    transition: transform 2.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .yuga-decree-card:hover .yuga-mythic-icon {
@@ -6294,20 +6652,46 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 /* ===================================
-   Yuga Mode Decree Cards Center Art
+   Yuga Mode Decree Cards Center Art & Body
    =================================== */
+.yuga-card-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    flex: 1 1 auto;
+    gap: clamp(4px, 0.8vh, 8px);
+    margin: clamp(1px, 0.3vh, 4px) 0;
+}
+
+.yuga-card-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 4px;
+    margin-top: auto;
+    flex-shrink: 0;
+}
+
 .yuga-card-center-art {
     width: 100%;
-    max-width: clamp(140px, 15vw, 210px);
-    height: clamp(52px, 8.2vh, 90px);
+    max-width: clamp(160px, 18vw, 240px);
+    height: clamp(65px, 10.5vh, 105px);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: clamp(4px, 0.7vh, 10px) auto clamp(2px, 0.5vh, 6px) auto;
+    margin: 0 auto;
     pointer-events: none !important;
     user-select: none !important;
     overflow: visible;
     flex-shrink: 0;
+}
+
+.yuga-card-center-art.among-us-art {
+    width: clamp(180px, 22vw, 260px);
+    height: clamp(55px, 8.5vh, 85px);
 }
 
 .yuga-art-img {
@@ -6323,48 +6707,52 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .yuga-prompt-relay-lotus {
-    transform: scale(1.18);
+    transform: scale(1.3);
 }
 
-.yuga-brandathon-rath,
+.yuga-brandathon-rath {
+    transform: scale(1.28);
+}
+
 .yuga-brandathon-turtle {
-    transform: scale(1.22);
+    transform: scale(1.25);
 }
 
 .yuga-hackmatrix-art {
-    transform: scale(1.18);
-}
-
-.yuga-ctf-feather {
     transform: scale(1.22);
 }
 
+.yuga-ctf-feather {
+    transform: scale(1.25);
+}
+
 .yuga-among-us-art {
-    transform: rotate(-90deg) scale(1.45);
+    transform: rotate(-90deg) scale(1.6);
 }
 
 .yuga-surprise-turtle,
 .yuga-surprise-rath {
-    transform: scale(1.18);
+    transform: scale(1.2);
 }
 
 .yuga-houdini-gada {
-    transform: scale(1.22);
+    transform: scale(1.28);
 }
 
 .yuga-decree-desc {
     font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: clamp(13px, 1.2vw, 16px);
+    font-size: clamp(14px, 1.22vw, 16.5px);
     font-weight: 400;
     font-style: italic;
     color: var(--text-parchment);
-    line-height: 1.35;
-    margin: clamp(2px, 0.5vh, 6px) 0;
-    flex-grow: 1;
+    line-height: 1.45;
+    margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-align: center;
+    max-width: 92%;
 }
 
 .yuga-card-meta-row {
