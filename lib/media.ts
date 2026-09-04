@@ -33,6 +33,12 @@ export const MEDIA = {
     surpriseEventTurtle: 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto/v1788308618/Untitled_-_September_02_2026_at_05.50.44.webp',
     houdiniHeistArt: 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto/v1788310804/Untitled_-_September_02_2026_at_06.29.10.webp',
     chakraRotateBtn: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto/v1788353112/Untitled_-_September_02_2026_at_18.13.57.webp',
+    calendarPages: {
+      page1: 'https://res.cloudinary.com/qllarlul/image/upload/v1788549706/1.webp',
+      page2: 'https://res.cloudinary.com/qllarlul/image/upload/v1788549705/2.webp',
+      page3: 'https://res.cloudinary.com/qllarlul/image/upload/v1788549705/3.webp',
+      page4: 'https://res.cloudinary.com/qllarlul/image/upload/v1788549705/4.webp',
+    },
     footerLogos: {
       aimsa: 'https://res.cloudinary.com/qllarlul/image/upload/v1788372702/xijdufnorzgujqejjosp.webp',
       gfg: 'https://res.cloudinary.com/qllarlul/image/upload/v1788372702/d5eqjmrvn4lsuztjqwwg.webp',

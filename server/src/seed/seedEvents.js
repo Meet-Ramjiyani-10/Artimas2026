@@ -104,9 +104,9 @@ const events = [
       'Capture the moment through your lens! Showcase your photography skills and artistic vision in this competitive photography event.',
     description:
       'Capture the moment through your lens! Showcase your photography skills and artistic vision in this competitive photography event. Express your creativity and tell stories through stunning images.',
-    dateLocation: '18 OCTOBER 2026  ·  CAMPUS ARENA',
+    dateLocation: '11 OCTOBER 2026  ·  CAMPUS ARENA',
     registrationFee: 100,
-    ruleSubtitle: 'COMPETITIVE PHOTOGRAPHY | INDIVIDUAL TRIAL',
+    ruleSubtitle: 'COMPETITIVE PHOTOGRAPHY | 1 ROUND TRIAL',
     sanskritMantra: '॥ रूपं दृश्यते नयनेन ॥',
     mythicCrest: 'lotus',
     dharmaLevel: 'DHARMA 4/4',

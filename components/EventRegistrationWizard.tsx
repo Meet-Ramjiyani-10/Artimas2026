@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EventItem } from '@/lib/events';
+import { getIsPageTransitionLoading, subscribeToPageTransition } from '@/lib/pageTransitionState';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -89,6 +90,22 @@ export interface EventScheduleDetail {
 }
 
 export const EVENT_SCHEDULE_DATA: Record<string, EventScheduleDetail> = {
+  'pixel-perfect': {
+    name: 'Pixel Perfect',
+    date: '11th Oct, 2026',
+    time: '10:00 AM – 05:00 PM',
+    venue: 'PCCOE Campus Arena',
+    teamSize: 'Individual participation only',
+    rounds: '1 Round',
+  },
+  'surprise-event': {
+    name: 'Pixel Perfect',
+    date: '11th Oct, 2026',
+    time: '10:00 AM – 05:00 PM',
+    venue: 'PCCOE Campus Arena',
+    teamSize: 'Individual participation only',
+    rounds: '1 Round',
+  },
   'hackmatrix': {
     name: 'HackMatrix',
     date: 'Oct 9–11, 2026',
@@ -218,10 +235,10 @@ function EventSpecsCard({ schedule }: { schedule: EventScheduleDetail }) {
       shortVal: schedule.teamSize.toLowerCase().includes('individual')
         ? 'Solo'
         : schedule.teamSize
-            .replace('members', '')
-            .replace('(mandatory)', '')
-            .replace('(exactly)', '')
-            .trim(),
+          .replace('members', '')
+          .replace('(mandatory)', '')
+          .replace('(exactly)', '')
+          .trim(),
       subVal: schedule.teamSize.toLowerCase().includes('individual') ? 'Individual' : 'Members',
       fullVal: `Team Size: ${schedule.teamSize}`,
       valClass: 'val-team',
@@ -327,6 +344,53 @@ function EventSpecsCard({ schedule }: { schedule: EventScheduleDetail }) {
   );
 }
 
+function ScrollSvgDefs() {
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }} aria-hidden="true">
+      <defs>
+        <linearGradient id="metalGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fae18c" />
+          <stop offset="22%" stopColor="#dfa742" />
+          <stop offset="50%" stopColor="#7a4613" />
+          <stop offset="80%" stopColor="#2e1505" />
+          <stop offset="100%" stopColor="#693b10" />
+        </linearGradient>
+
+        <linearGradient id="gemGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#ffe699" />
+          <stop offset="45%" stopColor="#f59e0b" />
+          <stop offset="100%" stopColor="#92400e" />
+        </linearGradient>
+
+        <g id="finial-shape">
+          <path
+            d="M54,32 C50,14 32,6 14,10 C4,12 2,20 8,24 C16,29 24,24 28,29 C24,34 16,29 8,34 C2,38 4,46 14,48 C32,52 50,44 54,32 Z"
+            fill="url(#metalGrad)"
+            stroke="#d4a753"
+            strokeWidth="0.8"
+          />
+          <circle cx="52" cy="32" r="9" fill="url(#metalGrad)" stroke="#f7d58b" strokeWidth="1.2" />
+          <circle cx="52" cy="32" r="4.5" fill="url(#gemGrad)" stroke="#ffd875" strokeWidth="0.8" />
+          <circle cx="53" cy="31" r="1.5" fill="#ffffff" opacity="0.9" />
+        </g>
+
+        <g id="corner-shape">
+          <path
+            d="M2,2 C22,2 24,8 24,14 C24,20 30,18 34,22 C24,20 20,26 20,20 C20,14 14,12 8,12 C4,12 2,8 2,2 Z"
+            fill="none"
+            stroke="#946222"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
+          <path d="M2,2 C10,2 14,4 14,10" fill="none" stroke="#ba8536" strokeWidth="1.4" strokeLinecap="round" />
+          <circle cx="2" cy="2" r="3.2" fill="#d99f3b" stroke="#4a2a0c" strokeWidth="0.6" />
+          <circle cx="30" cy="20" r="2.2" fill="#f0be54" stroke="#4a2a0c" strokeWidth="0.5" />
+        </g>
+      </defs>
+    </svg>
+  );
+}
+
 export default function EventRegistrationWizard({ event }: EventRegistrationWizardProps) {
   const router = useRouter();
 
@@ -350,7 +414,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
           }
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setIsCheckingStatus(false));
   }, [event.slug]);
 
@@ -383,6 +447,101 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const [registrationResult, setRegistrationResult] = useState<RegistrationSuccessData | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  // ── Medieval Unrolling Scroll Animation State ──
+  const [isScrollOpen, setIsScrollOpen] = useState<boolean>(false);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+
+  const [hasOpenedInitially, setHasOpenedInitially] = useState<boolean>(false);
+
+  // Open the scroll immediately as the page loading animation ends
+  useEffect(() => {
+    if (hasOpenedInitially) return;
+
+    let openTimer: NodeJS.Timeout | null = null;
+    let checkInterval: NodeJS.Timeout | null = null;
+    let safetyTimer: NodeJS.Timeout | null = null;
+
+    const checkAndTriggerOpen = () => {
+      // If full-screen page loader is actively covering the screen (opaque), wait
+      const isOpaqueLoaderInDom =
+        typeof document !== 'undefined' &&
+        !!document.querySelector('.mythic-page-loader:not(.loader-fade-out)');
+
+      if (isOpaqueLoaderInDom) {
+        return false;
+      }
+
+      // Loader has cleared or started fading out! Open the scroll immediately
+      if (openTimer) clearTimeout(openTimer);
+      openTimer = setTimeout(() => {
+        setIsScrollOpen(true);
+        setHasOpenedInitially(true);
+      }, 50);
+
+      return true;
+    };
+
+    // Attempt immediately (instant on direct load/refresh)
+    checkAndTriggerOpen();
+
+    // Listen for page transition loader updates
+    const unsubscribe = subscribeToPageTransition((isLoading) => {
+      if (!isLoading) {
+        checkAndTriggerOpen();
+      }
+    });
+
+    const handleLoaderEnd = () => {
+      checkAndTriggerOpen();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('artimas:loader-end', handleLoaderEnd);
+    }
+
+    // Fast interval polling to catch exact moment loader fades
+    checkInterval = setInterval(() => {
+      if (checkAndTriggerOpen()) {
+        if (checkInterval) clearInterval(checkInterval);
+      }
+    }, 50);
+
+    // Fast safety fallback: ensure scroll is open within 1s maximum
+    safetyTimer = setTimeout(() => {
+      setIsScrollOpen(true);
+      setHasOpenedInitially(true);
+      if (checkInterval) clearInterval(checkInterval);
+    }, 1000);
+
+    return () => {
+      unsubscribe();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('artimas:loader-end', handleLoaderEnd);
+      }
+      if (openTimer) clearTimeout(openTimer);
+      if (checkInterval) clearInterval(checkInterval);
+      if (safetyTimer) clearTimeout(safetyTimer);
+    };
+  }, [hasOpenedInitially]);
+
+  // Smooth scroll roll-shut -> update step -> roll-open transition
+  const transitionStep = (callback: () => void) => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setIsScrollOpen(false);
+
+    // Roll closed (750ms duration)
+    setTimeout(() => {
+      callback();
+      // Tick to let React state commit before reopening
+      setTimeout(() => {
+        setIsScrollOpen(true);
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 750);
+      }, 50);
+    }, 750);
+  };
 
   // ── Single Field Validator ──
   const validateSingleField = (
@@ -509,8 +668,10 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
     if (err) return;
 
     setErrorMessage('');
-    setStep(1);
-    setCurrentMemberIndex(0);
+    transitionStep(() => {
+      setStep(1);
+      setCurrentMemberIndex(0);
+    });
   };
 
   // ── Step 1: Member Field Changes & Blurs ──
@@ -591,8 +752,8 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
     if (nextIdx < minMembers) {
       if (members.length <= nextIdx) {
         const current = members[currentMemberIndex];
-        setMembers((prev) => [
-          ...prev,
+        const newMembers = [
+          ...members,
           {
             name: '',
             email: '',
@@ -601,18 +762,29 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
             year: 'FE',
             branch: '',
           },
-        ]);
+        ];
+        transitionStep(() => {
+          setMembers(newMembers);
+          setCurrentMemberIndex(nextIdx);
+        });
+      } else {
+        transitionStep(() => {
+          setCurrentMemberIndex(nextIdx);
+        });
       }
-      setCurrentMemberIndex(nextIdx);
     } else {
       if (nextIdx < members.length) {
-        setCurrentMemberIndex(nextIdx);
+        transitionStep(() => {
+          setCurrentMemberIndex(nextIdx);
+        });
       } else {
         if (isCtf && ![2, 4].includes(members.length)) {
           setErrorMessage('Capture the Flag requires exactly 2 or 4 team members.');
           return;
         }
-        setStep(2);
+        transitionStep(() => {
+          setStep(2);
+        });
       }
     }
   };
@@ -645,8 +817,8 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
     if (isCtf) {
       if (members.length === 2) {
         const last = members[members.length - 1];
-        setMembers((prev) => [
-          ...prev,
+        const updated = [
+          ...members,
           {
             name: '',
             email: '',
@@ -663,17 +835,20 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
             year: 'FE',
             branch: '',
           },
-        ]);
-        setCurrentMemberIndex(2);
-        setStep(1);
+        ];
+        transitionStep(() => {
+          setMembers(updated);
+          setCurrentMemberIndex(2);
+          setStep(1);
+        });
       }
       return;
     }
 
     if (members.length < maxMembers) {
       const last = members[members.length - 1];
-      setMembers((prev) => [
-        ...prev,
+      const updated = [
+        ...members,
         {
           name: '',
           email: '',
@@ -682,24 +857,48 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
           year: 'FE',
           branch: '',
         },
-      ]);
-      setCurrentMemberIndex(members.length);
-      setStep(1);
+      ];
+      transitionStep(() => {
+        setMembers(updated);
+        setCurrentMemberIndex(members.length);
+        setStep(1);
+      });
     }
   };
 
   // ── Handle Previous Navigation ──
-  const handlePrev = () => {
+  const handlePrev = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (isTransitioning) return;
     setErrorMessage('');
+
+    if (isSuccess) {
+      router.push('/events');
+      return;
+    }
+
     if (step === 2) {
-      setStep(1);
-      setCurrentMemberIndex(members.length - 1);
+      transitionStep(() => {
+        setStep(1);
+        setCurrentMemberIndex(members.length - 1);
+      });
     } else if (step === 1) {
       if (currentMemberIndex > 0) {
-        setCurrentMemberIndex(currentMemberIndex - 1);
+        transitionStep(() => {
+          setCurrentMemberIndex(currentMemberIndex - 1);
+        });
       } else {
-        setStep(0);
+        transitionStep(() => {
+          setStep(0);
+        });
       }
+    } else if (step === 0) {
+      // Step 0 previous smoothly rolls the scroll shut and navigates to /events
+      setIsTransitioning(true);
+      setIsScrollOpen(false);
+      setTimeout(() => {
+        router.push('/events');
+      }, 750);
     }
   };
 
@@ -809,10 +1008,16 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         throw new Error(data.message || 'Registration failed. Please verify your details.');
       }
 
-      setRegistrationResult(data.data);
-      setIsSuccess(true);
+      transitionStep(() => {
+        setRegistrationResult(data.data);
+        setIsSuccess(true);
+      });
     } catch (error: any) {
-      setErrorMessage(error.message || 'Something went wrong. Please try again.');
+      if (error?.message === 'Failed to fetch') {
+        setErrorMessage('Unable to reach server. Please ensure the backend (port 5000) and database are running.');
+      } else {
+        setErrorMessage(error.message || 'Something went wrong. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -836,61 +1041,83 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   const paymentRequired = !allPccoeEligible && event.fee > 0;
 
   // Derive schedule and location metadata cleanly
-  const scheduleDate = event.dateLocation?.split('·')[0]?.trim() || '18-20 October 2026';
-  const scheduleVenue = event.dateLocation?.split('·')[1]?.trim() || 'PCCOE Campus / Online Arena';
-  const eventTime = '10:00 AM – 05:00 PM IST';
+  const scheduleDate = schedule.date || event.dateLocation?.split('·')[0]?.trim() || '11th Oct, 2026';
+  const scheduleVenue = schedule.venue || event.dateLocation?.split('·')[1]?.trim() || 'PCCOE Campus / Online Arena';
+  const eventTime = schedule.time || '10:00 AM – 05:00 PM IST';
 
   // If registration is closed for this event, render decree closed state
   if (!isCheckingStatus && isRegistrationClosed) {
     return (
       <div className="reg-stage-wrapper">
+        <ScrollSvgDefs />
         <div className="reg-top-bar">
-          <Link href="/events" className="reg-back-btn">
-            ← BACK TO EVENTS
+          <Link href="/events" className="reg-back-btn reg-top-prev-btn">
+            ← PREV
           </Link>
           <span className="reg-tag">{event.yuga} • {event.category}</span>
         </div>
 
         <div className="reg-card-stage">
-          <div className="decree-card-panel decree-reg-panel" style={{ maxWidth: '640px', margin: '40px auto' }}>
-            <div className="decree-corner top-left" aria-hidden="true" />
-            <div className="decree-corner top-right" aria-hidden="true" />
-            <div className="decree-corner bottom-left" aria-hidden="true" />
-            <div className="decree-corner bottom-right" aria-hidden="true" />
+          <div className={`medieval-scroll-stage stage-step-closed ${isScrollOpen ? 'open' : ''}`}>
+            {/* Top Rod */}
+            <div className="scroll-rod-row top">
+              <svg className="scroll-finial" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
+              <div className="scroll-rod-bar" />
+              <svg className="scroll-finial right" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
+            </div>
 
-            <div className="decree-inner-frame reg-inner-frame" style={{ textAlign: 'center', padding: '48px 28px' }}>
-              <h1 className="decree-title reg-title">{event.name}</h1>
-              <p className="decree-trial-subtitle reg-subtitle">
-                {event.category.toUpperCase()} | EPOCH TRIAL
-              </p>
+            {/* Parchment Wrap */}
+            <div className="parchment-wrap">
+              <div className="parchment">
+                <div className="parchment-lines" />
+                <svg className="scroll-corner tl" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+                <svg className="scroll-corner tr" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+                <svg className="scroll-corner bl" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+                <svg className="scroll-corner br" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+                <div className="scroll-frame" />
 
-              <div className="decree-ornament-divider" aria-hidden="true" style={{ margin: '18px auto' }}>
-                <span className="decree-divider-line" />
-                <span className="decree-divider-gem">◆</span>
-                <span className="decree-divider-line" />
+                <div className="parchment-content" style={{ textAlign: 'center', justifyContent: 'center' }}>
+                  <h1 className="decree-title reg-title">{event.name}</h1>
+                  <p className="decree-trial-subtitle reg-subtitle">
+                    {event.category.toUpperCase()} | EPOCH TRIAL
+                  </p>
+
+                  <div className="decree-ornament-divider" aria-hidden="true" style={{ margin: '14px auto' }}>
+                    <span className="decree-divider-line" />
+                    <span className="decree-divider-gem">◆</span>
+                    <span className="decree-divider-line" />
+                  </div>
+
+                  <div
+                    style={{
+                      background: 'rgba(90, 40, 25, 0.12)',
+                      border: '1.5px solid #8a6a40',
+                      borderRadius: '6px',
+                      padding: '20px 18px',
+                      margin: '20px 0',
+                    }}
+                  >
+                    <div style={{ color: '#b91c1c', fontSize: '24px', marginBottom: '6px' }}>●</div>
+                    <h3 style={{ color: 'var(--ink)', fontSize: '20px', letterSpacing: '2px', margin: '0 0 8px' }}>
+                      REGISTRATION CLOSED
+                    </h3>
+                    <p style={{ color: 'var(--ink-soft)', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
+                      Registration for <strong style={{ color: 'var(--ink)' }}>{event.name}</strong> is currently closed by the festival organizers.
+                    </p>
+                  </div>
+
+                  <Link href="/events" className="reg-action-btn next-btn" style={{ maxWidth: '240px', margin: '0 auto', display: 'inline-flex' }}>
+                    RETURN TO EVENTS
+                  </Link>
+                </div>
               </div>
+            </div>
 
-              <div
-                style={{
-                  background: 'rgba(25, 12, 12, 0.75)',
-                  border: '1px solid #76552f',
-                  borderRadius: '6px',
-                  padding: '24px 20px',
-                  margin: '28px 0',
-                }}
-              >
-                <div style={{ color: '#ff6b6b', fontSize: '24px', marginBottom: '8px' }}>●</div>
-                <h3 style={{ color: '#e8d8b0', fontSize: '20px', letterSpacing: '2px', margin: '0 0 10px' }}>
-                  REGISTRATION CLOSED
-                </h3>
-                <p style={{ color: '#c5b18a', fontSize: '14px', lineHeight: '1.6', margin: 0 }}>
-                  Registration for <strong style={{ color: '#c9a45c' }}>{event.name}</strong> is currently closed by the festival organizers.
-                </p>
-              </div>
-
-              <Link href="/events" className="reg-action-btn next-btn" style={{ maxWidth: '260px', margin: '0 auto', display: 'inline-flex' }}>
-                RETURN TO EVENTS
-              </Link>
+            {/* Bottom Rod */}
+            <div className="scroll-rod-row bottom">
+              <svg className="scroll-finial" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
+              <div className="scroll-rod-bar" />
+              <svg className="scroll-finial right" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
             </div>
           </div>
 
@@ -901,545 +1128,567 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
     );
   }
 
+  const stageStepClass = isSuccess
+    ? 'stage-step-success'
+    : step === 0
+      ? 'stage-step-0'
+      : step === 1
+        ? 'stage-step-1'
+        : 'stage-step-2';
+
   return (
     <div className="reg-stage-wrapper">
+      <ScrollSvgDefs />
       {/* ── Outer Navigation Back ── */}
       <div className="reg-top-bar">
-        <Link href="/events" className="reg-back-btn">
-          ← BACK TO EVENTS
-        </Link>
+        <button
+          type="button"
+          onClick={handlePrev}
+          disabled={isTransitioning}
+          className="reg-back-btn reg-top-prev-btn"
+          aria-label="Previous step"
+        >
+          ← PREV
+        </button>
         <span className="reg-tag">{event.yuga} • {event.category}</span>
       </div>
 
-      {/* ── Main Parchment Stage (Decree panel) ── */}
+      {/* ── Main Parchment Stage (Medieval Unrolling Scroll) ── */}
       <div className="reg-card-stage">
-        <div className="decree-card-panel decree-reg-panel">
-          {/* Ornamental Decree Corner Brackets */}
-          <div className="decree-corner top-left" aria-hidden="true" />
-          <div className="decree-corner top-right" aria-hidden="true" />
-          <div className="decree-corner bottom-left" aria-hidden="true" />
-          <div className="decree-corner bottom-right" aria-hidden="true" />
+        <div className={`medieval-scroll-stage ${stageStepClass} ${isScrollOpen ? 'open' : ''}`}>
+          {/* Top Rod */}
+          <div className="scroll-rod-row top">
+            <svg className="scroll-finial" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
+            <div className="scroll-rod-bar" />
+            <svg className="scroll-finial right" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
+          </div>
 
-          <div className="decree-inner-frame reg-inner-frame">
-            {/* ── Step 0: Team Name Step ── */}
-            {step === 0 && !isSuccess && (
-              <form onSubmit={handleTeamNameNext} noValidate className="reg-form-step">
-                {event.overheadTitle && (
-                  <span className="decree-overhead-title reg-overhead-title">{event.overheadTitle}</span>
-                )}
-                <h1 className="decree-title reg-title">{event.name}</h1>
-                <p className="decree-trial-subtitle reg-subtitle">
-                  {event.ruleSubtitle || `${event.category.toUpperCase()} | REGISTRATION`}
-                </p>
+          {/* Parchment Wrap */}
+          <div className="parchment-wrap">
+            <div className="parchment">
+              <div className="parchment-lines" />
 
-                <div className="decree-ornament-divider" aria-hidden="true">
-                  <span className="decree-divider-line" />
-                  <span className="decree-divider-gem">◆</span>
-                  <span className="decree-divider-line" />
-                </div>
+              {/* Ornate Frame & Corner Flourishes */}
+              <svg className="scroll-corner tl" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+              <svg className="scroll-corner tr" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+              <svg className="scroll-corner bl" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+              <svg className="scroll-corner br" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
 
-                <div className="reg-input-group">
-                  <div className="reg-field-wrap">
-                    <input
-                      type="text"
-                      value={teamName}
-                      onChange={(e) => handleTeamNameChange(e.target.value)}
-                      onBlur={handleTeamNameBlur}
-                      placeholder={isSolo ? 'ENTER PARTICIPANT NAME' : 'ENTER TEAM NAME'}
-                      className={`reg-input ${teamNameTouched && teamNameError ? 'reg-input-error' : ''}`}
-                      autoFocus
-                    />
-                    {teamNameTouched && teamNameError && (
-                      <span className="reg-field-error">⚠ {teamNameError}</span>
+              <div className="scroll-frame" />
+
+              {/* Parchment Content Viewport */}
+              <div className="parchment-content">
+                {/* ── Step 0: Team Name Step ── */}
+                {step === 0 && !isSuccess && (
+                  <form onSubmit={handleTeamNameNext} noValidate className="reg-form-step">
+                    {event.overheadTitle && (
+                      <span className="decree-overhead-title reg-overhead-title">{event.overheadTitle}</span>
                     )}
-                  </div>
-                </div>
-
-                {isCtf && (
-                  <p className="reg-fee-display" style={{ fontSize: '13px', color: '#c9a45c', marginTop: '12px' }}>
-                    ⚔ CTF Trial Protocol: Teams must consist of <strong>exactly 2 or 4 members</strong>.
-                  </p>
-                )}
-
-                {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
-
-                <button type="submit" className="reg-action-btn next-btn">
-                  NEXT
-                </button>
-              </form>
-            )}
-
-            {/* ── Step 1: Member Details Step ── */}
-            {step === 1 && !isSuccess && (
-              <form onSubmit={handleMemberNext} noValidate className="reg-form-step">
-                <div className="reg-header-with-line">
-                  <h2 className="reg-step-title">{getMemberTitle(currentMemberIndex)}</h2>
-                  <div className="reg-underline" />
-                </div>
-
-                {/* Prominent PCCOE Instruction Banner */}
-                <div
-                  style={{
-                    background: 'rgba(201, 164, 92, 0.12)',
-                    border: '1px solid rgba(201, 164, 92, 0.45)',
-                    borderRadius: '6px',
-                    padding: '10px 14px',
-                    marginBottom: '14px',
-                    fontSize: '13px',
-                    color: '#f0dfba',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    lineHeight: '1.4',
-                    textAlign: 'left',
-                  }}
-                >
-                  <span style={{ fontSize: '16px', color: '#c9a45c' }}>ℹ</span>
-                  <span>
-                    <strong>PCCOE students:</strong> Please use your official PCCOE college email with batch identifier (e.g. <code>name24@pccoepune.org</code>).
-                  </span>
-                </div>
-
-                <div className="reg-fields-grid">
-                  {/* Full Name */}
-                  <div className="reg-field-wrap">
-                    <input
-                      type="text"
-                      value={members[currentMemberIndex]?.name || ''}
-                      onChange={(e) => handleFieldChange('name', e.target.value)}
-                      onBlur={() => handleFieldBlur('name')}
-                      placeholder="FULL NAME"
-                      className={`reg-input full-width ${currentTouched.name && currentErrors.name ? 'reg-input-error' : ''}`}
-                      autoFocus
-                    />
-                    {currentTouched.name && currentErrors.name && (
-                      <span className="reg-field-error">⚠ {currentErrors.name}</span>
-                    )}
-                  </div>
-
-                  {/* Email ID (Preserves user typed casing) */}
-                  <div className="reg-field-wrap">
-                    <input
-                      type="email"
-                      value={members[currentMemberIndex]?.email || ''}
-                      onChange={(e) => handleFieldChange('email', e.target.value)}
-                      onBlur={() => handleFieldBlur('email')}
-                      placeholder="EMAIL ID (e.g. name24@pccoepune.org)"
-                      className={`reg-input reg-input-email full-width ${currentTouched.email && currentErrors.email ? 'reg-input-error' : ''}`}
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck="false"
-                    />
-                    {currentTouched.email && currentErrors.email && (
-                      <span className="reg-field-error">⚠ {currentErrors.email}</span>
-                    )}
-                  </div>
-
-                  {/* Phone */}
-                  <div className="reg-field-wrap">
-                    <input
-                      type="tel"
-                      value={members[currentMemberIndex]?.phone || ''}
-                      onChange={(e) => handleFieldChange('phone', e.target.value)}
-                      onBlur={() => handleFieldBlur('phone')}
-                      placeholder="PHONE NUMBER (10 DIGITS)"
-                      className={`reg-input full-width ${currentTouched.phone && currentErrors.phone ? 'reg-input-error' : ''}`}
-                    />
-                    {currentTouched.phone && currentErrors.phone && (
-                      <span className="reg-field-error">⚠ {currentErrors.phone}</span>
-                    )}
-                  </div>
-
-                  {/* Row 3: College, Academic Year, Branch (No separate admission batch field) */}
-                  <div className="reg-row-3">
-                    <div className="reg-field-wrap">
-                      <input
-                        type="text"
-                        value={members[currentMemberIndex]?.college || ''}
-                        onChange={(e) => handleFieldChange('college', e.target.value)}
-                        onBlur={() => handleFieldBlur('college')}
-                        placeholder="COLLEGE"
-                        className={`reg-input col-field ${currentTouched.college && currentErrors.college ? 'reg-input-error' : ''}`}
-                      />
-                      {currentTouched.college && currentErrors.college && (
-                        <span className="reg-field-error">⚠ {currentErrors.college}</span>
-                      )}
-                    </div>
-
-                    <div className="reg-field-wrap">
-                      <select
-                        value={members[currentMemberIndex]?.year || 'FE'}
-                        onChange={(e) => handleFieldChange('year', e.target.value)}
-                        onBlur={() => handleFieldBlur('year')}
-                        className={`reg-select col-field ${currentTouched.year && currentErrors.year ? 'reg-input-error' : ''}`}
-                      >
-                        <option value="FE">FE (1st Yr)</option>
-                        <option value="SE">SE (2nd Yr)</option>
-                        <option value="TE">TE (3rd Yr)</option>
-                        <option value="BE">BE (4th Yr)</option>
-                      </select>
-                      {currentTouched.year && currentErrors.year && (
-                        <span className="reg-field-error">⚠ {currentErrors.year}</span>
-                      )}
-                    </div>
-
-                    <div className="reg-field-wrap">
-                      <input
-                        type="text"
-                        value={members[currentMemberIndex]?.branch || ''}
-                        onChange={(e) => handleFieldChange('branch', e.target.value)}
-                        onBlur={() => handleFieldBlur('branch')}
-                        placeholder="BRANCH"
-                        className={`reg-input col-field ${currentTouched.branch && currentErrors.branch ? 'reg-input-error' : ''}`}
-                      />
-                      {currentTouched.branch && currentErrors.branch && (
-                        <span className="reg-field-error">⚠ {currentErrors.branch}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
-
-                <div className="reg-btn-row">
-                  <button type="button" onClick={handlePrev} className="reg-secondary-btn">
-                    PREV
-                  </button>
-
-                  {/* Add member button */}
-                  {isCtf ? (
-                    members.length === 2 && currentMemberIndex === 1 && (
-                      <button type="button" onClick={handleAddOptionalMember} className="reg-optional-btn">
-                        + ADD 2 AGENTS (MAX 4)
-                      </button>
-                    )
-                  ) : (
-                    members.length < maxMembers &&
-                    currentMemberIndex === members.length - 1 &&
-                    currentMemberIndex + 1 >= minMembers && (
-                      <button type="button" onClick={handleAddOptionalMember} className="reg-optional-btn">
-                        + ADD MEMBER
-                      </button>
-                    )
-                  )}
-
-                  <button type="submit" className="reg-action-btn next-btn">
-                    NEXT
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* ── Step 2: Confirmation Decree & Payment Step ── */}
-            {step === 2 && !isSuccess && (
-              <form onSubmit={handleFinalSubmit} noValidate className="reg-form-step">
-                <div className="reg-header-with-line">
-                  <h2 className="reg-step-title">CONFIRM REGISTRATION</h2>
-                  <div className="reg-underline" />
-                </div>
-
-                <p className="reg-fee-display">
-                  Trial: <strong style={{ color: '#c9a45c' }}>{event.name}</strong>
-                </p>
-
-                {/* Team & Member Details */}
-                <div
-                  style={{
-                    background: 'rgba(15, 20, 25, 0.6)',
-                    border: '1px solid rgba(118, 85, 47, 0.4)',
-                    borderRadius: '8px',
-                    padding: '16px',
-                    margin: '16px 0',
-                    textAlign: 'left',
-                  }}
-                >
-                  <p style={{ margin: '0 0 8px', color: '#e8d8b0', fontSize: '14px', letterSpacing: '1px' }}>
-                    <strong>Team / Entry:</strong> {teamName.trim() || members[0]?.name}
-                  </p>
-                  <p style={{ margin: '0 0 12px', color: '#9a8866', fontSize: '13px' }}>
-                    Total Members: {members.length} {isCtf ? '(2 or 4 Protocol Verified)' : ''}
-                  </p>
-                  <ul style={{ margin: 0, paddingLeft: '18px', color: '#c5b18a', fontSize: '13px', lineHeight: '1.6' }}>
-                    {members.map((m, idx) => {
-                      const isPccoe = isMemberPccoeEligible(m);
-                      const batch = extractPccoeBatch(m.email);
-                      return (
-                        <li key={idx}>
-                          <strong style={{ color: '#e8d8b0' }}>{m.name || `Member ${idx + 1}`}</strong> &lt;{m.email}&gt; • {m.phone} — {m.college || 'College'} ({m.year}, {m.branch || 'Dept'})
-                          {isPccoe && (
-                            <span style={{ marginLeft: '6px', color: '#4ade80', fontSize: '11px', fontWeight: 600 }}>
-                              [PCCOE Batch 20{batch}]
-                            </span>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-
-                {/* ── Case 1: PCCOE 100% Free Registrations ── */}
-                {allPccoeEligible && (
-                  <div
-                    style={{
-                      background: 'rgba(34, 197, 94, 0.09)',
-                      border: '1px solid rgba(34, 197, 94, 0.45)',
-                      borderRadius: '8px',
-                      padding: '18px',
-                      margin: '18px 0',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#4ade80', letterSpacing: '1px' }}>
-                        NO PAYMENT REQUIRED
-                      </span>
-                      <span style={{ fontSize: '18px', fontWeight: 700, color: '#4ade80' }}>
-                        ₹0
-                      </span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#e8d8b0', lineHeight: '1.5' }}>
-                      All team members are verified PCCOE students (Batches 23-26). No payment is required for your entry.
-                    </p>
-                  </div>
-                )}
-
-                {/* ── Case 2: Payment Required (Mixed or External Teams) ── */}
-                {paymentRequired && (
-                  <div className="reg-payment-section">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: 700, color: '#facc15', letterSpacing: '1.5px' }}>
-                        PAYMENT REQUIRED
-                      </span>
-                      <span style={{ fontSize: '18px', fontWeight: 700, color: '#e8d8b0' }}>
-                        Registration Fee: ₹{event.fee}
-                      </span>
-                    </div>
-
-                    <p style={{ margin: '0 0 14px', fontSize: '13px', color: '#9a8866', lineHeight: '1.5' }}>
-                      At least one team member is outside the PCCOE eligibility criteria. Standard event registration fee applies to the entire team.
+                    <h1 className="decree-title reg-title">{event.name}</h1>
+                    <p className="decree-trial-subtitle reg-subtitle">
+                      {event.ruleSubtitle || `${event.category.toUpperCase()} | REGISTRATION`}
                     </p>
 
-                    {/* QR Code */}
-                    <div className="reg-qr-wrapper">
-                      <img
-                        src={event.paymentQrUrl || '/images/payment-qr.svg'}
-                        alt="Payment QR Code"
-                        className="reg-qr-img"
-                      />
-                      <p className="reg-qr-instruction">Scan the QR code to make the payment.</p>
-                      <span className="reg-upi-id">UPI ID: {event.upiId || 'artimas2026@upi'}</span>
+                    <div className="decree-ornament-divider" aria-hidden="true">
+                      <span className="decree-divider-line" />
+                      <span className="decree-divider-gem">◆</span>
+                      <span className="decree-divider-line" />
                     </div>
 
-                    {/* Transaction ID Input */}
-                    <div className="reg-field-wrap" style={{ marginTop: '16px' }}>
-                      <label style={{ fontSize: '11px', color: '#9a8866', letterSpacing: '1px', marginBottom: '4px' }}>
-                        TRANSACTION ID / UTR NUMBER *
-                      </label>
-                      <input
-                        type="text"
-                        value={transactionId}
-                        onChange={(e) => {
-                          setTransactionId(e.target.value);
-                          if (paymentErrors.transactionId) {
-                            setPaymentErrors((prev) => ({ ...prev, transactionId: '' }));
-                          }
-                        }}
-                        placeholder="ENTER 12-DIGIT TRANSACTION ID"
-                        className={`reg-input reg-input-nocase full-width ${paymentErrors.transactionId ? 'reg-input-error' : ''}`}
-                      />
-                      {paymentErrors.transactionId && (
-                        <span className="reg-field-error">⚠ {paymentErrors.transactionId}</span>
-                      )}
-                    </div>
-
-                    {/* Payment Screenshot Upload */}
-                    <div className="reg-field-wrap" style={{ marginTop: '16px' }}>
-                      <label style={{ fontSize: '11px', color: '#9a8866', letterSpacing: '1px', marginBottom: '4px' }}>
-                        PAYMENT SCREENSHOT *
-                      </label>
-                      <div className="reg-upload-dropzone">
+                    <div className="reg-input-group">
+                      <div className="reg-field-wrap">
                         <input
-                          type="file"
-                          id="payment-screenshot-input"
-                          accept="image/jpeg,image/jpg,image/png,image/webp"
-                          onChange={handleScreenshotFileChange}
-                          style={{ display: 'none' }}
+                          type="text"
+                          value={teamName}
+                          onChange={(e) => handleTeamNameChange(e.target.value)}
+                          onBlur={handleTeamNameBlur}
+                          placeholder={isSolo ? 'ENTER PARTICIPANT NAME' : 'ENTER TEAM NAME'}
+                          className={`reg-input ${teamNameTouched && teamNameError ? 'reg-input-error' : ''}`}
+                          autoFocus
                         />
-                        <label htmlFor="payment-screenshot-input" className="reg-upload-trigger">
-                          {screenshotPreview ? (
-                            <div className="reg-screenshot-preview">
-                              <img src={screenshotPreview} alt="Screenshot Preview" />
-                              <span>Click to change screenshot</span>
-                            </div>
-                          ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#c5b18a', padding: '10px' }}>
-                              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#c9a45c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <polyline points="17 8 12 3 7 8" />
-                                <line x1="12" y1="3" x2="12" y2="15" />
-                              </svg>
-                              <span style={{ fontSize: '13.5px', fontWeight: 600 }}>Click to upload payment screenshot</span>
-                              <span style={{ fontSize: '11px', color: '#9a8866' }}>Supported formats: JPG, JPEG, PNG, WebP (max 5MB)</span>
-                            </div>
-                          )}
-                        </label>
+                        {teamNameTouched && teamNameError && (
+                          <span className="reg-field-error">⚠ {teamNameError}</span>
+                        )}
                       </div>
-                      {paymentErrors.screenshot && (
-                        <span className="reg-field-error">⚠ {paymentErrors.screenshot}</span>
-                      )}
                     </div>
-                  </div>
+
+                    {isCtf && (
+                      <p className="reg-fee-display" style={{ fontSize: '13.5px', color: '#3a2410', marginTop: '12px', fontWeight: 600 }}>
+                        ⚔ CTF Trial Protocol: Teams must consist of <strong>exactly 2 or 4 members</strong>.
+                      </p>
+                    )}
+
+                    {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
+
+                    <div className="reg-btn-row">
+                      <button type="button" onClick={handlePrev} disabled={isTransitioning} className="reg-secondary-btn">
+                        PREV
+                      </button>
+                      <button type="submit" disabled={isTransitioning} className="reg-action-btn next-btn">
+                        NEXT
+                      </button>
+                    </div>
+                  </form>
                 )}
 
-                <p style={{ color: '#9a8866', fontSize: '12px', textAlign: 'center', margin: '8px 0 20px' }}>
-                  Click below to seal your entry. Your registration will be confirmed immediately.
-                </p>
+                {/* ── Step 1: Member Details Step ── */}
+                {step === 1 && !isSuccess && (
+                  <form onSubmit={handleMemberNext} noValidate className="reg-form-step">
+                    <div className="reg-header-with-line">
+                      <h2 className="reg-step-title">{getMemberTitle(currentMemberIndex)}</h2>
+                      <div className="reg-underline" />
+                    </div>
 
-                {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
-
-                <div className="reg-btn-row">
-                  <button type="button" onClick={handlePrev} className="reg-secondary-btn">
-                    PREV
-                  </button>
-
-                  <button type="submit" disabled={isSubmitting} className="reg-action-btn submit-btn">
-                    {isSubmitting ? 'SEALING REGISTRATION...' : 'CONFIRM REGISTRATION'}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* ── Step 3: Redesigned Simple & Easy-to-Understand Confirmation Page ── */}
-            {isSuccess && (
-              <div className="reg-success-view">
-                <div className="reg-success-badge">✓</div>
-                <h2 className="reg-success-title">REGISTRATION CONFIRMED</h2>
-                <p className="reg-success-sub">Your entry into the trial has been sealed in the archives.</p>
-
-                {/* Main Clean Confirmation Card */}
-                <div className="reg-confirm-card">
-                  <div className="reg-confirm-grid">
-                    <div className="reg-confirm-item">
-                      <span className="reg-confirm-label">Event</span>
-                      <span className="reg-confirm-val" style={{ color: '#c9a45c', fontSize: '17px' }}>
-                        {event.name}
+                    {/* Prominent PCCOE Instruction Banner */}
+                    <div className="reg-pccoe-banner">
+                      <span className="reg-pccoe-icon">ℹ</span>
+                      <span>
+                        <strong>PCCOE students:</strong> Please use your official PCCOE college email with batch identifier (e.g. <code>name.surname24@pccoepune.org</code>).
                       </span>
                     </div>
 
-                    <div className="reg-confirm-item">
-                      <span className="reg-confirm-label">Pass ID</span>
-                      <span className="reg-confirm-val" style={{ color: '#c9a45c', fontFamily: 'monospace', letterSpacing: '2px', fontSize: '17px' }}>
-                        {registrationResult?.passId || registrationResult?.registrationId}
-                      </span>
+                    <div className="reg-fields-grid">
+                      {/* Full Name */}
+                      <div className="reg-field-wrap">
+                        <input
+                          type="text"
+                          value={members[currentMemberIndex]?.name || ''}
+                          onChange={(e) => handleFieldChange('name', e.target.value)}
+                          onBlur={() => handleFieldBlur('name')}
+                          placeholder="FULL NAME"
+                          className={`reg-input full-width ${currentTouched.name && currentErrors.name ? 'reg-input-error' : ''}`}
+                          autoFocus
+                        />
+                        {currentTouched.name && currentErrors.name && (
+                          <span className="reg-field-error">⚠ {currentErrors.name}</span>
+                        )}
+                      </div>
+
+                      {/* Email ID (Preserves user typed casing) */}
+                      <div className="reg-field-wrap">
+                        <input
+                          type="email"
+                          value={members[currentMemberIndex]?.email || ''}
+                          onChange={(e) => handleFieldChange('email', e.target.value)}
+                          onBlur={() => handleFieldBlur('email')}
+                          placeholder="EMAIL ID (e.g. name24@pccoepune.org)"
+                          className={`reg-input reg-input-email full-width ${currentTouched.email && currentErrors.email ? 'reg-input-error' : ''}`}
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck="false"
+                        />
+                        {currentTouched.email && currentErrors.email && (
+                          <span className="reg-field-error">⚠ {currentErrors.email}</span>
+                        )}
+                      </div>
+
+                      {/* Phone */}
+                      <div className="reg-field-wrap">
+                        <input
+                          type="tel"
+                          value={members[currentMemberIndex]?.phone || ''}
+                          onChange={(e) => handleFieldChange('phone', e.target.value)}
+                          onBlur={() => handleFieldBlur('phone')}
+                          placeholder="PHONE NUMBER (10 DIGITS)"
+                          className={`reg-input full-width ${currentTouched.phone && currentErrors.phone ? 'reg-input-error' : ''}`}
+                        />
+                        {currentTouched.phone && currentErrors.phone && (
+                          <span className="reg-field-error">⚠ {currentErrors.phone}</span>
+                        )}
+                      </div>
+
+                      {/* Row 3: College, Academic Year, Branch (No separate admission batch field) */}
+                      <div className="reg-row-3">
+                        <div className="reg-field-wrap">
+                          <input
+                            type="text"
+                            value={members[currentMemberIndex]?.college || ''}
+                            onChange={(e) => handleFieldChange('college', e.target.value)}
+                            onBlur={() => handleFieldBlur('college')}
+                            placeholder="COLLEGE"
+                            className={`reg-input col-field ${currentTouched.college && currentErrors.college ? 'reg-input-error' : ''}`}
+                          />
+                          {currentTouched.college && currentErrors.college && (
+                            <span className="reg-field-error">⚠ {currentErrors.college}</span>
+                          )}
+                        </div>
+
+                        <div className="reg-field-wrap">
+                          <select
+                            value={members[currentMemberIndex]?.year || 'FE'}
+                            onChange={(e) => handleFieldChange('year', e.target.value)}
+                            onBlur={() => handleFieldBlur('year')}
+                            className={`reg-select col-field ${currentTouched.year && currentErrors.year ? 'reg-input-error' : ''}`}
+                          >
+                            <option value="FE">FE (1st Yr)</option>
+                            <option value="SE">SE (2nd Yr)</option>
+                            <option value="TE">TE (3rd Yr)</option>
+                            <option value="BE">BE (4th Yr)</option>
+                          </select>
+                          {currentTouched.year && currentErrors.year && (
+                            <span className="reg-field-error">⚠ {currentErrors.year}</span>
+                          )}
+                        </div>
+
+                        <div className="reg-field-wrap">
+                          <input
+                            type="text"
+                            value={members[currentMemberIndex]?.branch || ''}
+                            onChange={(e) => handleFieldChange('branch', e.target.value)}
+                            onBlur={() => handleFieldBlur('branch')}
+                            placeholder="BRANCH"
+                            className={`reg-input col-field ${currentTouched.branch && currentErrors.branch ? 'reg-input-error' : ''}`}
+                          />
+                          {currentTouched.branch && currentErrors.branch && (
+                            <span className="reg-field-error">⚠ {currentErrors.branch}</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="reg-confirm-item">
-                      <span className="reg-confirm-label">{isSolo ? 'Participant' : 'Team'}</span>
-                      <span className="reg-confirm-val">
-                        {registrationResult?.teamName || teamName || members[0]?.name}
-                      </span>
+                    {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
+
+                    <div className="reg-btn-row">
+                      <button type="button" onClick={handlePrev} disabled={isTransitioning} className="reg-secondary-btn">
+                        PREV
+                      </button>
+
+                      {/* Add member button */}
+                      {isCtf ? (
+                        members.length === 2 && currentMemberIndex === 1 && (
+                          <button type="button" onClick={handleAddOptionalMember} disabled={isTransitioning} className="reg-optional-btn">
+                            + ADD 2 AGENTS (MAX 4)
+                          </button>
+                        )
+                      ) : (
+                        members.length < maxMembers &&
+                        currentMemberIndex === members.length - 1 &&
+                        currentMemberIndex + 1 >= minMembers && (
+                          <button type="button" onClick={handleAddOptionalMember} disabled={isTransitioning} className="reg-optional-btn">
+                            + ADD MEMBER
+                          </button>
+                        )
+                      )}
+
+                      <button type="submit" disabled={isTransitioning} className="reg-action-btn next-btn">
+                        NEXT
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* ── Step 2: Confirmation Decree & Payment Step ── */}
+                {step === 2 && !isSuccess && (
+                  <form onSubmit={handleFinalSubmit} noValidate className="reg-form-step">
+                    <div className="reg-header-with-line">
+                      <h2 className="reg-step-title">CONFIRM REGISTRATION</h2>
+                      <div className="reg-underline" />
                     </div>
 
-                    <div className="reg-confirm-item">
-                      <span className="reg-confirm-label">Registration</span>
-                      <span className="reg-confirm-val" style={{ color: '#4ade80' }}>
-                        ✓ Confirmed
-                      </span>
+                    <p className="reg-fee-display" style={{ color: '#241204' }}>
+                      Trial: <strong style={{ color: '#5a3818' }}>{event.name}</strong>
+                    </p>
+
+                    {/* Team & Member Details */}
+                    <div className="reg-scroll-summary-card">
+                      <p style={{ margin: '0 0 8px', color: 'var(--ink)', fontSize: '14px', letterSpacing: '1px' }}>
+                        <strong>Team / Entry:</strong> {teamName.trim() || members[0]?.name}
+                      </p>
+                      <p style={{ margin: '0 0 12px', color: 'var(--ink-soft)', fontSize: '13px' }}>
+                        Total Members: {members.length} {isCtf ? '(2 or 4 Protocol Verified)' : ''}
+                      </p>
+                      <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--ink-soft)', fontSize: '13px', lineHeight: '1.6' }}>
+                        {members.map((m, idx) => {
+                          const isPccoe = isMemberPccoeEligible(m);
+                          const batch = extractPccoeBatch(m.email);
+                          return (
+                            <li key={idx}>
+                              <strong style={{ color: 'var(--ink)' }}>{m.name || `Member ${idx + 1}`}</strong> &lt;{m.email}&gt; • {m.phone} — {m.college || 'College'} ({m.year}, {m.branch || 'Dept'})
+                              {isPccoe && (
+                                <span style={{ marginLeft: '6px', color: '#166534', fontSize: '11px', fontWeight: 700 }}>
+                                  [PCCOE Batch 20{batch}]
+                                </span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
 
-                    <div className="reg-confirm-item" style={{ gridColumn: '1 / -1' }}>
-                      <span className="reg-confirm-label">Payment</span>
-                      <span
-                        className="reg-confirm-val"
+                    {/* ── Case 1: PCCOE 100% Free Registrations ── */}
+                    {allPccoeEligible && (
+                      <div
                         style={{
-                          color: registrationResult?.payment?.required || registrationResult?.paymentRequired ? '#facc15' : '#4ade80',
-                          fontSize: '15px',
+                          background: 'rgba(34, 197, 94, 0.12)',
+                          border: '1.5px solid rgba(22, 101, 52, 0.45)',
+                          borderRadius: '8px',
+                          padding: '16px',
+                          margin: '16px 0',
+                          textAlign: 'left',
                         }}
                       >
-                        {registrationResult?.payment?.required || registrationResult?.paymentRequired
-                          ? `₹${registrationResult?.payment?.amount || registrationResult?.payableAmount || event.fee} — Verification Pending`
-                          : 'No payment required'}
-                      </span>
-                    </div>
-                  </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#166534', letterSpacing: '1px' }}>
+                            NO PAYMENT REQUIRED
+                          </span>
+                          <span style={{ fontSize: '18px', fontWeight: 700, color: '#166534' }}>
+                            ₹0
+                          </span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '13px', color: 'var(--ink-soft)', lineHeight: '1.5' }}>
+                          All team members are verified PCCOE students (Batches 23-26). No payment is required for your entry.
+                        </p>
+                      </div>
+                    )}
 
-                  {/* EVENT INFORMATION */}
-                  <div className="reg-confirm-section">
-                    <h3 className="reg-confirm-section-title">EVENT INFORMATION</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '13.5px' }}>
-                      <div>
-                        <span style={{ color: '#9a8866' }}>Date:</span>{' '}
-                        <strong style={{ color: '#e8d8b0' }}>{scheduleDate}</strong>
-                      </div>
-                      <div>
-                        <span style={{ color: '#9a8866' }}>Time:</span>{' '}
-                        <strong style={{ color: '#e8d8b0' }}>{eventTime}</strong>
-                      </div>
-                      <div>
-                        <span style={{ color: '#9a8866' }}>Venue:</span>{' '}
-                        <strong style={{ color: '#e8d8b0' }}>{scheduleVenue}</strong>
-                      </div>
-                    </div>
-                  </div>
+                    {/* ── Case 2: Payment Required (Mixed or External Teams) ── */}
+                    {paymentRequired && (
+                      <div className="reg-payment-section">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#854d0e', letterSpacing: '1.5px' }}>
+                            PAYMENT REQUIRED
+                          </span>
+                          <span style={{ fontSize: '17px', fontWeight: 700, color: 'var(--ink)' }}>
+                            Registration Fee: ₹{event.fee}
+                          </span>
+                        </div>
 
-                  {/* EVENT TIMELINE */}
-                  <div className="reg-confirm-section">
-                    <h3 className="reg-confirm-section-title">EVENT TIMELINE</h3>
-                    <p style={{ margin: 0, fontSize: '13.5px', color: '#e8d8b0', lineHeight: '1.6' }}>
-                      {event.ruleSubtitle || event.trialSubtitle || 'Round 1: Preliminary Trials • Round 2: Grand Epoch Finals'}
+                        <p style={{ margin: '0 0 14px', fontSize: '13px', color: 'var(--ink-soft)', lineHeight: '1.5' }}>
+                          At least one team member is outside the PCCOE eligibility criteria. Standard event registration fee applies to the entire team.
+                        </p>
+
+                        {/* QR Code */}
+                        <div className="reg-qr-wrapper">
+                          <img
+                            src={event.paymentQrUrl || '/images/payment-qr.svg'}
+                            alt="Payment QR Code"
+                            className="reg-qr-img"
+                          />
+                          <p className="reg-qr-instruction">Scan the QR code to make the payment.</p>
+                          <span className="reg-upi-id">UPI ID: {event.upiId || 'artimas2026@upi'}</span>
+                        </div>
+
+                        {/* Transaction ID Input */}
+                        <div className="reg-field-wrap" style={{ marginTop: '16px' }}>
+                          <label style={{ fontSize: '11px', color: 'var(--ink-light)', letterSpacing: '1px', marginBottom: '4px', fontWeight: 600 }}>
+                            TRANSACTION ID / UTR NUMBER *
+                          </label>
+                          <input
+                            type="text"
+                            value={transactionId}
+                            onChange={(e) => {
+                              setTransactionId(e.target.value);
+                              if (paymentErrors.transactionId) {
+                                setPaymentErrors((prev) => ({ ...prev, transactionId: '' }));
+                              }
+                            }}
+                            placeholder="ENTER 12-DIGIT TRANSACTION ID"
+                            className={`reg-input reg-input-nocase full-width ${paymentErrors.transactionId ? 'reg-input-error' : ''}`}
+                          />
+                          {paymentErrors.transactionId && (
+                            <span className="reg-field-error">⚠ {paymentErrors.transactionId}</span>
+                          )}
+                        </div>
+
+                        {/* Payment Screenshot Upload */}
+                        <div className="reg-field-wrap" style={{ marginTop: '16px' }}>
+                          <label style={{ fontSize: '11px', color: 'var(--ink-light)', letterSpacing: '1px', marginBottom: '4px', fontWeight: 600 }}>
+                            PAYMENT SCREENSHOT *
+                          </label>
+                          <div className="reg-upload-dropzone">
+                            <input
+                              type="file"
+                              id="payment-screenshot-input"
+                              accept="image/jpeg,image/jpg,image/png,image/webp"
+                              onChange={handleScreenshotFileChange}
+                              style={{ display: 'none' }}
+                            />
+                            <label htmlFor="payment-screenshot-input" className="reg-upload-trigger">
+                              {screenshotPreview ? (
+                                <div className="reg-screenshot-preview">
+                                  <img src={screenshotPreview} alt="Screenshot Preview" />
+                                  <span>Click to change screenshot</span>
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: 'var(--ink-soft)', padding: '10px' }}>
+                                  <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--ink)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="17 8 12 3 7 8" />
+                                    <line x1="12" y1="3" x2="12" y2="15" />
+                                  </svg>
+                                  <span style={{ fontSize: '13.5px', fontWeight: 600 }}>Click to upload payment screenshot</span>
+                                  <span style={{ fontSize: '11px', color: 'var(--ink-light)' }}>Supported formats: JPG, JPEG, PNG, WebP (max 5MB)</span>
+                                </div>
+                              )}
+                            </label>
+                          </div>
+                          {paymentErrors.screenshot && (
+                            <span className="reg-field-error">⚠ {paymentErrors.screenshot}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <p style={{ color: '#4a3018', fontSize: '13px', textAlign: 'center', margin: '8px 0 20px', fontWeight: 600 }}>
+                      Click below to seal your entry. Your registration will be confirmed immediately.
                     </p>
-                  </div>
 
-                  {/* IMPORTANT */}
-                  <div className="reg-confirm-section">
-                    <h3 className="reg-confirm-section-title">IMPORTANT</h3>
-                    <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#c5b18a', lineHeight: '1.7' }}>
-                      <li>Present your <strong style={{ color: '#e8d8b0' }}>Pass ID: {registrationResult?.passId || registrationResult?.registrationId}</strong> at the venue registration desk.</li>
-                      <li>All participants must carry their original college identity cards.</li>
-                      <li>Please report to the venue at least 15 minutes prior to event commencement.</li>
-                      <li>
-                        {registrationResult?.payment?.required || registrationResult?.paymentRequired
-                          ? 'Your payment screenshot is under verification. Keep your transaction reference handy at the verification desk.'
-                          : 'All team members have been verified under the PCCOE eligibility criteria.'}
-                      </li>
-                    </ul>
-                  </div>
-                </div>
+                    {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
 
-                {isCtf && registrationResult?.submissionToken && (
-                  <div
-                    style={{
-                      background: 'rgba(10, 14, 20, 0.8)',
-                      border: '1px solid #76552f',
-                      borderRadius: '6px',
-                      padding: '14px',
-                      margin: '16px 0',
-                      wordBreak: 'break-all',
-                    }}
-                  >
-                    <span style={{ color: '#c9a45c', fontSize: '12px', letterSpacing: '1px', fontWeight: 600 }}>
-                      CTF SUBMISSION TOKEN:
-                    </span>
-                    <p style={{ color: '#e8d8b0', fontFamily: 'monospace', fontSize: '14px', margin: '4px 0 0' }}>
-                      {registrationResult.submissionToken}
-                    </p>
-                    <span style={{ color: '#888', fontSize: '11px' }}>
-                      (Save this token to submit challenge screenshots during the event)
-                    </span>
-                  </div>
+                    <div className="reg-btn-row">
+                      <button type="button" onClick={handlePrev} disabled={isTransitioning} className="reg-secondary-btn">
+                        PREV
+                      </button>
+
+                      <button type="submit" disabled={isSubmitting || isTransitioning} className="reg-action-btn submit-btn">
+                        {isSubmitting ? 'SEALING REGISTRATION...' : 'CONFIRM REGISTRATION'}
+                      </button>
+                    </div>
+                  </form>
                 )}
 
-                <p className="reg-success-note">
-                  A confirmation email has been dispatched. Please save your Pass ID for on-desk verification.
-                </p>
+                {/* ── Step 3: Redesigned Simple & Easy-to-Understand Confirmation Page ── */}
+                {isSuccess && (
+                  <div className="reg-success-view">
+                    <div className="reg-success-badge">✓</div>
+                    <h2 className="reg-success-title">REGISTRATION CONFIRMED</h2>
+                    <p className="reg-success-sub">Your entry into the trial has been sealed in the archives.</p>
 
-                <div className="reg-btn-row">
-                  <Link href="/events" className="reg-action-btn next-btn">
-                    RETURN TO EVENTS
-                  </Link>
-                </div>
+                    {/* Main Clean Confirmation Card */}
+                    <div className="reg-confirm-card">
+                      <div className="reg-confirm-grid">
+                        <div className="reg-confirm-item">
+                          <span className="reg-confirm-label">Event</span>
+                          <span className="reg-confirm-val" style={{ color: '#241204', fontSize: '17px', fontWeight: 700 }}>
+                            {event.name}
+                          </span>
+                        </div>
+
+                        <div className="reg-confirm-item">
+                          <span className="reg-confirm-label">Pass ID</span>
+                          <span className="reg-confirm-val" style={{ color: '#241204', fontFamily: 'monospace', letterSpacing: '2px', fontSize: '17px', fontWeight: 700 }}>
+                            {registrationResult?.passId || registrationResult?.registrationId}
+                          </span>
+                        </div>
+
+                        <div className="reg-confirm-item">
+                          <span className="reg-confirm-label">{isSolo ? 'Participant' : 'Team'}</span>
+                          <span className="reg-confirm-val" style={{ color: '#241204', fontWeight: 700 }}>
+                            {registrationResult?.teamName || teamName || members[0]?.name}
+                          </span>
+                        </div>
+
+                        <div className="reg-confirm-item">
+                          <span className="reg-confirm-label">Registration</span>
+                          <span className="reg-confirm-val" style={{ color: '#166534', fontWeight: 700 }}>
+                            ✓ Confirmed
+                          </span>
+                        </div>
+
+                        <div className="reg-confirm-item" style={{ gridColumn: '1 / -1' }}>
+                          <span className="reg-confirm-label">Payment</span>
+                          <span
+                            className="reg-confirm-val"
+                            style={{
+                              color: registrationResult?.payment?.required || registrationResult?.paymentRequired ? '#854d0e' : '#166534',
+                              fontSize: '15px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {registrationResult?.payment?.required || registrationResult?.paymentRequired
+                              ? `₹${registrationResult?.payment?.amount || registrationResult?.payableAmount || event.fee} — Verification Pending`
+                              : 'No payment required'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* EVENT INFORMATION */}
+                      <div className="reg-confirm-section">
+                        <h3 className="reg-confirm-section-title">EVENT INFORMATION</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '13.5px' }}>
+                          <div>
+                            <span style={{ color: '#5a3818', fontWeight: 600 }}>Date:</span>{' '}
+                            <strong style={{ color: '#1a0b02' }}>{scheduleDate}</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: '#5a3818', fontWeight: 600 }}>Time:</span>{' '}
+                            <strong style={{ color: '#1a0b02' }}>{eventTime}</strong>
+                          </div>
+                          <div>
+                            <span style={{ color: '#5a3818', fontWeight: 600 }}>Venue:</span>{' '}
+                            <strong style={{ color: '#1a0b02' }}>{scheduleVenue}</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* EVENT TIMELINE */}
+                      <div className="reg-confirm-section">
+                        <h3 className="reg-confirm-section-title">EVENT TIMELINE</h3>
+                        <p style={{ margin: 0, fontSize: '13.5px', color: '#241204', lineHeight: '1.6' }}>
+                          {event.ruleSubtitle || event.trialSubtitle || 'Round 1: Preliminary Trials • Round 2: Grand Epoch Finals'}
+                        </p>
+                      </div>
+
+                      {/* IMPORTANT */}
+                      <div className="reg-confirm-section">
+                        <h3 className="reg-confirm-section-title">IMPORTANT</h3>
+                        <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#241204', lineHeight: '1.7' }}>
+                          <li>Present your <strong style={{ color: '#120701' }}>Pass ID: {registrationResult?.passId || registrationResult?.registrationId}</strong> at the venue registration desk.</li>
+                          <li>All participants must carry their original college identity cards.</li>
+                          <li>Please report to the venue at least 15 minutes prior to event commencement.</li>
+                          <li>
+                            {registrationResult?.payment?.required || registrationResult?.paymentRequired
+                              ? 'Your payment screenshot is under verification. Keep your transaction reference handy at the verification desk.'
+                              : 'All team members have been verified under the PCCOE eligibility criteria.'}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {isCtf && registrationResult?.submissionToken && (
+                      <div
+                        style={{
+                          background: 'rgba(85, 50, 20, 0.09)',
+                          border: '1.5px solid #8a6a40',
+                          borderRadius: '6px',
+                          padding: '14px',
+                          margin: '16px 0',
+                          wordBreak: 'break-all',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <span style={{ color: '#2b1807', fontSize: '12px', letterSpacing: '1px', fontWeight: 700 }}>
+                          CTF SUBMISSION TOKEN:
+                        </span>
+                        <p style={{ color: '#120701', fontFamily: 'monospace', fontSize: '14px', margin: '4px 0 0', fontWeight: 700 }}>
+                          {registrationResult.submissionToken}
+                        </p>
+                        <span style={{ color: '#5a3818', fontSize: '11px', fontWeight: 500 }}>
+                          (Save this token to submit challenge screenshots during the event)
+                        </span>
+                      </div>
+                    )}
+
+                    <p className="reg-success-note">
+                      A confirmation email has been dispatched. Please save your Pass ID for on-desk verification.
+                    </p>
+
+                    <div className="reg-btn-row">
+                      <Link href="/events" className="reg-action-btn next-btn">
+                        RETURN TO EVENTS
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Bottom Rod */}
+          <div className="scroll-rod-row bottom">
+            <svg className="scroll-finial" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
+            <div className="scroll-rod-bar" />
+            <svg className="scroll-finial right" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
           </div>
         </div>
 

@@ -1183,10 +1183,17 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .subpage-wrapper.headerless .subpage-container {
-    padding-top: clamp(65px, 8.5vh, 85px);
-    padding-bottom: clamp(20px, 3vh, 35px);
-    min-height: calc(100dvh - 10px);
-    justify-content: center;
+    padding-top: max(84px, calc(env(safe-area-inset-top, 0px) + 74px));
+    padding-bottom: clamp(24px, 4vh, 48px);
+    min-height: 100dvh;
+    height: auto;
+    justify-content: flex-start;
+}
+
+.subpage-wrapper.headerless .subpage-body {
+    justify-content: flex-start;
+    flex: 1 0 auto;
+    width: 100%;
 }
 
 @keyframes subpageOpenIn {
@@ -1346,219 +1353,781 @@ body.mode-yugas .yuga-title-img.active {
     border: 1px solid var(--btn-border-gold);
 }
 
-/* ── Calendar Dual Long Panels System ── */
-.calendar-dual-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(20px, 3vw, 40px);
+/* ── Multi-Page Calendar Codex & Gallery System ── */
+.calendar-codex-container {
     width: 100%;
     max-width: 1320px;
-    margin: 18px auto 0;
-    box-sizing: border-box;
-}
-
-@media (max-width: 900px) {
-    .calendar-dual-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
-        width: 100%;
-        max-width: 680px;
-    }
-}
-
-.calendar-panel {
-    position: relative;
-    background:
-        radial-gradient(ellipse at 50% 18%, rgba(184, 148, 90, 0.16) 0%, rgba(38, 24, 15, 0.88) 60%, rgba(10, 8, 6, 0.98) 100%),
-        linear-gradient(165deg, rgba(46, 30, 18, 0.95) 0%, rgba(16, 11, 7, 0.98) 100%);
-    border: 1px solid var(--border-bronze);
-    border-radius: 6px;
-    padding: clamp(18px, 3.2vw, 42px);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow:
-        inset 0 0 0 1px var(--border-bronze),
-        inset 0 0 0 4.5px rgba(8, 10, 12, 0.85),
-        inset 0 0 0 6px rgba(169, 130, 61, 0.38),
-        0 18px 50px rgba(0, 0, 0, 0.88);
+    margin: 10px auto 0;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    gap: clamp(16px, 2.5vh, 24px);
     box-sizing: border-box;
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
 }
 
-.calendar-panel:hover {
-    border-color: var(--panel-highlight);
-    box-shadow:
-        inset 0 0 0 1px var(--panel-highlight),
-        inset 0 0 0 4.5px rgba(8, 10, 12, 0.85),
-        inset 0 0 0 6px rgba(201, 164, 92, 0.55),
-        0 24px 60px rgba(0, 0, 0, 0.95),
-        0 0 25px var(--active-glow-gold);
-    transform: translateY(-3px);
-}
-
-.calendar-panel-header {
+/* Controls Bar (Page Tabs & View Switcher) */
+.calendar-controls-bar {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
-    border-bottom: 1px solid rgba(118, 85, 47, 0.35);
-    padding-bottom: 14px;
     flex-wrap: wrap;
-    box-sizing: border-box;
-    width: 100%;
-}
-
-.calendar-panel-title {
-    font-family: var(--font-title, 'Cinzel Decorative', serif);
-    font-size: clamp(18px, 1.8vw, 25px);
-    color: var(--heading-ivory);
-    margin: 0 0 4px 0;
-    letter-spacing: 1.2px;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 12px rgba(118, 85, 47, 0.4);
-    word-break: break-word;
-}
-
-.calendar-panel-yuga {
-    font-family: var(--font-title, 'Cinzel Decorative', serif);
-    font-size: clamp(11px, 1vw, 12.5px);
-    color: var(--panel-highlight);
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    word-break: break-word;
-}
-
-.calendar-panel-badge {
-    display: inline-block;
-    font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding: 5px 12px;
-    border-radius: 4px;
-    background: rgba(58, 36, 21, 0.85);
-    color: var(--heading-ivory);
-    border: 1px solid var(--btn-border-gold);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    white-space: nowrap;
-    align-self: flex-start;
-}
-
-.calendar-panel-desc {
-    font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: clamp(14px, 1.15vw, 17px);
-    color: var(--text-parchment);
-    line-height: 1.6;
-    margin: 0;
-    word-break: break-word;
-}
-
-.calendar-milestones-box {
-    margin-top: 4px;
-    border-top: 1px dashed rgba(118, 85, 47, 0.4);
-    padding-top: 16px;
     width: 100%;
     box-sizing: border-box;
 }
 
-.calendar-milestones-heading {
-    font-family: var(--font-title, 'Cinzel Decorative', serif);
-    font-size: 13px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--panel-highlight);
-    margin-bottom: 12px;
+.calendar-tabs-row {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
 }
 
-.calendar-milestones-list {
+.calendar-tabs-row::-webkit-scrollbar {
+    display: none;
+}
+
+.calendar-tab-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 15px;
+    background: rgba(38, 24, 15, 0.75);
+    border: 1px solid var(--border-bronze);
+    border-radius: 4px;
+    color: var(--text-parchment);
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(10.5px, 0.95vw, 12px);
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.calendar-tab-pill:hover {
+    background: rgba(65, 42, 24, 0.88);
+    border-color: var(--panel-highlight);
+    color: #ffffff;
+    box-shadow: 0 0 12px var(--active-glow-gold);
+    transform: translateY(-1px);
+}
+
+.calendar-tab-pill.active-pill {
+    background: linear-gradient(135deg, rgba(78, 49, 26, 0.95) 0%, rgba(42, 26, 15, 0.98) 100%);
+    border-color: var(--panel-highlight);
+    color: #ffffff;
+    box-shadow: 0 0 18px var(--active-glow-gold), inset 0 0 8px rgba(201, 164, 92, 0.25);
+}
+
+.calendar-tab-dot {
+    font-size: 8px;
+    color: var(--panel-highlight);
+}
+
+/* Mode Switcher Buttons */
+.calendar-mode-toggle-group {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(22, 14, 9, 0.85);
+    border: 1px solid var(--border-bronze);
+    border-radius: 6px;
+    padding: 3px;
+    gap: 3px;
+}
+
+.calendar-mode-btn {
+    padding: 6px 13px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-parchment);
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.calendar-mode-btn.active {
+    background: rgba(72, 45, 24, 0.9);
+    color: #ffffff;
+    border: 1px solid var(--btn-border-gold);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Single Page Codex Sheet ── */
+.calendar-single-view {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    width: 100%;
+}
+
+.calendar-sheet-card {
+    position: relative;
+    background:
+        radial-gradient(ellipse at 50% 15%, rgba(184, 148, 90, 0.14) 0%, rgba(38, 24, 15, 0.9) 60%, rgba(10, 8, 6, 0.98) 100%),
+        linear-gradient(165deg, rgba(46, 30, 18, 0.96) 0%, rgba(16, 11, 7, 0.99) 100%);
+    border: 1.5px solid var(--border-bronze);
+    border-radius: 8px;
+    padding: clamp(16px, 2.8vw, 32px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow:
+        inset 0 0 0 1px var(--border-bronze),
+        inset 0 0 0 4.5px rgba(8, 10, 12, 0.85),
+        inset 0 0 0 6px rgba(169, 130, 61, 0.35),
+        0 20px 60px rgba(0, 0, 0, 0.92);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(14px, 2vh, 20px);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.calendar-sheet-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border-bottom: 1px solid rgba(118, 85, 47, 0.4);
+    padding-bottom: 14px;
+    gap: 4px;
+}
+
+.calendar-sheet-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.calendar-sheet-badge {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 13px;
+    border-radius: 4px;
+    background: rgba(58, 36, 21, 0.9);
+    color: var(--heading-ivory);
+    border: 1px solid var(--btn-border-gold);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+.calendar-sheet-yuga {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: 11.5px;
+    color: var(--panel-highlight);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.calendar-sheet-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(22px, 3.2vw, 34px);
+    color: var(--heading-ivory);
+    margin: 0;
+    letter-spacing: 1.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9), 0 0 16px rgba(118, 85, 47, 0.5);
+}
+
+.calendar-sheet-subtitle {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: clamp(14px, 1.2vw, 17px);
+    color: var(--text-parchment);
+    margin: 0;
+    font-style: italic;
+}
+
+/* Image Graphic Display Frame */
+.calendar-graphic-frame {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    border-radius: 6px;
+    border: 1.5px solid rgba(138, 106, 64, 0.55);
+    background: #090604;
+    overflow: hidden;
+    cursor: zoom-in;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9);
+    transition: all 0.3s ease;
+}
+
+.calendar-graphic-frame:hover {
+    border-color: var(--panel-highlight);
+    box-shadow: 0 14px 45px rgba(0, 0, 0, 0.95), 0 0 22px var(--active-glow-gold);
+}
+
+.calendar-graphic-img {
+    width: 100%;
+    height: auto;
+    max-height: min(72vh, 740px);
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    transition: transform 0.35s ease;
+}
+
+.calendar-graphic-frame:hover .calendar-graphic-img {
+    transform: scale(1.01);
+}
+
+.calendar-graphic-overlay {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    background: rgba(14, 10, 7, 0.88);
+    border: 1px solid var(--btn-border-gold);
+    color: var(--heading-ivory);
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+    transition: all 0.25s ease;
+}
+
+.calendar-graphic-frame:hover .calendar-graphic-overlay {
+    background: rgba(45, 28, 16, 0.95);
+    color: #ffffff;
+    border-color: var(--panel-highlight);
+    box-shadow: 0 0 14px var(--active-glow-gold);
+}
+
+/* Footer / Navigation Row */
+.calendar-sheet-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-top: 10px;
+    flex-wrap: wrap;
+}
+
+.calendar-arrow-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 4px;
+    background: rgba(48, 30, 18, 0.85);
+    border: 1px solid var(--btn-border-gold);
+    color: var(--heading-ivory);
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.25s ease;
+}
+
+.calendar-arrow-btn:hover {
+    background: rgba(72, 45, 26, 0.95);
+    color: #ffffff;
+    border-color: var(--panel-highlight);
+    box-shadow: 0 0 14px var(--active-glow-gold);
+    transform: translateY(-1px);
+}
+
+.calendar-page-indicator {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--panel-highlight);
+}
+
+.calendar-page-indicator strong {
+    color: #ffffff;
+}
+
+/* ── Timeline Breakdown Details Card ── */
+.calendar-details-card {
+    position: relative;
+    background:
+        radial-gradient(ellipse at 50% 10%, rgba(184, 148, 90, 0.1) 0%, rgba(30, 20, 13, 0.9) 65%, rgba(10, 8, 6, 0.98) 100%),
+        linear-gradient(165deg, rgba(38, 24, 15, 0.95) 0%, rgba(14, 10, 7, 0.98) 100%);
+    border: 1px solid var(--border-bronze);
+    border-radius: 8px;
+    padding: clamp(18px, 2.5vw, 28px);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.85);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-sizing: border-box;
+}
+
+.calendar-details-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    border-bottom: 1px dashed rgba(118, 85, 47, 0.4);
+    padding-bottom: 14px;
+}
+
+.calendar-details-icon {
+    color: var(--panel-highlight);
+    font-size: 16px;
+    margin-top: 2px;
+}
+
+.calendar-details-heading {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(16px, 1.8vw, 22px);
+    color: var(--heading-ivory);
+    margin: 0 0 4px 0;
+    letter-spacing: 1px;
+}
+
+.calendar-details-sub {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: clamp(13px, 1.1vw, 15.5px);
+    color: var(--text-parchment);
+    line-height: 1.5;
+}
+
+.calendar-milestones-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.calendar-milestone-card {
+    background: rgba(18, 12, 8, 0.7);
+    border: 1px solid rgba(138, 106, 64, 0.45);
+    border-radius: 6px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.calendar-milestone-card:hover {
+    border-color: var(--panel-highlight);
+    background: rgba(32, 20, 13, 0.85);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 12px rgba(201, 164, 92, 0.25);
+    transform: translateY(-2px);
+}
+
+.calendar-milestone-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.calendar-time-pill,
+.calendar-date-pill {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--panel-highlight);
+    letter-spacing: 0.5px;
+}
+
+.calendar-round-badge {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: 10px;
+    color: var(--heading-ivory);
+    background: rgba(58, 36, 21, 0.85);
+    border: 1px solid var(--btn-border-gold);
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+}
+
+.calendar-milestone-event-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(15px, 1.4vw, 19px);
+    color: var(--heading-ivory);
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+/* ── View Mode 2: All 4 Pages Gallery Grid ── */
+.calendar-all-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(18px, 2.5vw, 32px);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.calendar-grid-card {
+    position: relative;
+    background:
+        radial-gradient(ellipse at 50% 15%, rgba(184, 148, 90, 0.12) 0%, rgba(38, 24, 15, 0.9) 60%, rgba(10, 8, 6, 0.98) 100%),
+        linear-gradient(165deg, rgba(46, 30, 18, 0.96) 0%, rgba(16, 11, 7, 0.99) 100%);
+    border: 1.5px solid var(--border-bronze);
+    border-radius: 8px;
+    padding: clamp(16px, 2.2vw, 24px);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.88);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.calendar-grid-card:hover {
+    border-color: var(--panel-highlight);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 22px var(--active-glow-gold);
+    transform: translateY(-3px);
+}
+
+.calendar-grid-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    border-bottom: 1px solid rgba(118, 85, 47, 0.35);
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.calendar-page-index-pill {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--panel-highlight);
+    display: inline-block;
+    margin-bottom: 2px;
+}
+
+.calendar-grid-card-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(17px, 1.6vw, 22px);
+    color: var(--heading-ivory);
+    margin: 0 0 2px 0;
+    letter-spacing: 1px;
+}
+
+.calendar-grid-card-date {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 13px;
+    color: var(--panel-highlight);
+    font-weight: 600;
+}
+
+.calendar-inspect-btn {
+    padding: 5px 12px;
+    border-radius: 4px;
+    background: rgba(58, 36, 21, 0.85);
+    border: 1px solid var(--btn-border-gold);
+    color: var(--heading-ivory);
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-inspect-btn:hover {
+    background: rgba(78, 48, 28, 0.95);
+    color: #ffffff;
+    border-color: var(--panel-highlight);
+    box-shadow: 0 0 10px var(--active-glow-gold);
+}
+
+.calendar-grid-image-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid rgba(138, 106, 64, 0.5);
+    background: #090604;
+    overflow: hidden;
+    cursor: zoom-in;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+}
+
+.calendar-grid-img {
+    width: 100%;
+    height: auto;
+    max-height: 380px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    transition: transform 0.35s ease;
+}
+
+.calendar-grid-image-wrap:hover .calendar-grid-img {
+    transform: scale(1.02);
+}
+
+.calendar-grid-events-summary {
+    background: rgba(14, 10, 7, 0.6);
+    border: 1px solid rgba(118, 85, 47, 0.3);
+    border-radius: 6px;
+    padding: 10px 14px;
+}
+
+.calendar-summary-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--panel-highlight);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.calendar-summary-list {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 11px;
-    width: 100%;
+    gap: 5px;
 }
 
-.calendar-milestone-item {
+.calendar-summary-item {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
     font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: clamp(13.5px, 1.15vw, 16.5px);
+    font-size: 13.5px;
     color: var(--heading-ivory);
-    line-height: 1.45;
-    word-break: break-word;
+    flex-wrap: wrap;
 }
 
-.calendar-milestone-dot {
+.calendar-summary-dot {
     color: var(--panel-highlight);
-    font-size: 10px;
-    margin-top: 3px;
-    flex-shrink: 0;
+    font-size: 7px;
 }
 
-.calendar-milestone-time {
-    color: var(--panel-highlight);
-    font-weight: 700;
+.calendar-summary-name {
+    color: #ffffff;
     letter-spacing: 0.5px;
-    min-width: 76px;
-    font-family: var(--font-body, 'Cormorant Garamond', serif);
+}
+
+.calendar-summary-time {
+    color: var(--panel-highlight);
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+/* ── Fullscreen Lightbox Modal ── */
+.calendar-lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(4, 3, 2, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(10px, 2.5vw, 24px);
+    box-sizing: border-box;
+    animation: subpageOpenIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.calendar-lightbox-card {
+    position: relative;
+    max-width: 96vw;
+    max-height: 94vh;
+    width: 1200px;
+    background: #0d0906;
+    border: 1.5px solid var(--border-bronze);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.98),
+        0 0 35px rgba(201, 164, 92, 0.35);
+    overflow: hidden;
+}
+
+.calendar-lightbox-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px;
+    background: rgba(26, 16, 10, 0.95);
+    border-bottom: 1px solid rgba(138, 106, 64, 0.4);
+    gap: 12px;
+}
+
+.calendar-lightbox-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(13px, 1.2vw, 16px);
+    color: var(--heading-ivory);
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-lightbox-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     flex-shrink: 0;
 }
 
-.calendar-milestone-name {
+.calendar-lightbox-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 4px;
+    background: rgba(58, 36, 21, 0.85);
+    border: 1px solid var(--btn-border-gold);
     color: var(--heading-ivory);
-    word-break: break-word;
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
-.calendar-milestone-overhead {
+.calendar-lightbox-btn:hover {
+    background: rgba(78, 48, 28, 0.95);
+    color: #ffffff;
+    border-color: var(--panel-highlight);
+}
+
+.calendar-lightbox-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: 1px solid var(--border-bronze);
+    background: rgba(30, 18, 12, 0.85);
+    color: var(--heading-ivory);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.calendar-lightbox-close:hover {
+    background: #b91c1c;
+    border-color: #ef4444;
+    color: #ffffff;
+}
+
+.calendar-lightbox-body {
+    padding: 10px;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #080604;
+}
+
+.calendar-lightbox-img {
+    max-width: 100%;
+    max-height: calc(94vh - 75px);
+    object-fit: contain;
+    border-radius: 4px;
     display: block;
-    font-family: var(--font-title, 'Cinzel Decorative', serif);
-    font-size: 9.5px;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--panel-highlight);
-    line-height: 1.2;
-    margin-bottom: 2px;
+}
+
+/* ── Mobile Responsiveness for Calendar Codex ── */
+@media (max-width: 900px) {
+    .calendar-all-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 640px) {
-    .calendar-panel {
-        padding: 20px 14px;
+    .calendar-controls-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .calendar-tabs-row {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .calendar-tab-pill {
+        justify-content: center;
+        padding: 8px 6px;
+        font-size: 10.5px;
+        letter-spacing: 0.8px;
+    }
+
+    .calendar-mode-toggle-group {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .calendar-mode-btn {
+        text-align: center;
+    }
+
+    .calendar-sheet-card {
+        padding: 14px 10px;
         gap: 12px;
     }
 
-    .calendar-panel-header {
+    .calendar-graphic-frame {
+        border-radius: 4px;
+    }
+
+    .calendar-graphic-overlay {
+        bottom: 8px;
+        right: 8px;
+        padding: 4px 10px;
+        font-size: 11.5px;
+    }
+
+    .calendar-sheet-footer {
         flex-direction: column;
-        align-items: flex-start;
         gap: 8px;
+        align-items: stretch;
     }
 
-    .calendar-panel-badge {
-        font-size: 10.5px;
-        padding: 3px 9px;
+    .calendar-arrow-btn {
+        justify-content: center;
+        width: 100%;
     }
 
-    .calendar-milestone-item {
-        gap: 8px;
-        font-size: 13.5px;
+    .calendar-page-indicator {
+        text-align: center;
+        order: -1;
     }
 
-    .calendar-milestone-time {
-        min-width: 68px;
-        font-size: 12.5px;
+    .calendar-milestones-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .calendar-grid-card {
+        padding: 14px 10px;
     }
 }
 
@@ -2584,12 +3153,13 @@ body.mode-yugas .yuga-title-img.active {
 
 @media (max-width: 640px) {
     .subpage-wrapper.headerless .subpage-container {
-        padding-top: 56px;
-        padding-bottom: 6px;
-        min-height: 100dvh;
-        height: 100dvh;
-        justify-content: center;
-        overflow: hidden;
+        padding-top: max(82px, calc(env(safe-area-inset-top, 0px) + 72px));
+        padding-bottom: 24px;
+        min-height: auto;
+        height: auto;
+        justify-content: flex-start;
+        overflow-y: visible;
+        overflow-x: hidden;
     }
 
     .scroll-carousel-container {
@@ -3486,12 +4056,12 @@ body.mode-yugas .yuga-title-img.active {
 .reg-stage-wrapper {
     position: relative;
     width: 100%;
-    min-height: calc(100dvh - 85px);
+    min-height: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: clamp(16px, 2.5vh, 28px) clamp(12px, 2vw, 24px);
+    justify-content: flex-start;
+    padding: 0 clamp(8px, 2vw, 24px) clamp(20px, 3vh, 40px);
     background: transparent;
     box-sizing: border-box;
     z-index: 10;
@@ -3525,9 +4095,16 @@ body.mode-yugas .yuga-title-img.active {
     text-decoration: none;
     backdrop-filter: blur(12px);
     transition: all 0.25s ease;
+    cursor: pointer;
 }
 
-.reg-back-btn:hover {
+.reg-back-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.reg-back-btn:hover:not(:disabled) {
     background: rgba(75, 48, 28, 0.85);
     color: #ffffff;
     border-color: var(--panel-highlight);
@@ -3547,7 +4124,7 @@ body.mode-yugas .yuga-title-img.active {
 .reg-card-stage {
     position: relative;
     width: 100%;
-    max-width: 680px;
+    max-width: 800px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -3559,6 +4136,871 @@ body.mode-yugas .yuga-title-img.active {
     width: 100%;
     min-height: auto;
     padding: clamp(26px, 3.8vw, 40px);
+}
+
+/* ==========================================================================
+   Medieval Unrolling Scroll System (Registration Page) - Cosmic Temple Theme
+   ========================================================================== */
+:root {
+    --metal-hi: #fae18c;
+    --metal-glow: #ffd875;
+    --metal-mid: #a36d2a;
+    --metal-dark: #2c1505;
+    /* Sacred Temple Bhojpatra / Warm Sunlit Amber Vellum */
+    --parchment-a: #fbf3e2;
+    --parchment-b: #f0dcaf;
+    --parchment-c: #deb878;
+    --parchment-shadow: rgba(65, 35, 10, 0.48);
+    --ink: #1f0e03;
+    --ink-soft: #4d2b10;
+    --ink-light: #7c4c1e;
+    --ink-gold: #b37e28;
+}
+
+.medieval-scroll-stage {
+    position: relative;
+    width: min(94vw, 680px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 8px auto 16px;
+    transition: height 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+        min-height 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+        width 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+        max-width 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Dynamic Step Dimensions (Adapts seamlessly to content, eliminating blank voids) ── */
+.medieval-scroll-stage.stage-step-0 {
+    height: clamp(380px, 48vh, 420px);
+    min-height: 360px;
+    max-width: 580px;
+}
+
+.medieval-scroll-stage.stage-step-1 {
+    height: clamp(590px, 84vh, 710px);
+    min-height: 560px;
+    max-width: 680px;
+}
+
+.medieval-scroll-stage.stage-step-2 {
+    height: clamp(620px, 88vh, 780px);
+    min-height: 600px;
+    max-width: 680px;
+}
+
+.medieval-scroll-stage.stage-step-success {
+    height: clamp(520px, 80vh, 650px);
+    min-height: 500px;
+    max-width: 680px;
+}
+
+.medieval-scroll-stage.stage-step-closed {
+    height: clamp(340px, 48vh, 400px);
+    min-height: 320px;
+    max-width: 560px;
+}
+
+/* Default fallback when no step class */
+.medieval-scroll-stage:not([class*="stage-step-"]) {
+    height: min(84vh, 760px);
+    min-height: 550px;
+}
+
+/* ============ Rods (Top / Bottom) ============ */
+.scroll-rod-row {
+    position: absolute;
+    left: 50%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    z-index: 8;
+    pointer-events: none;
+    transition: top 0.75s cubic-bezier(.65, 0, .35, 1);
+}
+
+/* When closed, rods meet near center */
+.scroll-rod-row.top {
+    top: calc(50% - 7px);
+}
+
+.scroll-rod-row.bottom {
+    top: calc(50% + 7px);
+}
+
+/* When open, rods separate to top and bottom margins */
+.medieval-scroll-stage.open .scroll-rod-row.top {
+    top: 16px;
+}
+
+.medieval-scroll-stage.open .scroll-rod-row.bottom {
+    top: calc(100% - 16px);
+}
+
+.scroll-rod-bar {
+    width: 84%;
+    max-width: 580px;
+    height: 20px;
+    border-radius: 10px;
+    background: linear-gradient(180deg,
+            #fae18c 0%,
+            #dfa742 22%,
+            #8a521a 48%,
+            #2e1505 75%,
+            #6e3c11 90%,
+            #ba8836 100%);
+    box-shadow:
+        inset 0 1.5px 2px rgba(255, 255, 255, 0.65),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.85),
+        0 4px 18px rgba(0, 0, 0, 0.7),
+        0 0 20px rgba(220, 155, 45, 0.35);
+    position: relative;
+    z-index: 2;
+}
+
+.scroll-finial {
+    width: 54px;
+    height: 58px;
+    flex: 0 0 auto;
+    margin: 0 -8px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 8px rgba(218, 154, 40, 0.4));
+    z-index: 3;
+}
+
+.scroll-finial.right {
+    transform: scaleX(-1);
+}
+
+/* ============ Parchment Wrapper ============ */
+.parchment-wrap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 84%;
+    max-width: 580px;
+    height: 0;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    transition: height 0.75s cubic-bezier(.65, 0, .35, 1);
+    z-index: 3;
+    border-radius: 2px;
+    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.8), 0 0 24px rgba(200, 130, 40, 0.25);
+}
+
+.medieval-scroll-stage.open .parchment-wrap {
+    height: calc(100% - 34px);
+}
+
+.parchment {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(255, 235, 180, 0.32), transparent 50%),
+        radial-gradient(ellipse at 20% 20%, rgba(255, 248, 220, 0.4), transparent 45%),
+        radial-gradient(ellipse at 85% 90%, rgba(65, 35, 10, 0.28), transparent 50%),
+        linear-gradient(165deg, var(--parchment-a) 0%, var(--parchment-b) 48%, var(--parchment-c) 100%);
+    box-shadow:
+        inset 0 0 54px var(--parchment-shadow),
+        inset 0 0 18px rgba(185, 120, 40, 0.22);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Rolled-edge paper shading near top & bottom rods */
+.parchment::before,
+.parchment::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.parchment::before {
+    top: 0;
+    background: linear-gradient(180deg, rgba(44, 21, 6, 0.65) 0%, rgba(44, 21, 6, 0.2) 65%, transparent 100%);
+}
+
+.parchment::after {
+    bottom: 0;
+    background: linear-gradient(0deg, rgba(44, 21, 6, 0.65) 0%, rgba(44, 21, 6, 0.2) 65%, transparent 100%);
+}
+
+.parchment-lines {
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(0deg,
+            rgba(85, 45, 15, 0.04) 0px,
+            rgba(85, 45, 15, 0.04) 1px,
+            transparent 1px,
+            transparent 24px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Scrollwork border frame */
+.scroll-frame {
+    position: absolute;
+    inset: 28px 14px;
+    border: 1.5px solid rgba(138, 86, 34, 0.55);
+    outline: 1px solid rgba(212, 160, 50, 0.35);
+    outline-offset: 3px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease 0.35s;
+    z-index: 2;
+}
+
+.medieval-scroll-stage.open .scroll-frame {
+    opacity: 0.85;
+}
+
+/* Ornate Corners */
+.scroll-corner {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease 0.4s;
+    z-index: 2;
+    filter: drop-shadow(0 1px 2px rgba(90, 50, 15, 0.3));
+}
+
+.medieval-scroll-stage.open .scroll-corner {
+    opacity: 0.9;
+}
+
+.scroll-corner.tl {
+    top: 20px;
+    left: 6px;
+}
+
+.scroll-corner.tr {
+    top: 20px;
+    right: 6px;
+    transform: scaleX(-1);
+}
+
+.scroll-corner.bl {
+    bottom: 20px;
+    left: 6px;
+    transform: scaleY(-1);
+}
+
+.scroll-corner.br {
+    bottom: 20px;
+    right: 6px;
+    transform: scale(-1, -1);
+}
+
+/* ============ Parchment Content Viewport ============ */
+.parchment-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: clamp(32px, 4.5vh, 46px) clamp(22px, 4.5vw, 44px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.4s ease 0.35s, transform 0.4s ease 0.35s;
+    z-index: 4;
+}
+
+.medieval-scroll-stage.open .parchment-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Step 0 & Closed: Centered Content Layout with Perfect Proportions */
+.medieval-scroll-stage.stage-step-0 .parchment-content,
+.medieval-scroll-stage.stage-step-closed .parchment-content {
+    justify-content: center;
+    padding: 26px clamp(20px, 4.5vw, 42px);
+}
+
+/* Custom Antique Parchment Scrollbar */
+.parchment-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.parchment-content::-webkit-scrollbar-track {
+    background: rgba(85, 45, 15, 0.08);
+    border-radius: 4px;
+}
+
+.parchment-content::-webkit-scrollbar-thumb {
+    background: rgba(120, 75, 25, 0.45);
+    border-radius: 4px;
+}
+
+.parchment-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(120, 75, 25, 0.7);
+}
+
+/* Typography on Parchment */
+.parchment-content .reg-form-step {
+    width: 100%;
+    max-width: 470px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.parchment-content .reg-title {
+    color: var(--ink);
+    text-shadow: 0 1px 1px rgba(255, 245, 220, 0.7);
+    margin-bottom: 2px;
+}
+
+.parchment-content .reg-subtitle {
+    color: var(--ink-soft);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+}
+
+.parchment-content .reg-overhead-title {
+    color: var(--ink-light);
+    font-size: 11px;
+}
+
+.parchment-content .reg-step-title {
+    color: var(--ink);
+    text-shadow: 0 1px 1px rgba(255, 245, 220, 0.6);
+}
+
+.parchment-content .reg-underline {
+    background: linear-gradient(90deg, transparent, var(--ink-soft), transparent);
+}
+
+.parchment-content .decree-ornament-divider {
+    margin: 12px 0 18px 0;
+}
+
+.parchment-content .decree-ornament-divider .decree-divider-line {
+    background: linear-gradient(90deg, transparent, var(--ink-soft), transparent);
+}
+
+.parchment-content .decree-ornament-divider .decree-divider-gem {
+    color: #a8793b;
+}
+
+/* Parchment Input & Select Fields (Warm Vellum instead of stark white) */
+.parchment-content .reg-input,
+.parchment-content .reg-select {
+    background: rgba(255, 249, 237, 0.94);
+    border: 1.5px solid #9c7138;
+    border-radius: 5px;
+    color: #1c0c03;
+    box-shadow: inset 0 2px 4px rgba(70, 40, 15, 0.12), 0 1px 2px rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+    font-size: 14.5px;
+    letter-spacing: 0.04em;
+    transition: all 0.25s ease;
+}
+
+.parchment-content .reg-input::placeholder {
+    color: #8c6032;
+    font-weight: 600;
+    opacity: 0.85;
+}
+
+.parchment-content .reg-input:focus,
+.parchment-content .reg-select:focus {
+    background: #fffdf8;
+    border-color: #cb9234;
+    box-shadow: inset 0 1px 3px rgba(70, 40, 15, 0.15), 0 0 12px rgba(218, 155, 48, 0.45);
+    color: #100501;
+    outline: none;
+}
+
+.parchment-content .reg-select option {
+    background: #fbf5e6;
+    color: #1a0b02;
+}
+
+.parchment-content .reg-input.reg-input-error,
+.parchment-content .reg-select.reg-input-error {
+    border-color: #b91c1c !important;
+    background: rgba(254, 242, 242, 0.95) !important;
+    color: #7f1d1d !important;
+}
+
+.parchment-content .reg-field-error {
+    color: #991b1b;
+    text-shadow: none;
+    font-weight: 700;
+}
+
+/* PCCOE Banner on Parchment (High Contrast Dark Ink) */
+.parchment-content .reg-pccoe-banner {
+    background: rgba(74, 45, 19, 0.08);
+    border: 1.5px solid #8c602d;
+    color: #241204;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 13.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    line-height: 1.5;
+    text-align: left;
+    box-shadow: inset 0 1px 3px rgba(74, 45, 19, 0.06);
+}
+
+.parchment-content .reg-pccoe-banner strong {
+    color: #120701;
+    font-weight: 700;
+}
+
+.parchment-content .reg-pccoe-banner code {
+    background: rgba(74, 45, 19, 0.14);
+    border: 1px solid rgba(124, 83, 36, 0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #120701;
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 12.5px;
+}
+
+.parchment-content .reg-pccoe-icon {
+    font-size: 18px;
+    color: #5a3818;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Parchment Action Buttons (Temple Warrior Gilded Aesthetics) */
+.parchment-content .reg-btn-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.parchment-content .reg-action-btn.next-btn,
+.parchment-content .reg-action-btn.submit-btn {
+    flex: 1.2;
+    min-height: 48px;
+    padding: 12px 24px;
+    background: linear-gradient(180deg, #44240c 0%, #1c0c03 100%);
+    border: 1.5px solid #d4a753;
+    color: #fdf5e6;
+    box-shadow: 0 4px 14px rgba(32, 14, 3, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    transition: all 0.25s ease;
+}
+
+.parchment-content .reg-action-btn.next-btn:hover:not(:disabled),
+.parchment-content .reg-action-btn.submit-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, #5c3210 0%, #291204 100%);
+    border-color: #f7d58b;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(32, 14, 3, 0.65), 0 0 14px rgba(212, 167, 83, 0.55);
+    transform: translateY(-1px);
+}
+
+.parchment-content .reg-secondary-btn {
+    min-height: 48px;
+    padding: 12px 22px;
+    background: rgba(88, 52, 20, 0.14);
+    border: 1.5px solid #946736;
+    color: #2b1506;
+    font-weight: 700;
+    font-size: 14.5px;
+    letter-spacing: 0.12em;
+    transition: all 0.25s ease;
+}
+
+.parchment-content .reg-secondary-btn:hover {
+    background: rgba(88, 52, 20, 0.24);
+    border-color: #b07e46;
+    color: #120501;
+    transform: translateY(-1px);
+}
+
+.parchment-content .reg-optional-btn {
+    flex: 1.5;
+    min-height: 48px;
+    padding: 12px 24px;
+    font-size: 14.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-radius: 4px;
+    background: linear-gradient(180deg, rgba(218, 168, 85, 0.32) 0%, rgba(138, 95, 45, 0.24) 100%);
+    border: 1.5px solid #8e622b;
+    color: #1c0c03;
+    box-shadow: 0 2px 8px rgba(74, 45, 19, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.55);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.parchment-content .reg-optional-btn:hover:not(:disabled) {
+    background: linear-gradient(180deg, rgba(218, 168, 85, 0.48) 0%, rgba(138, 95, 45, 0.35) 100%);
+    border-color: #4a270a;
+    color: #000000;
+    box-shadow: 0 4px 14px rgba(74, 45, 19, 0.28), 0 0 12px rgba(218, 168, 85, 0.45);
+    transform: translateY(-1px);
+}
+
+/* Step 2 Confirmation Card on Parchment */
+.parchment-content .reg-scroll-summary-card {
+    background: rgba(255, 252, 245, 0.72);
+    border: 1.5px solid #8a6a40;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 14px 0;
+    text-align: left;
+    color: var(--ink);
+    width: 100%;
+}
+
+.parchment-content .reg-payment-section {
+    background: rgba(255, 252, 245, 0.75);
+    border: 1.5px solid #8a6a40;
+    border-radius: 8px;
+    padding: 18px;
+    margin: 16px 0;
+    text-align: left;
+    color: var(--ink);
+}
+
+.parchment-content .reg-qr-wrapper {
+    background: #ffffff;
+    border: 1.5px solid #8a6a40;
+    box-shadow: 0 4px 14px rgba(74, 45, 19, 0.2);
+}
+
+.parchment-content .reg-qr-img {
+    border: 1px solid #c9a866;
+}
+
+.parchment-content .reg-qr-instruction {
+    color: var(--ink-soft);
+}
+
+.parchment-content .reg-upi-id {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.parchment-content .reg-upload-dropzone {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1.5px dashed #8a6a40;
+}
+
+.parchment-content .reg-upload-dropzone:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #4a2f15;
+}
+
+/* Success View on Parchment */
+.parchment-content .reg-success-view {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.parchment-content .reg-success-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #15803d, #166534);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(22, 101, 52, 0.35);
+    margin-bottom: 10px;
+}
+
+.parchment-content .reg-success-title {
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    font-size: clamp(20px, 2.5vw, 26px);
+    color: var(--ink);
+    margin: 0 0 6px;
+}
+
+.parchment-content .reg-success-sub {
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin: 0 0 16px;
+}
+
+.parchment-content .reg-confirm-card {
+    background: rgba(255, 252, 245, 0.88);
+    border: 1.5px solid #8a6a40;
+    color: var(--ink);
+    box-shadow: 0 4px 14px rgba(74, 45, 19, 0.15);
+    width: 100%;
+}
+
+.parchment-content .reg-confirm-label {
+    color: var(--ink-light);
+}
+
+.parchment-content .reg-confirm-val {
+    color: #1a0e05;
+}
+
+.parchment-content .reg-confirm-section {
+    border-top: 1px solid rgba(138, 106, 64, 0.3);
+}
+
+.parchment-content .reg-confirm-section-title {
+    color: var(--ink);
+}
+
+/* ==========================================================================
+   Mobile & Tablet Responsiveness for Medieval Scroll System
+   ========================================================================== */
+@media (max-width: 768px) {
+
+    .reg-top-bar .reg-back-btn,
+    .reg-top-prev-btn {
+        display: none !important;
+    }
+
+    .reg-top-bar {
+        justify-content: center;
+        max-width: 88%;
+        margin-top: 4px;
+        margin-bottom: 8px;
+    }
+}
+
+@media (max-width: 640px) {
+    .reg-top-bar {
+        max-width: 88%;
+        margin-bottom: 8px;
+    }
+
+    .medieval-scroll-stage {
+        width: 98vw;
+        max-width: 480px;
+        margin: 4px auto 14px;
+    }
+
+    /* Dynamic heights for mobile screens */
+    .medieval-scroll-stage.stage-step-0 {
+        height: clamp(380px, 58vh, 430px);
+        min-height: 360px;
+    }
+
+    .medieval-scroll-stage.stage-step-1 {
+        height: clamp(580px, 80vh, 700px);
+        min-height: 520px;
+    }
+
+    .medieval-scroll-stage.stage-step-2 {
+        height: clamp(600px, 84vh, 750px);
+        min-height: 540px;
+    }
+
+    .medieval-scroll-stage.stage-step-success {
+        height: clamp(500px, 76vh, 630px);
+        min-height: 480px;
+    }
+
+    .medieval-scroll-stage.stage-step-closed {
+        height: clamp(330px, 50vh, 390px);
+        min-height: 310px;
+    }
+
+    /* Expand parchment to 88% width on phones */
+    .scroll-rod-bar {
+        width: 88%;
+        height: 18px;
+    }
+
+    .scroll-finial {
+        width: 44px;
+        height: 48px;
+        margin: 0 -6px;
+    }
+
+    .parchment-wrap {
+        width: 88%;
+    }
+
+    /* Tighten inner padding so fields have maximum usable horizontal width */
+    .parchment-content {
+        padding: 24px 14px 22px;
+    }
+
+    .medieval-scroll-stage.stage-step-0 .parchment-content,
+    .medieval-scroll-stage.stage-step-closed .parchment-content {
+        padding: 20px 14px;
+    }
+
+    .scroll-frame {
+        inset: 20px 8px;
+    }
+
+    .scroll-corner {
+        width: 38px;
+        height: 38px;
+    }
+
+    .scroll-corner.tl {
+        top: 14px;
+        left: 4px;
+    }
+
+    .scroll-corner.tr {
+        top: 14px;
+        right: 4px;
+    }
+
+    .scroll-corner.bl {
+        bottom: 14px;
+        left: 4px;
+    }
+
+    .scroll-corner.br {
+        bottom: 14px;
+        right: 4px;
+    }
+
+    /* Typography scale on mobile */
+    .parchment-content .reg-title {
+        font-size: clamp(20px, 5.8vw, 25px);
+        margin-bottom: 2px;
+    }
+
+    .parchment-content .reg-subtitle {
+        font-size: 11.5px;
+        letter-spacing: 0.1em;
+    }
+
+    .parchment-content .reg-step-title {
+        font-size: clamp(17px, 5vw, 21px);
+    }
+
+    .parchment-content .decree-ornament-divider {
+        margin: 8px 0 12px 0;
+    }
+
+    .parchment-content .reg-header-with-line {
+        margin-bottom: 12px;
+    }
+
+    /* PCCOE Banner */
+    .parchment-content .reg-pccoe-banner {
+        padding: 9px 12px;
+        font-size: 12px;
+        gap: 8px;
+        margin-bottom: 12px;
+        line-height: 1.45;
+    }
+
+    .parchment-content .reg-pccoe-icon {
+        font-size: 16px;
+    }
+
+    /* Form Fields */
+    .parchment-content .reg-fields-grid {
+        gap: 9px;
+    }
+
+    .parchment-content .reg-input,
+    .parchment-content .reg-select {
+        padding: 9px 12px;
+        font-size: 13.5px;
+        min-height: 42px;
+    }
+
+    /* College on its own row, Year + Branch side by side */
+    .parchment-content .reg-row-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .parchment-content .reg-row-3>.reg-field-wrap:first-child {
+        grid-column: 1 / -1;
+    }
+
+    /* ── Mobile Button Layout: 2-Row Grid (Zero Cut-Offs or Overflows!) ── */
+    .parchment-content .reg-btn-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    /* Add Member Button: Full-width row above PREV / NEXT */
+    .parchment-content .reg-btn-row .reg-optional-btn {
+        grid-column: 1 / -1;
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+        white-space: normal;
+        order: -1;
+    }
+
+    /* PREV button on bottom-left */
+    .parchment-content .reg-btn-row .reg-secondary-btn {
+        grid-column: 1;
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 8px;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+    }
+
+    /* NEXT / SUBMIT button on bottom-right */
+    .parchment-content .reg-btn-row .reg-action-btn.next-btn,
+    .parchment-content .reg-btn-row .reg-action-btn.submit-btn {
+        grid-column: 2;
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 8px;
+        font-size: 13px;
+        letter-spacing: 0.08em;
+    }
+
+    /* Single child (e.g. Return to Events) */
+    .parchment-content .reg-btn-row>*:only-child {
+        grid-column: 1 / -1;
+    }
 }
 
 /* ==========================================================================

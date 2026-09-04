@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { setPageTransitionLoading } from '@/lib/pageTransitionState';
 
 const ROUTE_TITLES: Record<string, { title: string; mantra: string }> = {
   '/events': {
@@ -28,17 +29,27 @@ export default function PageTransitionLoader() {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [targetPath, setTargetPath] = useState<string>('');
 
-  // Enforce exactly 2 seconds of cinematic loading experience
+  // Sync global loader state
+  useEffect(() => {
+    setPageTransitionLoading(loading);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent(loading ? 'artimas:loader-start' : 'artimas:loader-end')
+      );
+    }
+  }, [loading]);
+
+  // Crisp, snappy cinematic loading experience (~0.95s total)
   useEffect(() => {
     if (loading && !isFadingOut) {
       const fadeTimer = setTimeout(() => {
         setIsFadingOut(true);
-      }, 1800);
+      }, 750);
 
       const finishTimer = setTimeout(() => {
         setLoading(false);
         setIsFadingOut(false);
-      }, 2100);
+      }, 980);
 
       return () => {
         clearTimeout(fadeTimer);
@@ -68,6 +79,7 @@ export default function PageTransitionLoader() {
         setTargetPath(href);
         setIsFadingOut(false);
         setLoading(true);
+        setPageTransitionLoading(true);
       }
     };
 
