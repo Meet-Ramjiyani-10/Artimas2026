@@ -440,7 +440,16 @@ export default function ArtimasScene() {
             <div
               ref={chakraRef}
               className={`chakra-container${wheelEmerging && !isYugasMode ? ' wheel-emerged' : ''}${!wheelEmerging && !isYugasMode ? ' wheel-starting-bottom' : ''}`}
-              onClick={() => (isYugasMode ? rotateChakra(90) : undefined)}
+              onClick={() => (isYugasMode ? rotateChakra(90) : enterYugasMode())}
+              role="button"
+              tabIndex={0}
+              aria-label={isYugasMode ? 'Rotate Chakra to next Yuga' : 'Enter the Yugas'}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  if (isYugasMode) rotateChakra(90);
+                  else enterYugasMode();
+                }
+              }}
             >
               <ChakraMedallion />
             </div>

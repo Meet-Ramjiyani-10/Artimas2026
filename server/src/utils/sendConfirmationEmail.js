@@ -1,4 +1,5 @@
 const { createTransporter } = require('../config/mail');
+const { getWhatsAppLink } = require('./whatsappLinks');
 
 /**
  * Send an official ARTIMAS 26 registration confirmation email.
@@ -7,6 +8,7 @@ const { createTransporter } = require('../config/mail');
  * @param {string} options.to               Recipient email (team leader or individual participant)
  * @param {string} options.participantName  Participant or team leader name
  * @param {string} options.eventName        Event name
+ * @param {string} [options.eventSlug]      Event slug (for WhatsApp link resolution)
  * @param {string} options.registrationId   Human-readable registration ID (ART26-XXXXXX)
  * @param {string} [options.teamName]       Team name (for team events)
  * @param {number} [options.memberCount]    Number of team members
@@ -19,6 +21,7 @@ const sendConfirmationEmail = async ({
   to,
   participantName,
   eventName,
+  eventSlug,
   registrationId,
   teamName,
   memberCount,
@@ -50,6 +53,8 @@ const sendConfirmationEmail = async ({
       </div>
     `
     : '';
+
+  const whatsappGroupUrl = eventSlug ? getWhatsAppLink(eventSlug) : null;
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -109,6 +114,15 @@ const sendConfirmationEmail = async ({
       </table>
 
       ${ctfTokenBox}
+
+      ${whatsappGroupUrl ? `
+      <!-- Official WhatsApp Group -->
+      <div style="background:#091e13;border:1.5px solid #22c55e;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">
+        <span style="color:#4ade80;font-size:12px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;">Official WhatsApp Community</span>
+        <p style="color:#e8d8b0;font-size:14px;margin:8px 0 16px;">Join the ${eventName} WhatsApp group for schedules, slot allocations & trial announcements:</p>
+        <a href="${whatsappGroupUrl}" style="display:inline-block;background-color:#25D366;color:#041c0c;padding:12px 24px;border-radius:6px;font-weight:700;text-decoration:none;font-size:14px;">JOIN WHATSAPP GROUP ↗</a>
+      </div>
+      ` : ''}
 
       <!-- Next Steps -->
       <div style="background:#0f1419;border:1px solid #2a2218;border-radius:8px;padding:20px;margin:24px 0;">

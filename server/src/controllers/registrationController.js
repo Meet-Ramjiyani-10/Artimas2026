@@ -620,6 +620,7 @@ const createRegistration = async (req, res, next) => {
         to: recipientEmail,
         participantName: recipientName,
         eventName: event.name,
+        eventSlug: event.slug,
         registrationId: registration.registrationId,
         teamName: isTeamEvent ? registration.teamName : undefined,
         memberCount: sanitizedMembers.length,
@@ -637,6 +638,7 @@ const createRegistration = async (req, res, next) => {
       message: 'Registration confirmed successfully',
       data: {
         registrationId: registration.registrationId,
+        eventSlug: event.slug,
         eventName: event.name,
         passId: registration.registrationId,
         teamName: registration.teamName,

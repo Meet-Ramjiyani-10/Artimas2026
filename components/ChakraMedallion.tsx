@@ -54,6 +54,8 @@ export default function ChakraMedallion() {
         userSelect: 'none',
         WebkitUserSelect: 'none',
         touchAction: 'manipulation',
+        pointerEvents: 'none',
+        cursor: 'pointer',
       }}
     >
       <div slot="progress-bar" style={{ display: 'none' }} />

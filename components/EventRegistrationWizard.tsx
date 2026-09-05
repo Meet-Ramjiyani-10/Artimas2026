@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EventItem } from '@/lib/events';
 import { getIsPageTransitionLoading, subscribeToPageTransition } from '@/lib/pageTransitionState';
+import WhatsAppGroupCard from './WhatsAppGroupCard';
 
 const API_BASE = typeof window !== 'undefined' ? '/api' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api');
 
@@ -1431,15 +1432,17 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       <ScrollSvgDefs />
       {/* ── Outer Navigation Back ── */}
       <div className="reg-top-bar">
-        <button
-          type="button"
-          onClick={handlePrev}
-          disabled={isTransitioning}
-          className="reg-back-btn reg-top-prev-btn"
-          aria-label="Previous step"
-        >
-          ← PREV
-        </button>
+        {!isSuccess && (
+          <button
+            type="button"
+            onClick={handlePrev}
+            disabled={isTransitioning}
+            className="reg-back-btn reg-top-prev-btn"
+            aria-label="Previous step"
+          >
+            ← PREV
+          </button>
+        )}
         <span className="reg-tag">{event.yuga} • {event.category}</span>
       </div>
 
@@ -1864,48 +1867,48 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                 {/* ── Step 3: Redesigned Simple & Easy-to-Understand Confirmation Page ── */}
                 {isSuccess && (
                   <div className="reg-success-view">
-                    <div className="reg-success-badge">✓</div>
-                    <h2 className="reg-success-title">REGISTRATION CONFIRMED</h2>
-                    <p className="reg-success-sub">Your entry into the trial has been sealed in the archives.</p>
+                    <div className="reg-success-badge" style={{ width: '40px', height: '40px', fontSize: '20px', marginBottom: '6px' }}>✓</div>
+                    <h2 className="reg-success-title" style={{ margin: '0 0 2px', fontSize: 'clamp(18px, 2.2vw, 22px)' }}>REGISTRATION CONFIRMED</h2>
+                    <p className="reg-success-sub" style={{ margin: '0 0 8px', fontSize: '12.5px' }}>Your entry into the trial has been sealed in the archives.</p>
 
                     {/* Main Clean Confirmation Card */}
-                    <div className="reg-confirm-card">
-                      <div className="reg-confirm-grid">
+                    <div className="reg-confirm-card" style={{ padding: '14px 18px', margin: '10px 0' }}>
+                      <div className="reg-confirm-grid" style={{ gap: '8px 16px', marginBottom: '10px' }}>
                         <div className="reg-confirm-item">
-                          <span className="reg-confirm-label">Event</span>
-                          <span className="reg-confirm-val" style={{ color: '#241204', fontSize: '17px', fontWeight: 700 }}>
+                          <span className="reg-confirm-label" style={{ fontSize: '10px' }}>Event</span>
+                          <span className="reg-confirm-val" style={{ color: '#241204', fontSize: '15px', fontWeight: 700 }}>
                             {event.name}
                           </span>
                         </div>
 
                         <div className="reg-confirm-item">
-                          <span className="reg-confirm-label">Pass ID</span>
-                          <span className="reg-confirm-val" style={{ color: '#241204', fontFamily: 'monospace', letterSpacing: '2px', fontSize: '17px', fontWeight: 700 }}>
+                          <span className="reg-confirm-label" style={{ fontSize: '10px' }}>Pass ID</span>
+                          <span className="reg-confirm-val" style={{ color: '#241204', fontFamily: 'monospace', letterSpacing: '1.5px', fontSize: '15px', fontWeight: 700 }}>
                             {registrationResult?.passId || registrationResult?.registrationId}
                           </span>
                         </div>
 
                         <div className="reg-confirm-item">
-                          <span className="reg-confirm-label">{isSolo ? 'Participant' : 'Team'}</span>
-                          <span className="reg-confirm-val" style={{ color: '#241204', fontWeight: 700 }}>
+                          <span className="reg-confirm-label" style={{ fontSize: '10px' }}>{isSolo ? 'Participant' : 'Team'}</span>
+                          <span className="reg-confirm-val" style={{ color: '#241204', fontSize: '14px', fontWeight: 700 }}>
                             {registrationResult?.teamName || teamName || members[0]?.name}
                           </span>
                         </div>
 
                         <div className="reg-confirm-item">
-                          <span className="reg-confirm-label">Registration</span>
-                          <span className="reg-confirm-val" style={{ color: '#166534', fontWeight: 700 }}>
+                          <span className="reg-confirm-label" style={{ fontSize: '10px' }}>Registration</span>
+                          <span className="reg-confirm-val" style={{ color: '#166534', fontSize: '14px', fontWeight: 700 }}>
                             ✓ Confirmed
                           </span>
                         </div>
 
                         <div className="reg-confirm-item" style={{ gridColumn: '1 / -1' }}>
-                          <span className="reg-confirm-label">Payment</span>
+                          <span className="reg-confirm-label" style={{ fontSize: '10px' }}>Payment</span>
                           <span
                             className="reg-confirm-val"
                             style={{
                               color: registrationResult?.payment?.required || registrationResult?.paymentRequired ? '#854d0e' : '#166534',
-                              fontSize: '15px',
+                              fontSize: '14px',
                               fontWeight: 700,
                             }}
                           >
@@ -1916,10 +1919,9 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                         </div>
                       </div>
 
-                      {/* EVENT INFORMATION */}
-                      <div className="reg-confirm-section">
-                        <h3 className="reg-confirm-section-title">EVENT INFORMATION</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '13.5px' }}>
+                      {/* EVENT INFORMATION (Compact & Clear, No Emojis) */}
+                      <div className="reg-confirm-section" style={{ borderTop: '1px solid rgba(138, 106, 64, 0.25)', paddingTop: '10px', marginTop: '10px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', fontSize: '12.5px' }}>
                           <div>
                             <span style={{ color: '#5a3818', fontWeight: 600 }}>Date:</span>{' '}
                             <strong style={{ color: '#1a0b02' }}>{scheduleDate}</strong>
@@ -1934,30 +1936,10 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                           </div>
                         </div>
                       </div>
-
-                      {/* EVENT TIMELINE */}
-                      <div className="reg-confirm-section">
-                        <h3 className="reg-confirm-section-title">EVENT TIMELINE</h3>
-                        <p style={{ margin: 0, fontSize: '13.5px', color: '#241204', lineHeight: '1.6' }}>
-                          {event.ruleSubtitle || event.trialSubtitle || 'Round 1: Preliminary Trials • Round 2: Grand Epoch Finals'}
-                        </p>
-                      </div>
-
-                      {/* IMPORTANT */}
-                      <div className="reg-confirm-section">
-                        <h3 className="reg-confirm-section-title">IMPORTANT</h3>
-                        <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '13px', color: '#241204', lineHeight: '1.7' }}>
-                          <li>Present your <strong style={{ color: '#120701' }}>Pass ID: {registrationResult?.passId || registrationResult?.registrationId}</strong> at the venue registration desk.</li>
-                          <li>All participants must carry their original college identity cards.</li>
-                          <li>Please report to the venue at least 15 minutes prior to event commencement.</li>
-                          <li>
-                            {registrationResult?.payment?.required || registrationResult?.paymentRequired
-                              ? 'Your payment screenshot is under verification. Keep your transaction reference handy at the verification desk.'
-                              : 'All team members have been verified under the PCCOE eligibility criteria.'}
-                          </li>
-                        </ul>
-                      </div>
                     </div>
+
+                    {/* ── Official Event WhatsApp Group (QR Code + Direct Link) ── */}
+                    <WhatsAppGroupCard eventSlug={event.slug} eventName={event.name} />
 
                     {isCtf && registrationResult?.submissionToken && (
                       <div
@@ -1983,8 +1965,8 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                       </div>
                     )}
 
-                    <p className="reg-success-note" style={{ color: '#3b1d06', fontWeight: 700, fontSize: '15px', textAlign: 'center', margin: '16px auto 20px' }}>
-                      A confirmation email has been dispatched. Please save your Pass ID for on-desk verification.
+                    <p className="reg-success-note" style={{ color: '#3b1d06', fontWeight: 600, fontSize: '13.5px', textAlign: 'center', margin: '14px auto 16px', lineHeight: '1.5' }}>
+                      Verification email will be sent to you by End of the Day—please check your spam/junk folder if you don’t see it.
                     </p>
 
                     <div className="reg-btn-row">
@@ -2002,8 +1984,8 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
           <ScrollRodRow position="bottom" />
         </div>
 
-        {/* ── Event Schedule & Trial Specifications ── */}
-        <EventSpecsCard schedule={schedule} />
+        {/* ── Event Schedule & Trial Specifications (Only in wizard, hidden upon success) ── */}
+        {!isSuccess && <EventSpecsCard schedule={schedule} />}
       </div>
     </div>
   );
