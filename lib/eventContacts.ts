@@ -83,28 +83,72 @@ export const EVENT_CONTACTS: Record<string, EventContactGroup> = {
 
 const ALIAS_TO_SLUG: Record<string, string> = {
   'data-thon': 'datathon',
+  'datathon': 'datathon',
+  'data science': 'datathon',
   'surprise-event': 'pixel-perfect',
+  'surprise event': 'pixel-perfect',
   'surprise': 'pixel-perfect',
   'pixelperfect': 'pixel-perfect',
+  'pixel-perfect': 'pixel-perfect',
+  'pixel perfect': 'pixel-perfect',
   'photography': 'pixel-perfect',
   'secret-event': 'pixel-perfect',
   'promptrelay': 'prompt-relay',
+  'prompt relay': 'prompt-relay',
+  'prompt-relay': 'prompt-relay',
   'brand-a-thon': 'brandathon',
+  'brandathon': 'brandathon',
+  'brand': 'brandathon',
+  'abhikalp': 'brandathon',
   'ctf': 'capture-the-flag',
+  'capture-the-flag': 'capture-the-flag',
+  'capture the flag': 'capture-the-flag',
+  'capture the flag (ctf)': 'capture-the-flag',
+  'kurukshetra': 'capture-the-flag',
   'houdiniheist': 'houdini-heist',
+  'houdini-heist': 'houdini-heist',
+  'houdini heist': 'houdini-heist',
   'escape-room': 'houdini-heist',
+  'escape room': 'houdini-heist',
+  'houdini': 'houdini-heist',
   'amongus': 'among-us',
+  'among-us': 'among-us',
+  'among us': 'among-us',
 };
 
-export function getEventContacts(slug: string): EventContactGroup {
-  const normalized = (slug || '').toLowerCase().trim();
-  if (EVENT_CONTACTS[normalized]) {
-    return EVENT_CONTACTS[normalized];
+export function getEventContacts(slugOrName?: string): EventContactGroup {
+  if (!slugOrName) return EVENT_CONTACTS['datathon'];
+
+  const raw = String(slugOrName).toLowerCase().trim();
+
+  // 1. Direct exact key match
+  if (EVENT_CONTACTS[raw]) {
+    return EVENT_CONTACTS[raw];
   }
-  const canonical = ALIAS_TO_SLUG[normalized];
-  if (canonical && EVENT_CONTACTS[canonical]) {
-    return EVENT_CONTACTS[canonical];
+
+  // 2. Direct alias match
+  if (ALIAS_TO_SLUG[raw] && EVENT_CONTACTS[ALIAS_TO_SLUG[raw]]) {
+    return EVENT_CONTACTS[ALIAS_TO_SLUG[raw]];
   }
+
+  // 3. Normalized alphanumeric match
+  const clean = raw.replace(/[^a-z0-9]/g, '');
+
+  if (clean.includes('data')) return EVENT_CONTACTS['datathon'];
+  if (clean.includes('prompt')) return EVENT_CONTACTS['prompt-relay'];
+  if (clean.includes('houdini') || clean.includes('heist') || clean.includes('escape')) return EVENT_CONTACTS['houdini-heist'];
+  if (clean.includes('among') || clean.includes('imposter')) return EVENT_CONTACTS['among-us'];
+  if (clean.includes('capture') || clean.includes('flag') || clean.includes('ctf') || clean.includes('kuruk')) return EVENT_CONTACTS['capture-the-flag'];
+  if (clean.includes('brand') || clean.includes('abhikalp')) return EVENT_CONTACTS['brandathon'];
+  if (clean.includes('surprise') || clean.includes('pixel') || clean.includes('photo') || clean.includes('secret')) return EVENT_CONTACTS['pixel-perfect'];
+
+  // 4. Exact match against eventName
+  for (const group of Object.values(EVENT_CONTACTS)) {
+    if (group.eventName.toLowerCase().replace(/[^a-z0-9]/g, '') === clean) {
+      return group;
+    }
+  }
+
   return EVENT_CONTACTS['datathon'];
 }
 

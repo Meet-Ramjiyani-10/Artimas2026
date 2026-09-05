@@ -15,14 +15,21 @@ export default function EventContactButton({
 }: EventContactButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string>(currentEventSlug);
+  const [showOtherEvents, setShowOtherEvents] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Sync selected event when currentEventSlug changes
+  // Always sync selected event when currentEventSlug changes or modal opens
   useEffect(() => {
     if (currentEventSlug) {
       setSelectedSlug(currentEventSlug);
     }
   }, [currentEventSlug]);
+
+  const handleOpen = () => {
+    setSelectedSlug(currentEventSlug);
+    setShowOtherEvents(false);
+    setIsOpen(true);
+  };
 
   // Close on Escape key
   useEffect(() => {
@@ -96,8 +103,8 @@ export default function EventContactButton({
   }, []);
 
   const allEvents = getAllEventContacts();
-  const activeEventGroup = getEventContacts(selectedSlug);
-  const whatsAppGroup = getEventWhatsAppGroup(selectedSlug, activeEventGroup.eventName);
+  const activeEventGroup = getEventContacts(selectedSlug || currentEventSlug);
+  const whatsAppGroup = getEventWhatsAppGroup(activeEventGroup.eventSlug, activeEventGroup.eventName);
 
   const formatPhoneDisplay = (phone: string) => {
     const clean = phone.replace(/\D/g, '');
@@ -117,109 +124,139 @@ export default function EventContactButton({
 
   return (
     <>
-      {/* ── Fixed Floating "Contact Us" Button (Bottom Right, dynamically anchored above footer) ── */}
+      {/* ── Fixed Floating "Contact Us Island" (Bottom Right, dynamically adjusted to viewport & footer) ── */}
       <div
         className="floating-contact-wrap"
         style={{
           position: 'fixed',
           bottom: `${bottomOffset}px`,
-          right: '24px',
+          right: 'clamp(16px, 3vw, 36px)',
           zIndex: 90,
-          transition: 'bottom 0.08s ease-out',
+          transition: 'bottom 0.1s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
-          aria-label="Contact Event Heads"
+          onClick={handleOpen}
+          aria-label={`Contact ${activeEventGroup.eventName} Event Heads`}
           aria-haspopup="dialog"
           aria-expanded={isOpen}
-          className="floating-contact-btn"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '9px',
-            background: 'linear-gradient(135deg, rgba(30, 15, 6, 0.94), rgba(14, 7, 2, 0.98))',
-            color: '#fef3c7',
-            border: '1.5px solid #d4af37',
-            borderRadius: '50px',
-            padding: '11px 18px',
-            fontSize: '13px',
-            fontWeight: 700,
-            letterSpacing: '1px',
-            textTransform: 'uppercase',
-            cursor: 'pointer',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.65), 0 0 16px rgba(212, 175, 55, 0.28)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
-            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-            outline: 'none',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px) scale(1.03)';
-            e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.8), 0 0 22px rgba(212, 175, 55, 0.5)';
-            e.currentTarget.style.borderColor = '#fde047';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0) scale(1)';
-            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.65), 0 0 16px rgba(212, 175, 55, 0.28)';
-            e.currentTarget.style.borderColor = '#d4af37';
-          }}
+          className="contact-us-island-btn"
         >
-          {/* Animated Gold Aura Dot */}
-          <span
-            style={{
-              position: 'relative',
-              display: 'flex',
-              width: '8px',
-              height: '8px',
-            }}
-          >
-            <span
-              style={{
-                position: 'absolute',
-                display: 'inline-flex',
-                height: '100%',
-                width: '100%',
-                borderRadius: '50%',
-                backgroundColor: '#fbbf24',
-                opacity: 0.75,
-                animation: 'contactPulse 1.8s cubic-bezier(0, 0, 0.2, 1) infinite',
-              }}
-            />
-            <span
-              style={{
-                position: 'relative',
-                display: 'inline-flex',
-                borderRadius: '50%',
-                width: '8px',
-                height: '8px',
-                backgroundColor: '#f59e0b',
-              }}
-            />
+          {/* Animated Gold Aura Jewel */}
+          <span className="contact-island-jewel">
+            <span className="contact-island-pulse" />
+            <span className="contact-island-dot" />
           </span>
 
           {/* Headset / Phone Icon */}
           <svg
             viewBox="0 0 24 24"
-            width="17"
-            height="17"
+            width="15"
+            height="15"
             fill="none"
-            stroke="#fef3c7"
-            strokeWidth="2"
+            stroke="currentColor"
+            strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ flexShrink: 0 }}
+            className="contact-island-icon"
           >
             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
           </svg>
 
-          <span>CONTACT US</span>
+          <span className="contact-island-label">CONTACT US</span>
+
+          {/* Event Badge / Tag */}
+          <span className="contact-island-divider" aria-hidden="true">|</span>
+          <span className="contact-island-tag">
+            {activeEventGroup.eventName}
+          </span>
         </button>
       </div>
 
-      {/* ── Keyframe styles for pulsating dot & smooth modal entry ── */}
+      {/* ── Keyframe styles for pulsating dot, island hover & smooth modal entry ── */}
       <style jsx global>{`
+        .contact-us-island-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          padding: 8px 18px;
+          background: rgba(8, 10, 12, 0.84);
+          border: 1px solid rgba(212, 175, 55, 0.65);
+          border-radius: 50px;
+          color: #fef3c7;
+          font-family: var(--font-body, 'Cormorant Garamond', serif);
+          font-size: 13.5px;
+          font-weight: 700;
+          letter-spacing: 1.2px;
+          text-transform: uppercase;
+          cursor: pointer;
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          box-shadow: 0 4px 22px rgba(0, 0, 0, 0.75), 0 0 16px rgba(212, 175, 55, 0.25), inset 0 0 10px rgba(8, 10, 12, 0.6);
+          user-select: none;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+          outline: none;
+        }
+
+        .contact-us-island-btn:hover {
+          transform: translateY(-2px) scale(1.03);
+          border-color: #fde047;
+          background: rgba(18, 14, 8, 0.92);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85), 0 0 24px rgba(212, 175, 55, 0.45);
+          color: #ffffff;
+        }
+
+        .contact-island-jewel {
+          position: relative;
+          display: flex;
+          width: 8px;
+          height: 8px;
+          flex-shrink: 0;
+        }
+
+        .contact-island-pulse {
+          position: absolute;
+          display: inline-flex;
+          height: 100%;
+          width: 100%;
+          border-radius: 50%;
+          background-color: #fbbf24;
+          opacity: 0.75;
+          animation: contactPulse 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        .contact-island-dot {
+          position: relative;
+          display: inline-flex;
+          border-radius: 50%;
+          width: 8px;
+          height: 8px;
+          background-color: #f59e0b;
+        }
+
+        .contact-island-icon {
+          color: #fbbf24;
+          flex-shrink: 0;
+        }
+
+        .contact-island-divider {
+          color: rgba(212, 175, 55, 0.4);
+          font-weight: 300;
+          font-size: 13px;
+        }
+
+        .contact-island-tag {
+          font-size: 11.5px;
+          font-weight: 700;
+          color: #fbbf24;
+          letter-spacing: 0.8px;
+          max-width: 160px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
         @keyframes contactPulse {
           0% {
             transform: scale(0.95);
@@ -260,11 +297,16 @@ export default function EventContactButton({
         }
         @media (max-width: 768px) {
           .floating-contact-wrap {
-            right: 16px !important;
+            right: 14px !important;
           }
-          .floating-contact-btn {
-            padding: 9px 14px !important;
-            font-size: 11.5px !important;
+          .contact-us-island-btn {
+            padding: 8px 14px !important;
+            font-size: 12px !important;
+            gap: 7px !important;
+          }
+          .contact-island-divider,
+          .contact-island-tag {
+            display: none !important;
           }
         }
       `}</style>
@@ -280,7 +322,7 @@ export default function EventContactButton({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.72)',
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
             zIndex: 1000,
@@ -316,7 +358,7 @@ export default function EventContactButton({
               }}
             />
 
-            {/* Header */}
+            {/* Header: Specifically Brand to the Active Event */}
             <div
               style={{
                 padding: '16px 20px 12px',
@@ -343,7 +385,7 @@ export default function EventContactButton({
                   }}
                 >
                   <span>✦</span>
-                  <span>ARTIMAS 2026 SUPPORT</span>
+                  <span>{activeEventGroup.eventName.toUpperCase()} TRIAL SUPPORT</span>
                   <span>✦</span>
                 </div>
                 <h2
@@ -356,7 +398,7 @@ export default function EventContactButton({
                     fontFamily: 'serif',
                   }}
                 >
-                  EVENT HEADS & COORDINATORS
+                  {activeEventGroup.eventName.toUpperCase()} HEADS
                 </h2>
                 <p
                   style={{
@@ -366,7 +408,7 @@ export default function EventContactButton({
                     lineHeight: '1.4',
                   }}
                 >
-                  Reach out directly to event organizers for queries, rules & trial assistance.
+                  Official coordinators for {activeEventGroup.eventName} queries, rules & trial support.
                 </p>
               </div>
 
@@ -405,48 +447,87 @@ export default function EventContactButton({
               </button>
             </div>
 
-            {/* Event Tabs (Horizontal Scrollable) */}
+            {/* Optional Event Switcher Bar */}
             <div
-              className="contact-tab-scroll"
               style={{
                 display: 'flex',
-                gap: '8px',
-                padding: '12px 18px',
-                overflowX: 'auto',
-                borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
-                background: 'rgba(10, 5, 2, 0.4)',
-                flexShrink: 0,
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '7px 18px',
+                background: 'rgba(10, 5, 2, 0.5)',
+                borderBottom: '1px solid rgba(212, 175, 55, 0.12)',
+                fontSize: '11px',
               }}
             >
-              {allEvents.map((evt) => {
-                const isSelected = evt.eventSlug === activeEventGroup.eventSlug;
-                return (
-                  <button
-                    key={evt.eventSlug}
-                    type="button"
-                    onClick={() => setSelectedSlug(evt.eventSlug)}
-                    style={{
-                      whiteSpace: 'nowrap',
-                      padding: '6px 14px',
-                      borderRadius: '20px',
-                      fontSize: '11.5px',
-                      fontWeight: 700,
-                      letterSpacing: '0.5px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      border: isSelected ? '1.5px solid #fde047' : '1px solid rgba(212, 175, 55, 0.25)',
-                      background: isSelected
-                        ? 'linear-gradient(135deg, #d4af37, #a16207)'
-                        : 'rgba(255, 255, 255, 0.03)',
-                      color: isSelected ? '#120701' : '#fef3c7',
-                      boxShadow: isSelected ? '0 2px 10px rgba(212, 175, 55, 0.35)' : 'none',
-                    }}
-                  >
-                    {evt.eventName}
-                  </button>
-                );
-              })}
+              <span style={{ color: '#d4af37' }}>
+                Showing heads for: <strong style={{ color: '#fffbeb', letterSpacing: '0.3px' }}>{activeEventGroup.eventName}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowOtherEvents(!showOtherEvents)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#fbbf24',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  textDecoration: 'underline',
+                }}
+              >
+                {showOtherEvents ? '▲ Hide other events' : '▼ Other events'}
+              </button>
             </div>
+
+            {/* Event Tabs (Collapsed by default, expands only if user clicks "Other events") */}
+            {showOtherEvents && (
+              <div
+                className="contact-tab-scroll"
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  padding: '10px 18px',
+                  overflowX: 'auto',
+                  borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
+                  background: 'rgba(18, 9, 4, 0.7)',
+                  flexShrink: 0,
+                }}
+              >
+                {allEvents.map((evt) => {
+                  const isSelected = evt.eventSlug === activeEventGroup.eventSlug;
+                  return (
+                    <button
+                      key={evt.eventSlug}
+                      type="button"
+                      onClick={() => setSelectedSlug(evt.eventSlug)}
+                      style={{
+                        whiteSpace: 'nowrap',
+                        padding: '5px 12px',
+                        borderRadius: '20px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.5px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        border: isSelected ? '1.5px solid #fde047' : '1px solid rgba(212, 175, 55, 0.25)',
+                        background: isSelected
+                          ? 'linear-gradient(135deg, #d4af37, #a16207)'
+                          : 'rgba(255, 255, 255, 0.03)',
+                        color: isSelected ? '#120701' : '#fef3c7',
+                        boxShadow: isSelected ? '0 2px 10px rgba(212, 175, 55, 0.35)' : 'none',
+                      }}
+                    >
+                      {evt.eventName}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Contact List */}
             <div
