@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { EVENT_CONTACTS, getAllEventContacts, getEventContacts, ContactPerson } from '@/lib/eventContacts';
 import { getEventWhatsAppGroup } from '@/lib/whatsappGroups';
 
@@ -13,10 +14,16 @@ export default function EventContactButton({
   currentEventSlug = 'datathon',
   currentEventName,
 }: EventContactButtonProps) {
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string>(currentEventSlug);
   const [showOtherEvents, setShowOtherEvents] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Always sync selected event when currentEventSlug changes or modal opens
   useEffect(() => {
@@ -54,53 +61,75 @@ export default function EventContactButton({
     };
   }, [isOpen]);
 
-  // Dynamic bottom positioning: Stay fixed at bottom-right until the footer enters the viewport,
-  // then push upward so it remains cleanly docked above the footer without overlapping.
-  const [bottomOffset, setBottomOffset] = useState<number>(24);
-
   useEffect(() => {
-    let animationFrameId: number;
+    if (!mounted) return;
 
     const updatePosition = () => {
-      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+      if (typeof window === 'undefined') return;
+      const wrapEl = wrapRef.current;
+      if (!wrapEl) return;
+
+      const isMobile = window.innerWidth <= 768;
       const baseMargin = isMobile ? 16 : 24;
+      const buttonHeight = wrapEl.offsetHeight || 52;
+      const windowHeight = window.innerHeight;
+      const maxBottom = Math.max(baseMargin, windowHeight - buttonHeight - 20);
 
       const footer = document.querySelector('.landing-footer') || document.querySelector('footer');
       if (footer) {
         const footerRect = footer.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
         // Check how much of the footer is visible in the viewport
-        const overlap = windowHeight - footerRect.top;
-        if (overlap > 0) {
-          // Footer is in view: anchor button baseMargin px above the top edge of the footer
-          setBottomOffset(baseMargin + overlap);
-        } else {
-          setBottomOffset(baseMargin);
+        if (footerRect.top < windowHeight && footerRect.bottom > 0) {
+          const overlap = windowHeight - footerRect.top;
+          const calculatedBottom = baseMargin + overlap;
+          // Hard stop: directly pin above footer top edge without any CSS transition or animation lag
+          const targetBottom = Math.min(maxBottom, Math.max(baseMargin, calculatedBottom));
+          wrapEl.style.bottom = `${targetBottom}px`;
+          return;
         }
-      } else {
-        setBottomOffset(baseMargin);
       }
+      wrapEl.style.bottom = `${baseMargin}px`;
     };
 
+    // Synchronous execution on scroll events ensures immediate alignment with the footer on each frame
     const handleScrollOrResize = () => {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(updatePosition);
+      updatePosition();
     };
 
-    window.addEventListener('scroll', handleScrollOrResize, { passive: true });
     window.addEventListener('resize', handleScrollOrResize, { passive: true });
+    // Use capture: true so scroll events from nested scroll containers like .subpage-wrapper are caught
+    window.addEventListener('scroll', handleScrollOrResize, { passive: true, capture: true });
+
+    // Also attach directly to .subpage-wrapper if present
+    const subpageWrapper = document.querySelector('.subpage-wrapper');
+    if (subpageWrapper) {
+      subpageWrapper.addEventListener('scroll', handleScrollOrResize, { passive: true });
+    }
+
     updatePosition();
 
-    // Check again after slight delay for images/dynamic content settling
-    const timer = setTimeout(updatePosition, 250);
+    // Observe footer resizing so any dynamic layout changes adjust position
+    const footer = document.querySelector('.landing-footer') || document.querySelector('footer');
+    let resizeObserver: ResizeObserver | null = null;
+    if (footer && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        updatePosition();
+      });
+      resizeObserver.observe(footer);
+    }
+
+    const timer = setTimeout(updatePosition, 100);
 
     return () => {
-      cancelAnimationFrame(animationFrameId);
       clearTimeout(timer);
-      window.removeEventListener('scroll', handleScrollOrResize);
+      if (resizeObserver) resizeObserver.disconnect();
       window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, { capture: true } as any);
+      if (subpageWrapper) {
+        subpageWrapper.removeEventListener('scroll', handleScrollOrResize);
+      }
     };
-  }, []);
+  }, [mounted]);
 
   const allEvents = getAllEventContacts();
   const activeEventGroup = getEventContacts(selectedSlug || currentEventSlug);
@@ -122,17 +151,23 @@ export default function EventContactButton({
     return clean.startsWith('91') ? clean : `91${clean}`;
   };
 
-  return (
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <>
       {/* ── Fixed Floating "Contact Us Island" (Bottom Right, dynamically adjusted to viewport & footer) ── */}
       <div
+        ref={wrapRef}
         className="floating-contact-wrap"
         style={{
           position: 'fixed',
-          bottom: `${bottomOffset}px`,
+          bottom: '24px',
           right: 'clamp(16px, 3vw, 36px)',
-          zIndex: 90,
-          transition: 'bottom 0.1s cubic-bezier(0.16, 1, 0.3, 1)',
+          zIndex: 99999,
+          pointerEvents: 'auto',
+          // No transition on bottom: prevents dipping into the footer and bouncing back during fast scrolling
         }}
       >
         <button
@@ -325,7 +360,7 @@ export default function EventContactButton({
             backgroundColor: 'rgba(0, 0, 0, 0.75)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            zIndex: 1000,
+            zIndex: 100000,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -784,6 +819,7 @@ export default function EventContactButton({
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body
   );
 }
