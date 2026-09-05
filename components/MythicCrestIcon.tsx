@@ -1,5 +1,3 @@
-import React from 'react';
-
 export type MythicCrestType = 'lotus' | 'solar' | 'chakra' | 'blade';
 
 interface MythicCrestIconProps {

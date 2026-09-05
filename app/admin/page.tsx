@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import './admin.css';
 
@@ -666,7 +666,7 @@ export default function AdminPortal() {
               ARTIMAS 26 ADMIN PORTAL
             </h1>
             <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              Festival Registration Management & Data Explorer
+              Festival Registration Management & Data Explorer{adminUser?.name ? ` • Logged in as ${adminUser.name}` : ''}
             </p>
           </div>
 

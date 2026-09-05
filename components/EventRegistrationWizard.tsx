@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EventItem } from '@/lib/events';
-import { getIsPageTransitionLoading, subscribeToPageTransition } from '@/lib/pageTransitionState';
+import { subscribeToPageTransition } from '@/lib/pageTransitionState';
 import WhatsAppGroupCard from './WhatsAppGroupCard';
 import EventContactButton from './EventContactButton';
 
@@ -195,30 +195,6 @@ export function getEventSchedule(event: EventItem): EventScheduleDetail {
       : `${event.teamConfig.minMembers}–${event.teamConfig.maxMembers} members`,
     rounds: 'Official Epoch Trial',
   };
-}
-
-function getShortVenue(venue: string): string {
-  if (venue.includes('Data Analytics')) return 'Data Lab';
-  if (venue.includes('Architecture')) return 'Arch Hall';
-  if (venue.includes('Seminar Hall')) return 'Seminar Hall';
-  if (venue.includes('Reading Hall')) return 'Reading Hall';
-  if (venue.includes('Auditorium')) return 'Auditorium';
-  if (venue.includes('Main Stage')) return 'Main Stage';
-  if (venue.includes('/')) return venue.split('/')[0].trim();
-  if (venue.includes(',')) return venue.split(',')[0].trim();
-  return venue;
-}
-
-function getSubVenue(venue: string): string {
-  if (venue.includes('Block D')) return 'Block D';
-  if (venue.includes('Block A')) return 'Block A';
-  if (venue.includes('Block C')) return 'Block C';
-  if (venue.includes('5th Floor')) return '5th Fl Mech';
-  if (venue.includes('6517')) return 'Rooms 6517';
-  if (venue.includes('Open Air')) return 'Open Air';
-  if (venue.includes(',')) return venue.split(',').slice(1).join(',').trim();
-  if (venue.includes('/')) return venue.split('/')[1].trim();
-  return 'Campus';
 }
 
 function EventSpecsCard({ schedule }: { schedule: EventScheduleDetail }) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { getEventContacts, ContactPerson } from '@/lib/eventContacts';
 
@@ -11,12 +11,10 @@ interface EventContactButtonProps {
 
 export default function EventContactButton({
   currentEventSlug = 'datathon',
-  currentEventName,
 }: EventContactButtonProps) {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string>(currentEventSlug);
-  const modalRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -356,7 +354,6 @@ export default function EventContactButton({
           }}
         >
           <div
-            ref={modalRef}
             style={{
               width: '100%',
               maxWidth: '490px',

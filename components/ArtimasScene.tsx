@@ -30,13 +30,6 @@ const YUGA_NAME_MAP: Record<YugaAngle, string> = {
   270: 'Kali Yuga',
 };
 
-const YUGA_TITLES: Record<YugaAngle, string> = {
-  0: 'SATYA YUGA',
-  90: 'TRETA YUGA',
-  180: 'DWAPARA YUGA',
-  270: 'KALI YUGA',
-};
-
 const VIDEO_KEY: Record<YugaAngle, string> = {
   0: 'satyug',
   90: 'treta',
@@ -684,7 +677,7 @@ export default function ArtimasScene() {
                           <div className="yuga-card-center-art surprise-art pixel-perfect-art" aria-hidden="true">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={MEDIA.images.pixelPerfectTurtle || MEDIA.images.surpriseEventTurtle}
+                              src={MEDIA.images.pixelPerfectTurtle}
                               alt="Surprise Event Kurma Golden Turtle"
                               className="yuga-art-img yuga-surprise-turtle"
                               draggable={false}

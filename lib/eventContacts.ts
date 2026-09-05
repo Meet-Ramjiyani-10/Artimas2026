@@ -151,15 +151,3 @@ export function getEventContacts(slugOrName?: string): EventContactGroup {
 
   return EVENT_CONTACTS['datathon'];
 }
-
-export function getAllEventContacts(): EventContactGroup[] {
-  return [
-    EVENT_CONTACTS['datathon'],
-    EVENT_CONTACTS['prompt-relay'],
-    EVENT_CONTACTS['houdini-heist'],
-    EVENT_CONTACTS['among-us'],
-    EVENT_CONTACTS['capture-the-flag'],
-    EVENT_CONTACTS['brandathon'],
-    EVENT_CONTACTS['pixel-perfect'],
-  ];
-}

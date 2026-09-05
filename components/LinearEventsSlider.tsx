@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useState, type MouseEvent, type WheelEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { EVENTS } from '@/lib/events';
 
@@ -26,7 +26,7 @@ export default function LinearEventsSlider({
 
   // Handle direct click along the slider track
   const handleTrackClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    (e: MouseEvent<HTMLDivElement>) => {
       if (!trackRef.current) return;
       const rect = trackRef.current.getBoundingClientRect();
       const clickY = e.clientY - rect.top;
@@ -38,7 +38,7 @@ export default function LinearEventsSlider({
   );
 
   const handleWheel = useCallback(
-    (e: React.WheelEvent) => {
+    (e: WheelEvent) => {
       e.stopPropagation();
       if (e.deltaY > 0) {
         // scroll down -> next event

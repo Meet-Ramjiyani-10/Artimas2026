@@ -276,7 +276,3 @@ export function getEventBySlug(slug: string): EventItem | undefined {
     event => event.slug === normalized || (event.aliases && event.aliases.includes(normalized))
   );
 }
-
-export function getAllEvents(): EventItem[] {
-  return EVENTS;
-}
