@@ -41,35 +41,26 @@ const normalizeIndianMobile = (phone) => {
 };
 
 /**
- * Extract 2-digit batch year from official PCCOE email.
+ * Extract numbers (max 4 digits) from official PCCOE email.
+ * Rule: 'name' . 'surname' <numbers max 4> @pccoepune.org
  * E.g., "meet.ramjiyani24@pccoepune.org" -> "24"
- * E.g., "alex23@pccoepune.org" -> "23"
- * E.g., "senior22@pccoepune.org" -> "22"
+ * E.g., "john.doe2024@pccoepune.org" -> "2024"
  */
 const extractPccoeBatch = (email) => {
   if (!email || typeof email !== 'string') return null;
   const trimmed = email.trim().toLowerCase();
-  if (!trimmed.endsWith('@pccoepune.org')) return null;
-  const localPart = trimmed.split('@')[0];
-  const match = localPart.match(/(\d{2})$/);
-  return match ? match[1] : null;
+  const match = trimmed.match(/^[a-z]+(?:[-.][a-z]+)*\.([a-z-]+)(\d{1,4})@pccoepune\.org$/i);
+  return match ? match[2] : null;
 };
 
 /**
- * Eligible PCCOE batch numbers: 23, 24, 25, 26
- */
-const ELIGIBLE_PCCOE_BATCHES = ['23', '24', '25', '26'];
-
-/**
  * Determine if an individual participant qualifies as an eligible PCCOE student:
- * 1. Email ends with @pccoepune.org
- * 2. Embedded 2-digit batch is one of 23, 24, 25, 26
- * Note: Purely determined from official email, independent of any college dropdown.
+ * Matches format: 'name' . 'surname' <numbers max 4> @pccoepune.org
+ * This format gets free registration.
  */
 const isMemberPccoeEligible = (member) => {
   if (!member || !member.email) return false;
-  const batch = extractPccoeBatch(member.email);
-  return ELIGIBLE_PCCOE_BATCHES.includes(batch);
+  return extractPccoeBatch(member.email) !== null;
 };
 
 /**
@@ -108,6 +99,13 @@ const validateMemberAgainstFields = (member, eventFields, prefix) => {
       case 'email':
         if (!isValidEmail(strValue)) {
           errors.push(`${prefix}: ${field.label || 'Email'} must be a valid email address (e.g. user@example.com)`);
+        } else if (strValue.toLowerCase().endsWith('@pccoepune.org')) {
+          const batch = extractPccoeBatch(strValue);
+          if (!batch) {
+            errors.push(
+              `${prefix}: PCCOE email for free registration must follow the format: name.surname<numbers max 4>@pccoepune.org (e.g. first.last24@pccoepune.org)`
+            );
+          }
         }
         break;
 
@@ -337,7 +335,7 @@ const createRegistration = async (req, res, next) => {
     const leadEmail = sanitizedMembers[0]?.email ? sanitizedMembers[0].email.toLowerCase() : null;
     if (leadEmail) {
       const existingLead = await Registration.findOne({
-        eventSlug: event.slug,
+        eventName: event.name,
         $or: [
           { leadEmail: leadEmail },
           { 'members.email': leadEmail },
@@ -348,7 +346,7 @@ const createRegistration = async (req, res, next) => {
       if (existingLead) {
         return res.status(409).json({
           success: false,
-          message: `A registration for ${event.name} with team leader email ${leadEmail} already exists (${existingLead.registrationId})`,
+          message: `A registration for ${event.name} with email ${leadEmail} already exists (${existingLead.registrationId})`,
         });
       }
     }
@@ -356,7 +354,7 @@ const createRegistration = async (req, res, next) => {
     // C. Check if any team member is already participating in this event in another team
     const allMemberEmails = sanitizedMembers.map((m) => m.email.toLowerCase());
     const existingMemberReg = await Registration.findOne({
-      eventSlug: event.slug,
+      eventName: event.name,
       $or: [
         { 'members.email': { $in: allMemberEmails } },
         { 'participantData.email': { $in: allMemberEmails } },
@@ -485,93 +483,52 @@ const createRegistration = async (req, res, next) => {
     const isCtfEvent = event.slug === 'capture-the-flag';
     const submissionToken = isCtfEvent ? `st_${crypto.randomBytes(18).toString('hex')}` : undefined;
 
+    const isSoloEvent = (!event.teamConfig || event.teamConfig.maxMembers === 1) || sanitizedMembers.length === 1;
     const lead = sanitizedMembers[0] || {};
-    const m2 = sanitizedMembers[1] || {};
-    const m3 = sanitizedMembers[2] || {};
-    const m4 = sanitizedMembers[3] || {};
 
-    const teamSummary = sanitizedMembers
-      .map((m, i) => `${i + 1}. ${m.name} (${m.phone || 'N/A'}, ${m.email || 'N/A'}, ${m.college || 'N/A'})`)
-      .join(' | ');
-
-    const finalPaymentStatus = allPccoeEligible ? 'FREE_PCCOE' : (paymentRequired ? 'PENDING' : 'NOT_REQUIRED');
+    const teamSummary = !isSoloEvent && sanitizedMembers.length > 1
+      ? sanitizedMembers.map((m, i) => `${i + 1}. ${m.name} (${m.phone || 'No phone'})`).join(' | ')
+      : undefined;
 
     // ── 8. Save Registration in MongoDB (status: CONFIRMED) ──
-    const registration = await Registration.create({
-      registrationId,
-      eventId: event._id,
-      eventSlug: event.slug,
-      eventName: event.name,
-      teamName: teamName?.trim() || lead.name,
+    const leadCollegeValue = allPccoeEligible ? 'PCCOE' : (lead.college || '');
 
-      // Top-level Lead Contact Details (Directly visible in Atlas Table View)
+    const registrationData = {
+      registrationId,
+      eventName: event.name,
+
+      // Essential Contact Details
       leadName: lead.name || '',
       leadEmail: lead.email ? lead.email.toLowerCase() : '',
       leadPhone: lead.phone || '',
-      leadCollege: lead.college || '',
-      leadYear: lead.year || '',
-      leadBranch: lead.branch || '',
+      leadCollege: leadCollegeValue,
 
-      // Top-level Member 2 Details
-      member2Name: m2.name || undefined,
-      member2Email: m2.email ? m2.email.toLowerCase() : undefined,
-      member2Phone: m2.phone || undefined,
-      member2College: m2.college || undefined,
-      member2Year: m2.year || undefined,
-      member2Branch: m2.branch || undefined,
-
-      // Top-level Member 3 Details
-      member3Name: m3.name || undefined,
-      member3Email: m3.email ? m3.email.toLowerCase() : undefined,
-      member3Phone: m3.phone || undefined,
-      member3College: m3.college || undefined,
-      member3Year: m3.year || undefined,
-      member3Branch: m3.branch || undefined,
-
-      // Top-level Member 4 Details
-      member4Name: m4.name || undefined,
-      member4Email: m4.email ? m4.email.toLowerCase() : undefined,
-      member4Phone: m4.phone || undefined,
-      member4College: m4.college || undefined,
-      member4Year: m4.year || undefined,
-      member4Branch: m4.branch || undefined,
-
-      teamMembersSummary: teamSummary,
-
-      memberCount: sanitizedMembers.length,
+      amount: payableAmount,
       isPccoe: allPccoeEligible,
+      transactionId: transactionId || undefined,
+      screenshotUrl: screenshotUrl || undefined,
 
-      // Clean members array with isPccoe flag
-      members: sanitizedMembers.map((m) => ({
+      status: 'CONFIRMED',
+    };
+
+    // Attach team details ONLY if it is a multi-member / team event
+    if (!isSoloEvent) {
+      if (teamName?.trim()) registrationData.teamName = teamName.trim();
+      if (teamSummary) registrationData.teamSummary = teamSummary;
+      registrationData.members = sanitizedMembers.map((m) => ({
         name: m.name,
         email: m.email?.toLowerCase(),
         phone: m.phone,
-        college: m.college,
+        college: isMemberPccoeEligible(m) ? 'PCCOE' : (m.college || ''),
         year: m.year,
         branch: m.branch,
-        isPccoe: isMemberPccoeEligible(m),
-      })),
+      }));
+    }
 
-      // Mirror participantData for backwards compatibility with legacy queries
-      participantData: sanitizedMembers,
-
-      // Clean payment fields (both top-level and nested)
-      amount: payableAmount,
-      transactionId: transactionId || undefined,
-      screenshotUrl: screenshotUrl || undefined,
-      payment: {
-        amount: payableAmount,
-        status: finalPaymentStatus,
-        transactionId: transactionId || undefined,
-        screenshotUrl: screenshotUrl || undefined,
-      },
-
-      status: 'CONFIRMED',
-      submissionToken,
-    });
+    const registration = await Registration.create(registrationData);
 
     // ── 9. Sync into Dedicated Event Collection (e.g. registrations_datathon) ──
-    await syncToEventCollection(registration);
+    await syncToEventCollection(registration, event.slug);
 
     // ── 10. Dispatch Confirmation Email (Only if SMTP is configured) ──
     const isSmtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
@@ -605,6 +562,7 @@ const createRegistration = async (req, res, next) => {
         teamName: registration.teamName,
         paymentRequired,
         payableAmount,
+        isPccoe: allPccoeEligible,
         payment: {
           required: paymentRequired,
           amount: payableAmount,

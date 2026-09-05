@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
  * Returns a standardized collection name for an event.
  * e.g. "datathon" -> "registrations_datathon"
  * e.g. "pixel-perfect" -> "registrations_pixel_perfect"
- * e.g. "capture-the-flag" -> "registrations_capture_the_flag"
+ * e.g. "among-us" -> "registrations_among_us"
  */
 const getEventCollectionName = (eventSlug) => {
   const safeSlug = String(eventSlug || 'general')
@@ -17,12 +17,14 @@ const getEventCollectionName = (eventSlug) => {
 
 /**
  * Syncs a registration document into its dedicated event collection.
- * Uses upsert so creates and updates both stay in sync.
+ * Cleans out redundant fields (eventSlug, eventName) since the collection
+ * name already identifies the event.
  */
-const syncToEventCollection = async (registrationDoc) => {
+const syncToEventCollection = async (registrationDoc, slug) => {
   try {
-    if (!registrationDoc || !registrationDoc.eventSlug) return;
-    const colName = getEventCollectionName(registrationDoc.eventSlug);
+    const eventSlug = slug || registrationDoc.eventSlug;
+    if (!eventSlug) return;
+    const colName = getEventCollectionName(eventSlug);
     const col = mongoose.connection.collection(colName);
 
     const data = typeof registrationDoc.toObject === 'function'
@@ -30,10 +32,17 @@ const syncToEventCollection = async (registrationDoc) => {
       : { ...registrationDoc };
 
     delete data.__v;
+    delete data.eventSlug; // Redundant: collection name is already the event!
+    delete data.eventName; // Redundant: collection name is already the event!
 
-    await col.updateOne(
+    // Solo cleanup: no team fields on individual events
+    if (!data.teamSummary) delete data.teamSummary;
+    if (!data.teamName) delete data.teamName;
+    if (data.members && data.members.length <= 1) delete data.members;
+
+    await col.replaceOne(
       { registrationId: registrationDoc.registrationId },
-      { $set: data },
+      data,
       { upsert: true }
     );
   } catch (err) {

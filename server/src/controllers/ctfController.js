@@ -59,7 +59,8 @@ const uploadCtfScreenshot = async (req, res, next) => {
     }
 
     // ── 2. Verify event is Capture the Flag ──
-    if (registration.eventSlug !== 'capture-the-flag') {
+    const isCtf = registration.eventName?.toLowerCase().includes('capture') || registration.eventSlug === 'capture-the-flag';
+    if (!isCtf) {
       return res.status(400).json({
         success: false,
         message: 'Screenshot submissions are only permitted for Capture the Flag events',
@@ -176,7 +177,8 @@ const getCtfScreenshots = async (req, res, next) => {
       });
     }
 
-    if (registration.eventSlug !== 'capture-the-flag') {
+    const isCtf = registration.eventName?.toLowerCase().includes('capture') || registration.eventSlug === 'capture-the-flag';
+    if (!isCtf) {
       return res.status(400).json({
         success: false,
         message: 'Screenshots are only applicable to Capture the Flag events',

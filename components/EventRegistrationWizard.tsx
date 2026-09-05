@@ -62,22 +62,18 @@ const isValidIndianPhone = (phone: string): boolean => {
   return regex.test(clean);
 };
 
-// ── PCCOE Batch Extraction From Email Only ──
+// ── PCCOE Batch Extraction From Email (name.surname<max 4 digits>@pccoepune.org format) ──
 export const extractPccoeBatch = (email: string): string | null => {
-  if (!email) return null;
+  if (!email || typeof email !== 'string') return null;
   const trimmed = email.trim().toLowerCase();
-  if (!trimmed.endsWith('@pccoepune.org')) return null;
-  const localPart = trimmed.split('@')[0];
-  const match = localPart.match(/(\d{2})$/);
-  return match ? match[1] : null;
+  // Format: 'name' . 'surname' <numbers max 4> @pccoepune.org
+  const match = trimmed.match(/^[a-z]+(?:[-.][a-z]+)*\.([a-z-]+)(\d{1,4})@pccoepune\.org$/i);
+  return match ? match[2] : null;
 };
-
-export const ELIGIBLE_PCCOE_BATCHES = ['23', '24', '25', '26'];
 
 export const isMemberPccoeEligible = (member: MemberData): boolean => {
   if (!member || !member.email) return false;
-  const batch = extractPccoeBatch(member.email);
-  return !!(batch && ELIGIBLE_PCCOE_BATCHES.includes(batch));
+  return extractPccoeBatch(member.email) !== null;
 };
 
 export interface EventScheduleDetail {
@@ -663,6 +659,13 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       case 'email':
         if (!val) return 'Email ID is required.';
         if (!isValidEmailFormat(val)) return 'Please enter a valid email address.';
+        // If official PCCOE email is used, enforce name.surname<numbers max 4>@pccoepune.org format
+        if (val.trim().toLowerCase().endsWith('@pccoepune.org')) {
+          const batch = extractPccoeBatch(val);
+          if (!batch) {
+            return 'PCCOE email format for free registration: name.surname<numbers max 4>@pccoepune.org (e.g. first.last24@pccoepune.org)';
+          }
+        }
         // Duplicate check within team (case-insensitive)
         for (let i = 0; i < currentMembersList.length; i++) {
           if (i !== memberIdx && currentMembersList[i].email?.trim().toLowerCase() === val.toLowerCase()) {
@@ -1361,7 +1364,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                           value={members[currentMemberIndex]?.email || ''}
                           onChange={(e) => handleFieldChange('email', e.target.value)}
                           onBlur={() => handleFieldBlur('email')}
-                          placeholder="EMAIL ID (e.g. name24@pccoepune.org)"
+                          placeholder="EMAIL ID (e.g. name.surname24@pccoepune.org)"
                           className={`reg-input reg-input-email full-width ${currentTouched.email && currentErrors.email ? 'reg-input-error' : ''}`}
                           autoCapitalize="none"
                           autoCorrect="off"
@@ -1496,7 +1499,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                               <strong style={{ color: 'var(--ink)' }}>{m.name || `Member ${idx + 1}`}</strong> &lt;{m.email}&gt; • {m.phone} — {m.college || 'College'} ({m.year}, {m.branch || 'Dept'})
                               {isPccoe && (
                                 <span style={{ marginLeft: '6px', color: '#166534', fontSize: '11px', fontWeight: 700 }}>
-                                  [PCCOE Batch 20{batch}]
+                                  [PCCOE {batch ? (batch.length === 2 ? `Batch 20${batch}` : `Batch ${batch}`) : 'Verified'}]
                                 </span>
                               )}
                             </li>
