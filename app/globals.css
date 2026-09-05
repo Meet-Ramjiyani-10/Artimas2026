@@ -5960,6 +5960,7 @@ body.mode-yugas .yuga-title-img.active {
     overflow-wrap: break-word;
     text-align: center;
     line-height: 1.2;
+}
 
 .reg-optional-btn:hover {
     background: rgba(75, 48, 28, 0.85);
