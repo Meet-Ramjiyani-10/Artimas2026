@@ -47,6 +47,54 @@ export default function EventContactButton({
     };
   }, [isOpen]);
 
+  // Dynamic bottom positioning: Stay fixed at bottom-right until the footer enters the viewport,
+  // then push upward so it remains cleanly docked above the footer without overlapping.
+  const [bottomOffset, setBottomOffset] = useState<number>(24);
+
+  useEffect(() => {
+    let animationFrameId: number;
+
+    const updatePosition = () => {
+      const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+      const baseMargin = isMobile ? 16 : 24;
+
+      const footer = document.querySelector('.landing-footer') || document.querySelector('footer');
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        // Check how much of the footer is visible in the viewport
+        const overlap = windowHeight - footerRect.top;
+        if (overlap > 0) {
+          // Footer is in view: anchor button baseMargin px above the top edge of the footer
+          setBottomOffset(baseMargin + overlap);
+        } else {
+          setBottomOffset(baseMargin);
+        }
+      } else {
+        setBottomOffset(baseMargin);
+      }
+    };
+
+    const handleScrollOrResize = () => {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(updatePosition);
+    };
+
+    window.addEventListener('scroll', handleScrollOrResize, { passive: true });
+    window.addEventListener('resize', handleScrollOrResize, { passive: true });
+    updatePosition();
+
+    // Check again after slight delay for images/dynamic content settling
+    const timer = setTimeout(updatePosition, 250);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      clearTimeout(timer);
+      window.removeEventListener('scroll', handleScrollOrResize);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, []);
+
   const allEvents = getAllEventContacts();
   const activeEventGroup = getEventContacts(selectedSlug);
   const whatsAppGroup = getEventWhatsAppGroup(selectedSlug, activeEventGroup.eventName);
@@ -69,13 +117,15 @@ export default function EventContactButton({
 
   return (
     <>
-      {/* ── Fixed Floating "Contact Us" Button (Bottom Right) ── */}
+      {/* ── Fixed Floating "Contact Us" Button (Bottom Right, dynamically anchored above footer) ── */}
       <div
+        className="floating-contact-wrap"
         style={{
           position: 'fixed',
-          bottom: '24px',
+          bottom: `${bottomOffset}px`,
           right: '24px',
           zIndex: 90,
+          transition: 'bottom 0.08s ease-out',
         }}
       >
         <button
@@ -84,6 +134,7 @@ export default function EventContactButton({
           aria-label="Contact Event Heads"
           aria-haspopup="dialog"
           aria-expanded={isOpen}
+          className="floating-contact-btn"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -206,6 +257,15 @@ export default function EventContactButton({
         .contact-list-scroll::-webkit-scrollbar-thumb {
           background: rgba(212, 175, 55, 0.35);
           border-radius: 4px;
+        }
+        @media (max-width: 768px) {
+          .floating-contact-wrap {
+            right: 16px !important;
+          }
+          .floating-contact-btn {
+            padding: 9px 14px !important;
+            font-size: 11.5px !important;
+          }
         }
       `}</style>
 
