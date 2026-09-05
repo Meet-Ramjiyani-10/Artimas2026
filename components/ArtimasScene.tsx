@@ -597,6 +597,11 @@ export default function ArtimasScene() {
                     <div className="decree-corner bottom-left" aria-hidden="true" />
                     <div className="decree-corner bottom-right" aria-hidden="true" />
 
+                    {/* Mobile Peek Swipe Tab Indicator (covering entire peeking strip box) */}
+                    <div className="yuga-deck-swipe-tab" aria-hidden="true">
+                      <span className="yuga-deck-swipe-text">SWIPE ↑</span>
+                    </div>
+
                     <div className="yuga-decree-inner">
                       {/* Top Header Group (Crest + Title) */}
                       <div className="yuga-card-header-group">

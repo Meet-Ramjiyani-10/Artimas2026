@@ -7848,8 +7848,9 @@ body.mode-yugas .yuga-title-img.active {
         z-index: 15;
     }
 
-    .mobile-deck-indicator {
-        display: none;
+    .mobile-deck-indicator,
+    .yuga-deck-swipe-tab {
+        display: none !important;
     }
 }
 
@@ -8194,70 +8195,92 @@ body.mode-yugas .yuga-title-img.active {
         animation-delay: 0s !important;
     }
 
-    /* Front active card hides any swipe label */
-    .yuga-decree-card.deck-front::after {
+    /* ── Mobile Deck Swipe Tab (Covers the entire red box across peeking strip) ── */
+    .yuga-deck-swipe-tab {
         display: none !important;
     }
 
-    /* "SWIPE ←" label pointing towards the active front card */
-    .yuga-decree-card.deck-back::after {
-        content: 'SWIPE ↑';
-        position: absolute;
-        top: 50%;
-        right: clamp(6px, 1.8vw, 12px);
-        left: auto !important;
-        transform: translateY(-50%) rotate(-90deg);
-        white-space: nowrap;
-        font-family: var(--font-title, 'Cinzel Decorative', serif);
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        color: var(--heading-ivory);
-        text-shadow: 0 2px 6px rgba(216, 146, 66, 0.45);
-        pointer-events: none;
-        z-index: 20;
-        opacity: 1;
-        animation: swipeTextPulse 2s ease-in-out infinite;
+    .yuga-decree-card.deck-front .yuga-deck-swipe-tab {
+        display: none !important;
+        opacity: 0 !important;
     }
 
-    .yuga-decree-card.deck-switching-out::after {
-        content: 'SWIPE ↑';
-        position: absolute;
-        top: 50%;
-        right: clamp(6px, 1.8vw, 12px);
-        left: auto !important;
-        transform: translateY(-50%) rotate(-90deg);
-        white-space: nowrap;
-        font-family: var(--font-title, 'Cinzel Decorative', serif);
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        color: var(--heading-ivory);
-        text-shadow: 0 2px 6px rgba(216, 146, 66, 0.45);
-        pointer-events: none;
-        z-index: 20;
+    .yuga-decree-card.deck-back .yuga-deck-swipe-tab {
+        position: absolute !important;
+        top: 50% !important;
+        right: 0 !important;
+        transform: translateY(-50%) !important;
+        width: 19.05% !important;
+        height: clamp(120px, 18vh, 155px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        pointer-events: none !important;
+        z-index: 25 !important;
+        background: linear-gradient(135deg, rgba(42, 22, 14, 0.72) 0%, rgba(18, 9, 6, 0.88) 100%) !important;
+        border: 1px solid rgba(201, 164, 92, 0.55) !important;
+        border-right: none !important;
+        border-radius: 8px 0 0 8px !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 16px rgba(201, 164, 92, 0.28), inset 0 0 12px rgba(201, 164, 92, 0.12) !important;
+        backdrop-filter: blur(8px) saturate(140%) !important;
+        -webkit-backdrop-filter: blur(8px) saturate(140%) !important;
+        opacity: 1 !important;
+    }
+
+    .yuga-decree-card.deck-switching-out .yuga-deck-swipe-tab {
+        position: absolute !important;
+        top: 50% !important;
+        right: 0 !important;
+        transform: translateY(-50%) !important;
+        width: 19.05% !important;
+        height: clamp(120px, 18vh, 155px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        pointer-events: none !important;
+        z-index: 25 !important;
+        background: linear-gradient(135deg, rgba(42, 22, 14, 0.72) 0%, rgba(18, 9, 6, 0.88) 100%) !important;
+        border: 1px solid rgba(201, 164, 92, 0.55) !important;
+        border-right: none !important;
+        border-radius: 8px 0 0 8px !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 16px rgba(201, 164, 92, 0.28) !important;
         animation: swipeLabelFadeIn 2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
         animation-delay: 0s !important;
     }
 
-    .yuga-decree-card.deck-switching-in::after {
-        content: 'SWIPE ↑';
-        position: absolute;
-        top: 50%;
-        right: clamp(6px, 1.8vw, 12px);
-        left: auto !important;
-        transform: translateY(-50%) rotate(-90deg);
-        white-space: nowrap;
-        font-family: var(--font-title, 'Cinzel Decorative', serif);
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        color: var(--heading-ivory);
-        text-shadow: 0 2px 6px rgba(216, 146, 66, 0.45);
-        pointer-events: none;
-        z-index: 20;
+    .yuga-decree-card.deck-switching-in .yuga-deck-swipe-tab {
+        position: absolute !important;
+        top: 50% !important;
+        right: 0 !important;
+        transform: translateY(-50%) !important;
+        width: 19.05% !important;
+        height: clamp(120px, 18vh, 155px) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        pointer-events: none !important;
+        z-index: 25 !important;
+        background: linear-gradient(135deg, rgba(42, 22, 14, 0.72) 0%, rgba(18, 9, 6, 0.88) 100%) !important;
+        border: 1px solid rgba(201, 164, 92, 0.55) !important;
+        border-right: none !important;
+        border-radius: 8px 0 0 8px !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.65), 0 0 16px rgba(201, 164, 92, 0.28) !important;
         animation: swipeLabelFadeOut 2s cubic-bezier(0.22, 1, 0.36, 1) both !important;
         animation-delay: 0s !important;
+    }
+
+    .yuga-deck-swipe-text {
+        display: block !important;
+        transform: rotate(-90deg) !important;
+        white-space: nowrap !important;
+        font-family: var(--font-title, 'Cinzel Decorative', serif) !important;
+        font-size: clamp(13px, 1.85vh, 15px) !important;
+        font-weight: 800 !important;
+        letter-spacing: 0.22em !important;
+        color: var(--heading-ivory) !important;
+        text-shadow: 0 2px 8px rgba(216, 146, 66, 0.8), 0 0 16px rgba(201, 164, 92, 0.5) !important;
+        animation: swipeTextPulse 2s ease-in-out infinite !important;
+        pointer-events: none !important;
     }
 
     @keyframes swipeTextPulse {
