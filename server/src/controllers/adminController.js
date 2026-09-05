@@ -1,9 +1,24 @@
 const Registration = require('../models/Registration');
 const Event = require('../models/Event');
 const sendVerificationEmail = require('../utils/sendVerificationEmail');
+const { syncToEventCollection } = require('../utils/eventCollectionHelper');
 
 /**
- * @desc    Get all registrations (admin view) with filtering and pagination
+ * Helper to build an event name-to-slug mapping cache.
+ */
+const getEventMap = async () => {
+  const events = await Event.find().lean();
+  const slugToName = {};
+  const nameToSlug = {};
+  events.forEach((ev) => {
+    if (ev.slug) slugToName[ev.slug.toLowerCase()] = ev.name;
+    if (ev.name) nameToSlug[ev.name.toLowerCase()] = ev.slug;
+  });
+  return { events, slugToName, nameToSlug };
+};
+
+/**
+ * @desc    Get all registrations (admin view) with filtering, search, and pagination
  * @route   GET /api/admin/registrations
  * @access  Protected (TECH_TEAM, ADMIN)
  */
@@ -13,6 +28,8 @@ const getRegistrations = async (req, res, next) => {
       status,
       eventSlug,
       eventId,
+      eventName,
+      isPccoe,
       dateFrom,
       dateTo,
       page = 1,
@@ -22,17 +39,31 @@ const getRegistrations = async (req, res, next) => {
 
     const filter = {};
 
-    // Filter by status
-    if (status && ['PENDING', 'APPROVED', 'REJECTED'].includes(status.toUpperCase())) {
+    // Filter by status (case-insensitive)
+    if (status && status !== 'ALL') {
       filter.status = status.toUpperCase();
     }
 
-    // Filter by event (slug or ID)
-    if (eventSlug) {
-      const event = await Event.findOne({ slug: eventSlug.toLowerCase() });
-      if (event) filter.eventId = event._id;
-    } else if (eventId) {
-      filter.eventId = eventId;
+    // Filter by event (support slug, name, or MongoDB eventId)
+    if (eventSlug && eventSlug !== 'ALL') {
+      const event = await Event.findOne({ slug: eventSlug.toLowerCase() }).lean();
+      if (event) {
+        filter.eventName = { $regex: new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') };
+      } else {
+        filter.eventName = { $regex: new RegExp(eventSlug.replace(/-/g, ' '), 'i') };
+      }
+    } else if (eventName && eventName !== 'ALL') {
+      filter.eventName = { $regex: new RegExp(`^${eventName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') };
+    } else if (eventId && eventId !== 'ALL') {
+      const event = await Event.findById(eventId).lean();
+      if (event) {
+        filter.eventName = { $regex: new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') };
+      }
+    }
+
+    // Filter by PCCOE free registration flag
+    if (isPccoe !== undefined && isPccoe !== '') {
+      filter.isPccoe = isPccoe === 'true' || isPccoe === true;
     }
 
     // Filter by date range
@@ -42,35 +73,48 @@ const getRegistrations = async (req, res, next) => {
       if (dateTo) filter.createdAt.$lte = new Date(dateTo + 'T23:59:59.999Z');
     }
 
-    // Search by registration ID or team name
-    if (search) {
+    // Comprehensive search across all key participant fields
+    if (search && search.trim()) {
+      const q = search.trim();
       filter.$or = [
-        { registrationId: { $regex: search, $options: 'i' } },
-        { teamName: { $regex: search, $options: 'i' } },
+        { registrationId: { $regex: q, $options: 'i' } },
+        { teamName: { $regex: q, $options: 'i' } },
+        { leadName: { $regex: q, $options: 'i' } },
+        { leadEmail: { $regex: q, $options: 'i' } },
+        { leadPhone: { $regex: q, $options: 'i' } },
+        { leadCollege: { $regex: q, $options: 'i' } },
+        { transactionId: { $regex: q, $options: 'i' } },
+        { eventName: { $regex: q, $options: 'i' } },
       ];
     }
 
-    const pageNum = parseInt(page, 10) || 1;
-    const limitNum = Math.min(parseInt(limit, 10) || 25, 100);
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 25, 1), 1000);
     const skip = (pageNum - 1) * limitNum;
 
     const [registrations, total] = await Promise.all([
       Registration.find(filter)
-        .populate('eventId', 'name slug category yuga registrationFee')
-        .populate('verification.verifiedBy', 'name email')
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limitNum),
+        .limit(limitNum)
+        .lean(),
       Registration.countDocuments(filter),
     ]);
 
+    // Attach event slug to each registration for UI ease
+    const { nameToSlug } = await getEventMap();
+    const enriched = registrations.map((r) => ({
+      ...r,
+      eventSlug: nameToSlug[(r.eventName || '').toLowerCase()] || '',
+    }));
+
     res.status(200).json({
       success: true,
-      count: registrations.length,
+      count: enriched.length,
       total,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum),
-      data: registrations,
+      data: enriched,
     });
   } catch (error) {
     next(error);
@@ -81,23 +125,16 @@ const getRegistrations = async (req, res, next) => {
  * @desc    Get a single registration detail (admin view)
  * @route   GET /api/admin/registrations/:id
  * @access  Protected (TECH_TEAM, ADMIN)
- *
- * Full detail including participant data, payment screenshot URL, and
- * verification records. Only accessible with valid JWT + role.
  */
 const getRegistrationDetail = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Find by registrationId (human-readable) or MongoDB _id
-    let registration = await Registration.findOne({ registrationId: id.toUpperCase() })
-      .populate('eventId', 'name slug category yuga registrationFee teamConfig')
-      .populate('verification.verifiedBy', 'name email');
+    // Find by human-readable registrationId or MongoDB _id
+    let registration = await Registration.findOne({ registrationId: id.toUpperCase() }).lean();
 
     if (!registration && id.match(/^[0-9a-fA-F]{24}$/)) {
-      registration = await Registration.findById(id)
-        .populate('eventId', 'name slug category yuga registrationFee teamConfig')
-        .populate('verification.verifiedBy', 'name email');
+      registration = await Registration.findById(id).lean();
     }
 
     if (!registration) {
@@ -107,9 +144,17 @@ const getRegistrationDetail = async (req, res, next) => {
       });
     }
 
+    const event = await Event.findOne({
+      name: { $regex: new RegExp(`^${(registration.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+    }).lean();
+
     res.status(200).json({
       success: true,
-      data: registration,
+      data: {
+        ...registration,
+        event: event || null,
+        eventSlug: event?.slug || '',
+      },
     });
   } catch (error) {
     next(error);
@@ -120,23 +165,16 @@ const getRegistrationDetail = async (req, res, next) => {
  * @desc    Approve/verify a registration payment
  * @route   PATCH /api/admin/registrations/:id/verify
  * @access  Protected (TECH_TEAM, ADMIN)
- *
- * Updates status, records verification audit trail, then attempts email.
- * Approval is committed BEFORE email is sent — SMTP failure does not
- * roll back the approval. emailStatus tracks delivery state separately.
  */
 const verifyRegistration = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { remarks } = req.body;
 
-    // Find registration
-    let registration = await Registration.findOne({ registrationId: id.toUpperCase() })
-      .populate('eventId', 'name slug registrationFee');
+    let registration = await Registration.findOne({ registrationId: id.toUpperCase() });
 
     if (!registration && id.match(/^[0-9a-fA-F]{24}$/)) {
-      registration = await Registration.findById(id)
-        .populate('eventId', 'name slug registrationFee');
+      registration = await Registration.findById(id);
     }
 
     if (!registration) {
@@ -146,7 +184,6 @@ const verifyRegistration = async (req, res, next) => {
       });
     }
 
-    // Prevent duplicate approval
     if (registration.status === 'APPROVED') {
       return res.status(400).json({
         success: false,
@@ -154,60 +191,38 @@ const verifyRegistration = async (req, res, next) => {
       });
     }
 
-    // ── Step 1: Update and persist approval (before email) ──
     registration.status = 'APPROVED';
-    registration.payment.status = 'APPROVED';
-    registration.verification = {
-      verifiedBy: req.admin._id,
-      verifiedAt: new Date(),
-      remarks: remarks || 'Payment verified successfully',
-    };
-
     await registration.save();
 
-    // ── Step 2: Attempt email (non-blocking for approval) ──
-    const participantData = registration.participantData;
-    const leadMember = Array.isArray(participantData) ? participantData[0] : participantData;
-    let emailSent = false;
+    // Sync to dedicated event collection
+    const event = await Event.findOne({
+      name: { $regex: new RegExp(`^${(registration.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+    }).lean();
+    await syncToEventCollection(registration, event?.slug);
 
-    if (leadMember && leadMember.email) {
+    // Attempt verification email non-blocking
+    if (registration.leadEmail) {
       try {
-        emailSent = await sendVerificationEmail({
-          to: leadMember.email,
-          participantName: leadMember.name || registration.teamName,
-          eventName: registration.eventId?.name || 'ARTIMAS 26 Event',
+        await sendVerificationEmail({
+          to: registration.leadEmail,
+          participantName: registration.leadName || registration.teamName,
+          eventName: registration.eventName,
           registrationId: registration.registrationId,
           teamName: registration.teamName,
-          amount: registration.payment.amount,
-          remarks: remarks || 'Payment verified successfully',
+          amount: registration.amount || 0,
+          remarks: remarks || 'Registration confirmed & verified successfully',
         });
-
-        registration.emailStatus = emailSent ? 'SENT' : 'FAILED';
-        registration.emailSentAt = emailSent ? new Date() : undefined;
-        registration.emailError = emailSent ? undefined : 'SMTP not configured';
-      } catch (emailError) {
-        registration.emailStatus = 'FAILED';
-        registration.emailError = emailError.message || 'Email delivery failed';
-        console.error(`✖ Email error for ${registration.registrationId}:`, emailError.message);
+      } catch (emailErr) {
+        console.warn(`✖ Verification email could not be sent to ${registration.leadEmail}:`, emailErr.message);
       }
-
-      // Persist email status (approval already saved above)
-      await registration.save();
     }
-
-    // Re-populate for response
-    await registration.populate('verification.verifiedBy', 'name email');
 
     res.status(200).json({
       success: true,
-      message: 'Registration approved successfully',
+      message: 'Registration verified and approved',
       data: {
         registrationId: registration.registrationId,
         status: registration.status,
-        paymentStatus: registration.payment.status,
-        emailStatus: registration.emailStatus,
-        emailSentAt: registration.emailSentAt,
-        verification: registration.verification,
       },
     });
   } catch (error) {
@@ -225,7 +240,6 @@ const rejectRegistration = async (req, res, next) => {
     const { id } = req.params;
     const { remarks } = req.body;
 
-    // Find registration
     let registration = await Registration.findOne({ registrationId: id.toUpperCase() });
 
     if (!registration && id.match(/^[0-9a-fA-F]{24}$/)) {
@@ -239,32 +253,20 @@ const rejectRegistration = async (req, res, next) => {
       });
     }
 
-    if (registration.status === 'REJECTED') {
-      return res.status(400).json({
-        success: false,
-        message: 'Registration is already rejected',
-      });
-    }
-
-    // Update registration
     registration.status = 'REJECTED';
-    registration.payment.status = 'REJECTED';
-    registration.verification = {
-      verifiedBy: req.admin._id,
-      verifiedAt: new Date(),
-      remarks: remarks || 'Payment could not be verified',
-    };
-
     await registration.save();
+
+    const event = await Event.findOne({
+      name: { $regex: new RegExp(`^${(registration.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+    }).lean();
+    await syncToEventCollection(registration, event?.slug);
 
     res.status(200).json({
       success: true,
-      message: 'Registration rejected',
+      message: 'Registration marked as rejected',
       data: {
         registrationId: registration.registrationId,
         status: registration.status,
-        paymentStatus: registration.payment.status,
-        verification: registration.verification,
       },
     });
   } catch (error) {
@@ -279,50 +281,57 @@ const rejectRegistration = async (req, res, next) => {
  */
 const getStats = async (req, res, next) => {
   try {
-    const [total, pending, approved, rejected, byEvent] = await Promise.all([
+    const [total, pending, confirmed, approved, rejected, pccoeFree, totalRevenueAgg, byEventAgg] = await Promise.all([
       Registration.countDocuments(),
       Registration.countDocuments({ status: 'PENDING' }),
+      Registration.countDocuments({ status: 'CONFIRMED' }),
       Registration.countDocuments({ status: 'APPROVED' }),
       Registration.countDocuments({ status: 'REJECTED' }),
+      Registration.countDocuments({ isPccoe: true }),
+      Registration.aggregate([
+        { $match: { status: { $ne: 'REJECTED' } } },
+        { $group: { _id: null, totalRevenue: { $sum: '$amount' } } },
+      ]),
       Registration.aggregate([
         {
           $group: {
-            _id: '$eventId',
+            _id: '$eventName',
             count: { $sum: 1 },
+            confirmed: { $sum: { $cond: [{ $eq: ['$status', 'CONFIRMED'] }, 1, 0] } },
             pending: { $sum: { $cond: [{ $eq: ['$status', 'PENDING'] }, 1, 0] } },
             approved: { $sum: { $cond: [{ $eq: ['$status', 'APPROVED'] }, 1, 0] } },
             rejected: { $sum: { $cond: [{ $eq: ['$status', 'REJECTED'] }, 1, 0] } },
-          },
-        },
-        {
-          $lookup: {
-            from: 'events',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'event',
-          },
-        },
-        { $unwind: '$event' },
-        {
-          $project: {
-            eventName: '$event.name',
-            eventSlug: '$event.slug',
-            count: 1,
-            pending: 1,
-            approved: 1,
-            rejected: 1,
+            pccoeCount: { $sum: { $cond: [{ $eq: ['$isPccoe', true] }, 1, 0] } },
+            revenue: { $sum: '$amount' },
           },
         },
       ]),
     ]);
+
+    const { nameToSlug } = await getEventMap();
+
+    const byEvent = byEventAgg.map((item) => ({
+      eventName: item._id,
+      eventSlug: nameToSlug[(item._id || '').toLowerCase()] || '',
+      count: item.count,
+      confirmed: item.confirmed,
+      pending: item.pending,
+      approved: item.approved,
+      rejected: item.rejected,
+      pccoeCount: item.pccoeCount,
+      revenue: item.revenue,
+    }));
 
     res.status(200).json({
       success: true,
       data: {
         total,
         pending,
+        confirmed,
         approved,
         rejected,
+        pccoeFree,
+        totalRevenue: totalRevenueAgg[0]?.totalRevenue || 0,
         byEvent,
       },
     });
@@ -332,38 +341,45 @@ const getStats = async (req, res, next) => {
 };
 
 /**
- * @desc    Get all events with their registration status and counts (Admin view)
+ * @desc    Get all events with live registration status and accurate counts (Admin view)
  * @route   GET /api/admin/events
  * @access  Protected (TECH_TEAM, ADMIN)
  */
 const getAdminEvents = async (req, res, next) => {
   try {
-    const events = await Event.find().sort({ createdAt: 1 });
+    const events = await Event.find().sort({ createdAt: 1 }).lean();
 
-    // Aggregate registrations count per event
+    // Aggregate registrations count per event by eventName (excluding rejected)
     const regCounts = await Registration.aggregate([
       { $match: { status: { $ne: 'REJECTED' } } },
-      { $group: { _id: '$eventId', count: { $sum: 1 } } },
+      { $group: { _id: '$eventName', count: { $sum: 1 } } },
     ]);
 
     const countMap = {};
     regCounts.forEach((rc) => {
-      countMap[String(rc._id)] = rc.count;
+      if (rc._id) {
+        countMap[rc._id.trim().toLowerCase()] = rc.count;
+      }
     });
 
-    const eventList = events.map((ev) => ({
-      id: ev._id,
-      name: ev.name,
-      slug: ev.slug,
-      category: ev.category,
-      yuga: ev.yuga,
-      registrationFee: ev.registrationFee,
-      registrationOpen: ev.registrationOpen !== false && ev.active !== false,
-      active: ev.active,
-      registrationCount: countMap[String(ev._id)] || 0,
-      minMembers: ev.teamConfig?.minMembers || 1,
-      maxMembers: ev.teamConfig?.maxMembers || 1,
-    }));
+    const eventList = events.map((ev) => {
+      const eventNameKey = (ev.name || '').trim().toLowerCase();
+      const count = countMap[eventNameKey] || 0;
+
+      return {
+        id: ev._id,
+        name: ev.name,
+        slug: ev.slug,
+        category: ev.category,
+        yuga: ev.yuga,
+        registrationFee: ev.registrationFee,
+        registrationOpen: ev.registrationOpen !== false && ev.active !== false,
+        active: ev.active !== false,
+        registrationCount: count,
+        minMembers: ev.teamConfig?.minMembers || 1,
+        maxMembers: ev.teamConfig?.maxMembers || 1,
+      };
+    });
 
     res.status(200).json({
       success: true,
@@ -399,7 +415,6 @@ const toggleEventRegistration = async (req, res, next) => {
       });
     }
 
-    // Determine new status: boolean provided or toggle
     const newStatus = typeof registrationOpen === 'boolean'
       ? registrationOpen
       : !event.registrationOpen;

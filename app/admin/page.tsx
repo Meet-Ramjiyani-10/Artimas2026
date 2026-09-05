@@ -1,8 +1,37 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
+
+interface Member {
+  name?: string;
+  email?: string;
+  phone?: string;
+  college?: string;
+  year?: string;
+  branch?: string;
+}
+
+interface RegistrationItem {
+  _id: string;
+  registrationId: string;
+  eventName: string;
+  eventSlug?: string;
+  teamName?: string;
+  leadName: string;
+  leadEmail: string;
+  leadPhone: string;
+  leadCollege: string;
+  isPccoe: boolean;
+  amount: number;
+  transactionId?: string;
+  screenshotUrl?: string;
+  status: string;
+  members?: Member[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface AdminEvent {
   id: string;
@@ -10,9 +39,31 @@ interface AdminEvent {
   slug: string;
   category: string;
   yuga: string;
+  registrationFee: number;
   registrationOpen: boolean;
   active: boolean;
   registrationCount: number;
+}
+
+interface AdminStats {
+  total: number;
+  confirmed: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  pccoeFree: number;
+  totalRevenue: number;
+  byEvent: Array<{
+    eventName: string;
+    eventSlug: string;
+    count: number;
+    confirmed: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    pccoeCount: number;
+    revenue: number;
+  }>;
 }
 
 export default function AdminPortal() {
@@ -24,11 +75,22 @@ export default function AdminPortal() {
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
 
+  // Active tab: 'registrations' | 'events' | 'stats'
+  const [activeTab, setActiveTab] = useState<'registrations' | 'events' | 'stats'>('registrations');
+
   // Dashboard state
   const [events, setEvents] = useState<AdminEvent[]>([]);
-  const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(false);
-  const [eventsError, setEventsError] = useState<string>('');
+  const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [togglingEventId, setTogglingEventId] = useState<string | null>(null);
+
+  // Filter & Search states
+  const [selectedEventFilter, setSelectedEventFilter] = useState<string>('ALL');
+  const [selectedPccoeFilter, setSelectedPccoeFilter] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedRegistration, setSelectedRegistration] = useState<RegistrationItem | null>(null);
 
   // Check saved token on mount
   useEffect(() => {
@@ -39,43 +101,53 @@ export default function AdminPortal() {
     setIsCheckingAuth(false);
   }, []);
 
-  // Fetch events list
-  const fetchEvents = useCallback(async (authToken: string) => {
-    setIsLoadingEvents(true);
-    setEventsError('');
+  // Fetch all dashboard data (Events, Registrations, Stats)
+  const fetchData = useCallback(async (authToken: string) => {
+    setIsLoading(true);
+    setErrorMessage('');
     try {
-      const res = await fetch(`${API_BASE}/admin/events`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+      const headers = { Authorization: `Bearer ${authToken}` };
 
-      if (res.status === 401 || res.status === 403) {
-        // Token expired or invalid
+      const [eventsRes, regsRes, statsRes] = await Promise.all([
+        fetch(`${API_BASE}/admin/events`, { headers }),
+        fetch(`${API_BASE}/admin/registrations?limit=500`, { headers }),
+        fetch(`${API_BASE}/admin/stats`, { headers }),
+      ]);
+
+      if (eventsRes.status === 401 || eventsRes.status === 403) {
         sessionStorage.removeItem('artimas_admin_token');
         setToken(null);
         setLoginError('Session expired. Please log in again.');
         return;
       }
 
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setEvents(json.data);
-      } else {
-        setEventsError(json.message || 'Failed to load events');
+      const [eventsJson, regsJson, statsJson] = await Promise.all([
+        eventsRes.json(),
+        regsRes.json(),
+        statsRes.json(),
+      ]);
+
+      if (eventsJson.success && Array.isArray(eventsJson.data)) {
+        setEvents(eventsJson.data);
+      }
+      if (regsJson.success && Array.isArray(regsJson.data)) {
+        setRegistrations(regsJson.data);
+      }
+      if (statsJson.success && statsJson.data) {
+        setStats(statsJson.data);
       }
     } catch {
-      setEventsError('Unable to connect to backend server');
+      setErrorMessage('Unable to connect to backend service. Ensure server is running.');
     } finally {
-      setIsLoadingEvents(false);
+      setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     if (token) {
-      fetchEvents(token);
+      fetchData(token);
     }
-  }, [token, fetchEvents]);
+  }, [token, fetchData]);
 
   // Handle Login submission
   const handleLogin = async (e: React.FormEvent) => {
@@ -124,6 +196,8 @@ export default function AdminPortal() {
     sessionStorage.removeItem('artimas_admin_token');
     setToken(null);
     setEvents([]);
+    setRegistrations([]);
+    setStats(null);
     setPassword('');
     setLoginError('');
   };
@@ -146,7 +220,6 @@ export default function AdminPortal() {
 
       const json = await res.json();
       if (res.ok && json.success) {
-        // Update local event state
         setEvents((prev) =>
           prev.map((e) =>
             e.id === event.id ? { ...e, registrationOpen: newStatus, active: newStatus } : e
@@ -160,6 +233,109 @@ export default function AdminPortal() {
     } finally {
       setTogglingEventId(null);
     }
+  };
+
+  // Filtered registrations based on Event, PCCOE flag, and Search query
+  const filteredRegistrations = useMemo(() => {
+    return registrations.filter((reg) => {
+      // Event filter
+      if (selectedEventFilter !== 'ALL') {
+        const matchesEvent =
+          (reg.eventName && reg.eventName.toLowerCase() === selectedEventFilter.toLowerCase()) ||
+          (reg.eventSlug && reg.eventSlug.toLowerCase() === selectedEventFilter.toLowerCase());
+        if (!matchesEvent) return false;
+      }
+
+      // PCCOE filter
+      if (selectedPccoeFilter === 'PCCOE' && !reg.isPccoe) return false;
+      if (selectedPccoeFilter === 'EXTERNAL' && reg.isPccoe) return false;
+
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const searchPool = [
+          reg.registrationId,
+          reg.eventName,
+          reg.teamName,
+          reg.leadName,
+          reg.leadEmail,
+          reg.leadPhone,
+          reg.leadCollege,
+          reg.transactionId,
+          ...(reg.members || []).flatMap((m) => [m.name, m.email, m.phone, m.college, m.year, m.branch]),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        if (!searchPool.includes(q)) return false;
+      }
+
+      return true;
+    });
+  }, [registrations, selectedEventFilter, selectedPccoeFilter, searchQuery]);
+
+  // CSV Export
+  const handleExportCSV = () => {
+    if (filteredRegistrations.length === 0) {
+      alert('No registrations to export.');
+      return;
+    }
+
+    const headers = [
+      'Registration ID',
+      'Event Name',
+      'Team / Entry Name',
+      'Lead Name',
+      'Lead Email',
+      'Lead Phone',
+      'Lead College',
+      'PCCOE Student',
+      'Total Members',
+      'All Members (Name, Email, Phone, College, Year, Branch)',
+      'Fee Amount (INR)',
+      'Transaction ID',
+      'Status',
+      'Registration Date',
+    ];
+
+    const rows = filteredRegistrations.map((r) => {
+      const allMembersStr = (r.members && r.members.length > 0)
+        ? r.members
+            .map(
+              (m, i) =>
+                `#${i + 1}: ${m.name || ''} <${m.email || ''}> Phone: ${m.phone || ''} [${m.college || ''} - ${m.year || ''} ${m.branch || ''}]`
+            )
+            .join(' | ')
+        : `${r.leadName} <${r.leadEmail}>`;
+
+      return [
+        `"${r.registrationId || ''}"`,
+        `"${r.eventName || ''}"`,
+        `"${(r.teamName || r.leadName || '').replace(/"/g, '""')}"`,
+        `"${(r.leadName || '').replace(/"/g, '""')}"`,
+        `"${r.leadEmail || ''}"`,
+        `"${r.leadPhone || ''}"`,
+        `"${(r.leadCollege || '').replace(/"/g, '""')}"`,
+        `"${r.isPccoe ? 'YES (Free)' : 'NO (Paid)'}"`,
+        `"${r.members?.length || 1}"`,
+        `"${allMembersStr.replace(/"/g, '""')}"`,
+        `"${r.amount || 0}"`,
+        `"${(r.transactionId || '').replace(/"/g, '""')}"`,
+        `"${r.status || 'CONFIRMED'}"`,
+        `"${new Date(r.createdAt).toLocaleString()}"`,
+      ].join(',');
+    });
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    const fileName = `ARTIMAS26_Registrations_${selectedEventFilter !== 'ALL' ? selectedEventFilter : 'ALL'}_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (isCheckingAuth) {
@@ -193,7 +369,7 @@ export default function AdminPortal() {
           }}
         >
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            <h1 style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '2px', color: '#f8fafc', margin: '0 0 6px' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '2px', color: '#f8fafc', margin: '0 0 6px' }}>
               ARTIMAS 26
             </h1>
             <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>
@@ -225,7 +401,6 @@ export default function AdminPortal() {
                   color: '#ffffff',
                   fontSize: '14px',
                   outline: 'none',
-                  transition: 'border-color 0.2s',
                 }}
                 autoFocus
               />
@@ -262,7 +437,6 @@ export default function AdminPortal() {
                 letterSpacing: '0.5px',
                 cursor: isLoggingIn ? 'not-allowed' : 'pointer',
                 opacity: isLoggingIn ? 0.7 : 1,
-                transition: 'background-color 0.2s',
               }}
             >
               {isLoggingIn ? 'AUTHENTICATING...' : 'ENTER DASHBOARD'}
@@ -281,10 +455,10 @@ export default function AdminPortal() {
         backgroundColor: '#0a0d12',
         color: '#e2e8f0',
         fontFamily: "'Segoe UI', Roboto, sans-serif",
-        padding: '32px 20px',
+        padding: '24px 20px',
       }}
     >
-      <div style={{ maxWidth: '960px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Top Header */}
         <div
           style={{
@@ -292,24 +466,26 @@ export default function AdminPortal() {
             alignItems: 'center',
             justifyContent: 'space-between',
             borderBottom: '1px solid #1e293b',
-            paddingBottom: '20px',
-            marginBottom: '28px',
+            paddingBottom: '16px',
+            marginBottom: '20px',
+            flexWrap: 'wrap',
+            gap: '14px',
           }}
         >
           <div>
             <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '1px', color: '#f8fafc', margin: '0 0 4px' }}>
-              EVENT MANAGEMENT
+              ARTIMAS 26 ADMIN PORTAL
             </h1>
             <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              ARTIMAS 26 — Festival Registration Controls
+              Festival Registration Management & Data Explorer
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button
               type="button"
-              onClick={() => fetchEvents(token)}
-              disabled={isLoadingEvents}
+              onClick={() => fetchData(token)}
+              disabled={isLoading}
               style={{
                 padding: '8px 14px',
                 backgroundColor: '#1e293b',
@@ -321,7 +497,7 @@ export default function AdminPortal() {
                 cursor: 'pointer',
               }}
             >
-              {isLoadingEvents ? 'REFRESHING...' : '↻ REFRESH'}
+              {isLoading ? 'REFRESHING...' : '↻ REFRESH'}
             </button>
 
             <button
@@ -343,7 +519,8 @@ export default function AdminPortal() {
           </div>
         </div>
 
-        {eventsError && (
+        {/* Global Error Banner */}
+        {errorMessage && (
           <div
             style={{
               backgroundColor: 'rgba(239, 68, 68, 0.12)',
@@ -352,19 +529,359 @@ export default function AdminPortal() {
               padding: '12px 16px',
               color: '#f87171',
               fontSize: '14px',
-              marginBottom: '24px',
+              marginBottom: '20px',
             }}
           >
-            ⚠ {eventsError}
+            ⚠ {errorMessage}
           </div>
         )}
 
-        {/* Events List */}
-        {isLoadingEvents && events.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
-            Loading events...
+        {/* ── Key Metrics Cards Banner ── */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '14px',
+            marginBottom: '24px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#111722',
+              border: '1px solid #1e293b',
+              borderRadius: '8px',
+              padding: '16px 20px',
+            }}
+          >
+            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Total Registrations
+            </span>
+            <div style={{ fontSize: '26px', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+              {stats?.total ?? registrations.length}
+            </div>
           </div>
-        ) : (
+
+          <div
+            style={{
+              backgroundColor: '#111722',
+              border: '1px solid #1e293b',
+              borderRadius: '8px',
+              padding: '16px 20px',
+            }}
+          >
+            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              PCCOE Free Entries
+            </span>
+            <div style={{ fontSize: '26px', fontWeight: 700, color: '#4ade80', marginTop: '4px' }}>
+              {stats?.pccoeFree ?? registrations.filter((r) => r.isPccoe).length}
+            </div>
+          </div>
+
+          <div
+            style={{
+              backgroundColor: '#111722',
+              border: '1px solid #1e293b',
+              borderRadius: '8px',
+              padding: '16px 20px',
+            }}
+          >
+            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Total Revenue
+            </span>
+            <div style={{ fontSize: '26px', fontWeight: 700, color: '#facc15', marginTop: '4px' }}>
+              ₹{stats?.totalRevenue ?? registrations.reduce((sum, r) => sum + (r.amount || 0), 0)}
+            </div>
+          </div>
+
+          <div
+            style={{
+              backgroundColor: '#111722',
+              border: '1px solid #1e293b',
+              borderRadius: '8px',
+              padding: '16px 20px',
+            }}
+          >
+            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Festival Events
+            </span>
+            <div style={{ fontSize: '26px', fontWeight: 700, color: '#60a5fa', marginTop: '4px' }}>
+              {events.length || 8}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Navigation Tabs ── */}
+        <div
+          style={{
+            display: 'flex',
+            borderBottom: '1px solid #1e293b',
+            marginBottom: '20px',
+            gap: '8px',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setActiveTab('registrations')}
+            style={{
+              padding: '10px 18px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'registrations' ? '2px solid #3b82f6' : '2px solid transparent',
+              color: activeTab === 'registrations' ? '#f8fafc' : '#94a3b8',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            📋 Registrations ({filteredRegistrations.length})
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('events')}
+            style={{
+              padding: '10px 18px',
+              backgroundColor: 'transparent',
+              border: 'none',
+              borderBottom: activeTab === 'events' ? '2px solid #3b82f6' : '2px solid transparent',
+              color: activeTab === 'events' ? '#f8fafc' : '#94a3b8',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            ⚙️ Event Controls ({events.length})
+          </button>
+        </div>
+
+        {/* ── TAB 1: REGISTRATIONS EXPLORER ── */}
+        {activeTab === 'registrations' && (
+          <div>
+            {/* Filter & Action Controls Bar */}
+            <div
+              style={{
+                backgroundColor: '#111722',
+                border: '1px solid #1e293b',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '16px',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '12px',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', flex: 1 }}>
+                {/* Search Bar */}
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by ID, name, email, college, phone..."
+                  style={{
+                    backgroundColor: '#0a0d12',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    padding: '8px 12px',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    minWidth: '240px',
+                    flex: '1 1 240px',
+                    outline: 'none',
+                  }}
+                />
+
+                {/* Event Filter */}
+                <select
+                  value={selectedEventFilter}
+                  onChange={(e) => setSelectedEventFilter(e.target.value)}
+                  style={{
+                    backgroundColor: '#0a0d12',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    padding: '8px 12px',
+                    color: '#e2e8f0',
+                    fontSize: '13px',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="ALL">All Events ({registrations.length})</option>
+                  {events.map((ev) => (
+                    <option key={ev.id} value={ev.name}>
+                      {ev.name} ({ev.registrationCount})
+                    </option>
+                  ))}
+                </select>
+
+                {/* PCCOE Filter */}
+                <select
+                  value={selectedPccoeFilter}
+                  onChange={(e) => setSelectedPccoeFilter(e.target.value)}
+                  style={{
+                    backgroundColor: '#0a0d12',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    padding: '8px 12px',
+                    color: '#e2e8f0',
+                    fontSize: '13px',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="ALL">All Colleges</option>
+                  <option value="PCCOE">PCCOE Verified (Free)</option>
+                  <option value="EXTERNAL">External Colleges (Paid)</option>
+                </select>
+              </div>
+
+              {/* Export CSV Button */}
+              <button
+                type="button"
+                onClick={handleExportCSV}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#166534',
+                  border: '1px solid #22c55e',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                📥 EXPORT CSV ({filteredRegistrations.length})
+              </button>
+            </div>
+
+            {/* Registrations Data Table */}
+            {isLoading && registrations.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
+                Loading registrations...
+              </div>
+            ) : filteredRegistrations.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8', backgroundColor: '#111722', borderRadius: '8px', border: '1px solid #1e293b' }}>
+                No registrations found matching your filters.
+              </div>
+            ) : (
+              <div
+                style={{
+                  backgroundColor: '#111722',
+                  border: '1px solid #1e293b',
+                  borderRadius: '8px',
+                  overflowX: 'auto',
+                }}
+              >
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#0a0d12', borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>REG ID</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>EVENT</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>LEAD / TEAM</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>CONTACT</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>COLLEGE</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>MEMBERS</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>FEE</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredRegistrations.map((reg) => (
+                      <tr
+                        key={reg._id}
+                        style={{
+                          borderBottom: '1px solid #1e293b',
+                          transition: 'background-color 0.15s',
+                        }}
+                      >
+                        <td style={{ padding: '12px 16px', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap' }}>
+                          <span
+                            style={{
+                              backgroundColor: '#1e293b',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                            }}
+                          >
+                            {reg.registrationId}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px', fontWeight: 600, color: '#cbd5e1' }}>
+                          {reg.eventName}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#e2e8f0' }}>
+                          <div style={{ fontWeight: 600 }}>{reg.teamName || reg.leadName}</div>
+                          {reg.teamName && reg.leadName && (
+                            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Lead: {reg.leadName}</div>
+                          )}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '12px' }}>
+                          <div>{reg.leadEmail}</div>
+                          <div>{reg.leadPhone}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                          <span style={{ color: '#cbd5e1' }}>{reg.leadCollege || 'PCCOE'}</span>
+                          {reg.isPccoe && (
+                            <span
+                              style={{
+                                marginLeft: '6px',
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                color: '#22c55e',
+                                backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                                padding: '2px 6px',
+                                borderRadius: '3px',
+                              }}
+                            >
+                              PCCOE FREE
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#94a3b8', textAlign: 'center' }}>
+                          {reg.members?.length || 1}
+                        </td>
+                        <td style={{ padding: '12px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                          {reg.amount === 0 ? (
+                            <span style={{ color: '#22c55e' }}>₹0</span>
+                          ) : (
+                            <span style={{ color: '#facc15' }}>₹{reg.amount}</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRegistration(reg)}
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#1e293b',
+                              border: '1px solid #334155',
+                              borderRadius: '4px',
+                              color: '#cbd5e1',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                              fontWeight: 600,
+                            }}
+                          >
+                            Details
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TAB 2: EVENT REGISTRATION CONTROLS ── */}
+        {activeTab === 'events' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {events.map((event) => {
               const isOpen = event.registrationOpen;
@@ -383,7 +900,6 @@ export default function AdminPortal() {
                     justifyContent: 'space-between',
                     gap: '16px',
                     flexWrap: 'wrap',
-                    transition: 'border-color 0.2s',
                   }}
                 >
                   {/* Left info */}
@@ -409,6 +925,7 @@ export default function AdminPortal() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '6px', fontSize: '13px', color: '#94a3b8' }}>
                       <span>Category: <strong style={{ color: '#cbd5e1' }}>{event.category}</strong></span>
                       <span>Registrations: <strong style={{ color: '#60a5fa' }}>{event.registrationCount}</strong></span>
+                      <span>Fee: <strong style={{ color: '#facc15' }}>₹{event.registrationFee}</strong></span>
                     </div>
                   </div>
 
@@ -471,6 +988,161 @@ export default function AdminPortal() {
           </div>
         )}
       </div>
+
+      {/* ── 3. REGISTRATION DETAILS MODAL ── */}
+      {selectedRegistration && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px',
+          }}
+          onClick={() => setSelectedRegistration(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#111722',
+              border: '1px solid #334155',
+              borderRadius: '10px',
+              maxWidth: '620px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '24px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+              color: '#e2e8f0',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '14px', marginBottom: '18px' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#f8fafc' }}>
+                  {selectedRegistration.eventName}
+                </h2>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                  ID: <strong style={{ color: '#60a5fa' }}>{selectedRegistration.registrationId}</strong> • {new Date(selectedRegistration.createdAt).toLocaleString()}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRegistration(null)}
+                style={{
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #334155',
+                  color: '#94a3b8',
+                  borderRadius: '6px',
+                  width: '32px',
+                  height: '32px',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Team / Lead Details */}
+            <div style={{ backgroundColor: '#0a0d12', padding: '14px', borderRadius: '6px', marginBottom: '16px', border: '1px solid #1e293b' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>
+                {selectedRegistration.teamName ? `Team: ${selectedRegistration.teamName}` : `Lead: ${selectedRegistration.leadName}`}
+              </div>
+              <div style={{ fontSize: '13px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <div>Lead: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadName}</strong></div>
+                <div>Email: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadEmail}</strong></div>
+                <div>Phone: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadPhone}</strong></div>
+                <div>College: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadCollege || 'PCCOE'}</strong> {selectedRegistration.isPccoe && <span style={{ color: '#22c55e', fontWeight: 700 }}>[PCCOE Free Registration]</span>}</div>
+              </div>
+            </div>
+
+            {/* Members breakdown */}
+            {selectedRegistration.members && selectedRegistration.members.length > 0 && (
+              <div style={{ marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', margin: '0 0 8px' }}>
+                  Team Members ({selectedRegistration.members.length})
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {selectedRegistration.members.map((m, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        backgroundColor: '#0a0d12',
+                        border: '1px solid #1e293b',
+                        borderRadius: '6px',
+                        padding: '10px 14px',
+                        fontSize: '12.5px',
+                      }}
+                    >
+                      <div style={{ fontWeight: 700, color: '#f8fafc' }}>
+                        #{idx + 1} {m.name || 'Member'}
+                      </div>
+                      <div style={{ color: '#94a3b8', marginTop: '2px' }}>
+                        {m.email} • {m.phone}
+                      </div>
+                      <div style={{ color: '#64748b', fontSize: '11.5px', marginTop: '2px' }}>
+                        {m.college || 'PCCOE'} {m.year ? `(${m.year})` : ''} {m.branch ? `[${m.branch}]` : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Payment & Transaction details */}
+            <div style={{ backgroundColor: '#0a0d12', padding: '14px', borderRadius: '6px', border: '1px solid #1e293b', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '13px', color: '#94a3b8' }}>Fee Amount:</span>
+                <span style={{ fontSize: '16px', fontWeight: 700, color: selectedRegistration.amount === 0 ? '#22c55e' : '#facc15' }}>
+                  {selectedRegistration.amount === 0 ? '₹0 (Free)' : `₹${selectedRegistration.amount}`}
+                </span>
+              </div>
+              {selectedRegistration.transactionId && (
+                <div style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
+                  Transaction ID: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.transactionId}</strong>
+                </div>
+              )}
+              {selectedRegistration.screenshotUrl && (
+                <div style={{ marginTop: '10px' }}>
+                  <span style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>
+                    Payment Screenshot:
+                  </span>
+                  <a href={selectedRegistration.screenshotUrl} target="_blank" rel="noopener noreferrer">
+                    <img
+                      src={selectedRegistration.screenshotUrl}
+                      alt="Payment proof"
+                      style={{ maxWidth: '100%', maxHeight: '180px', borderRadius: '4px', border: '1px solid #334155' }}
+                    />
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedRegistration(null)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                backgroundColor: '#1e293b',
+                border: '1px solid #334155',
+                borderRadius: '6px',
+                color: '#f8fafc',
+                fontWeight: 600,
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              CLOSE
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
