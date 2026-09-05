@@ -4691,15 +4691,21 @@ body.mode-yugas .yuga-title-img.active {
 
 .parchment-content .reg-input.reg-input-error,
 .parchment-content .reg-select.reg-input-error {
-    border-color: #b91c1c !important;
-    background: rgba(254, 242, 242, 0.95) !important;
-    color: #7f1d1d !important;
+    border: 2px solid #dc2626 !important;
+    background: rgba(254, 226, 226, 0.95) !important;
+    color: #991b1b !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25) !important;
 }
 
 .parchment-content .reg-field-error {
-    color: #991b1b;
-    text-shadow: none;
-    font-weight: 700;
+    color: #b91c1c !important;
+    text-shadow: none !important;
+    font-weight: 700 !important;
+    font-size: 13.5px !important;
+    margin-top: 5px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
 }
 
 /* PCCOE Banner on Parchment (High Contrast Dark Ink) */
@@ -6153,11 +6159,13 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .reg-success-note {
-    font-size: 13px;
-    color: var(--text-parchment);
-    max-width: 440px;
-    margin: 0 0 20px 0;
+    font-size: 14.5px;
+    color: #3b1d06 !important;
+    font-weight: 700;
+    max-width: 480px;
+    margin: 16px auto 20px auto;
     line-height: 1.5;
+    text-align: center;
 }
 
 .reg-error-msg {

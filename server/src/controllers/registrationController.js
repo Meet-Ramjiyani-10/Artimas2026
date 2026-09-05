@@ -390,6 +390,7 @@ const createRegistration = async (req, res, next) => {
 
       return res.status(409).json({
         success: false,
+        clashingEmail,
         message: `${participantLabel} is already registered for ${event.name} (Registration ID: ${existingRegistration.registrationId}). Every participant must have a unique email address and can only participate once in this event.`,
       });
     }
@@ -427,10 +428,11 @@ const createRegistration = async (req, res, next) => {
 
         return res.status(409).json({
           success: false,
+          clashingEmail,
           message: `${participantLabel} is already registered for ${event.name} (Registration ID: ${existingInDedicated.registrationId}). Every participant must have a unique email address and can only participate once in this event.`,
         });
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // D. Check duplicate team name for the same event
     if (teamName && teamName.trim() && isTeamEvent) {
@@ -676,15 +678,15 @@ const getRegistration = async (req, res, next) => {
         registrationId: registration.registrationId,
         event: registration.eventId
           ? {
-              name: registration.eventId.name,
-              slug: registration.eventId.slug,
-              category: registration.eventId.category,
-              yuga: registration.eventId.yuga,
-            }
+            name: registration.eventId.name,
+            slug: registration.eventId.slug,
+            category: registration.eventId.category,
+            yuga: registration.eventId.yuga,
+          }
           : {
-              name: registration.eventName,
-              slug: registration.eventSlug,
-            },
+            name: registration.eventName,
+            slug: registration.eventSlug,
+          },
         teamName: registration.teamName,
         memberCount: Array.isArray(registration.participantData)
           ? registration.participantData.length
@@ -750,4 +752,105 @@ const uploadPaymentScreenshot = async (req, res, next) => {
   }
 };
 
-module.exports = { createRegistration, getRegistration, uploadPaymentScreenshot };
+/**
+ * @desc    Check if a participant's email is already registered for an event
+ * @route   POST /api/registrations/check-email (and GET with query params)
+ * @access  Public
+ */
+const checkEmailAvailability = async (req, res, next) => {
+  try {
+    const eventSlug = (req.body?.eventSlug || req.query?.eventSlug || '').trim().toLowerCase();
+    const rawEmail = (req.body?.email || req.query?.email || '').trim().toLowerCase();
+
+    if (!eventSlug || !rawEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Both eventSlug and email are required',
+      });
+    }
+
+    // Find event
+    let event = await Event.findOne({ slug: eventSlug });
+    if (!event) {
+      event = await Event.findOne({ aliases: eventSlug });
+    }
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found',
+      });
+    }
+
+    const emailRegex = new RegExp(`^${rawEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+
+    // Check main registrations collection
+    const existingRegistration = await Registration.findOne({
+      status: { $ne: 'REJECTED' },
+      $and: [
+        {
+          $or: [
+            { eventId: event._id },
+            { eventSlug: event.slug },
+            { eventName: { $regex: new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+            ...(event.slug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
+          ],
+        },
+        {
+          $or: [
+            { leadEmail: rawEmail },
+            { leadEmail: emailRegex },
+            { 'members.email': rawEmail },
+            { 'members.email': emailRegex },
+            { 'participantData.email': rawEmail },
+            { 'participantData.email': emailRegex },
+            { 'participantData.0.email': rawEmail },
+            { 'participantData.0.email': emailRegex },
+          ],
+        },
+      ],
+    }).lean();
+
+    if (existingRegistration) {
+      return res.status(200).json({
+        success: true,
+        available: false,
+        message: `This email is already registered for ${event.name} (${existingRegistration.registrationId}).`,
+      });
+    }
+
+    // Check dedicated event collection as fallback
+    try {
+      const cleanSlug = event.slug.replace(/-/g, '_');
+      const dedicatedCol = mongoose.connection.db.collection(`registrations_${cleanSlug}`);
+      const existingInDedicated = await dedicatedCol.findOne({
+        status: { $ne: 'REJECTED' },
+        $or: [
+          { leadEmail: rawEmail },
+          { 'members.email': rawEmail },
+        ],
+      });
+      if (existingInDedicated) {
+        return res.status(200).json({
+          success: true,
+          available: false,
+          message: `This email is already registered for ${event.name} (${existingInDedicated.registrationId}).`,
+        });
+      }
+    } catch (e) {}
+
+    return res.status(200).json({
+      success: true,
+      available: true,
+      message: 'Email is available for registration',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  createRegistration,
+  getRegistration,
+  uploadPaymentScreenshot,
+  checkEmailAvailability,
+};

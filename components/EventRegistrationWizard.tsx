@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EventItem } from '@/lib/events';
 import { getIsPageTransitionLoading, subscribeToPageTransition } from '@/lib/pageTransitionState';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE = typeof window !== 'undefined' ? '/api' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api');
 
 export interface MemberData {
   name: string;
@@ -540,6 +540,111 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   const [fieldErrors, setFieldErrors] = useState<Record<number, MemberErrors>>({});
   const [fieldTouched, setFieldTouched] = useState<Record<number, MemberTouched>>({});
 
+  // Duplicate email check cache per event: email -> { available: boolean; message?: string }
+  const emailCheckCacheRef = useRef<Record<string, { available: boolean; message?: string }>>({});
+  const [checkingEmailIndex, setCheckingEmailIndex] = useState<number | null>(null);
+
+  // Duplicate email check against server
+  const checkEmailRegistered = useCallback(
+    async (email: string, memberIdx: number): Promise<string> => {
+      const trimmed = email.trim();
+      if (!trimmed || !isValidEmailFormat(trimmed)) return '';
+
+      // PCCOE email format check: if format is invalid, let standard validator handle it
+      if (trimmed.toLowerCase().endsWith('@pccoepune.org') && !extractPccoeBatch(trimmed)) {
+        return '';
+      }
+
+      const normalized = trimmed.toLowerCase();
+      // Check cache first
+      if (emailCheckCacheRef.current[normalized]) {
+        const cached = emailCheckCacheRef.current[normalized];
+        if (!cached.available) {
+          const err = cached.message || 'This email is already registered for this event.';
+          setFieldErrors((prev) => ({
+            ...prev,
+            [memberIdx]: {
+              ...prev[memberIdx],
+              email: err,
+            },
+          }));
+          return err;
+        }
+        return '';
+      }
+
+      setCheckingEmailIndex(memberIdx);
+      try {
+        const res = await fetch(`${API_BASE}/registrations/check-email?_t=${Date.now()}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            eventSlug: event.slug,
+            email: trimmed,
+          }),
+        });
+        const data = await res.json();
+        if (data && data.success) {
+          emailCheckCacheRef.current[normalized] = {
+            available: data.available,
+            message: data.message,
+          };
+          if (!data.available) {
+            const err = data.message || 'This email is already registered for this event.';
+            setFieldErrors((prev) => ({
+              ...prev,
+              [memberIdx]: {
+                ...prev[memberIdx],
+                email: err,
+              },
+            }));
+            return err;
+          } else {
+            // If it was previously marked duplicate, clear it if still duplicate error
+            setFieldErrors((prev) => {
+              const currentErr = prev[memberIdx]?.email;
+              if (currentErr && (currentErr.includes('already registered') || currentErr.includes('cannot be used'))) {
+                return {
+                  ...prev,
+                  [memberIdx]: {
+                    ...prev[memberIdx],
+                    email: '',
+                  },
+                };
+              }
+              return prev;
+            });
+            return '';
+          }
+        }
+      } catch (e) {
+        // Network error - do not block
+      } finally {
+        setCheckingEmailIndex(null);
+      }
+      return '';
+    },
+    [event.slug]
+  );
+
+  // Debounced real-time duplicate email check while typing (300ms)
+  const currentMemberEmail = members[currentMemberIndex]?.email || '';
+  useEffect(() => {
+    const trimmed = currentMemberEmail.trim();
+    if (!trimmed || !isValidEmailFormat(trimmed)) return;
+    if (trimmed.toLowerCase().endsWith('@pccoepune.org') && !extractPccoeBatch(trimmed)) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      checkEmailRegistered(trimmed, currentMemberIndex);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [currentMemberEmail, currentMemberIndex, checkEmailRegistered]);
+
   // Payment UI state (for Step 2)
   const [transactionId, setTransactionId] = useState<string>('');
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
@@ -678,6 +783,13 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
             return 'This email is already used by another team member.';
           }
         }
+
+        // Duplicate check against existing event registrations in database
+        const cachedCheck = emailCheckCacheRef.current[val.toLowerCase()];
+        if (cachedCheck && cachedCheck.available === false) {
+          return cachedCheck.message || 'This email is already registered for this event.';
+        }
+
         return '';
 
       case 'phone':
@@ -794,7 +906,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         updated[currentMemberIndex] = { ...updated[currentMemberIndex], [field]: value };
       }
 
-      if (fieldTouched[currentMemberIndex]?.[field]) {
+      if (fieldTouched[currentMemberIndex]?.[field] || fieldErrors[currentMemberIndex]?.[field]) {
         const error = validateSingleField(field, value, currentMemberIndex, updated);
         setFieldErrors((prevErr) => ({
           ...prevErr,
@@ -807,6 +919,10 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
 
       return updated;
     });
+
+    if (field === 'email' && value.trim() && isValidEmailFormat(value.trim())) {
+      checkEmailRegistered(value.trim(), currentMemberIndex);
+    }
   };
 
   const handleFieldBlur = (field: MemberField) => {
@@ -828,10 +944,14 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         [field]: error,
       },
     }));
+
+    if (field === 'email' && !error && currentValue.trim()) {
+      checkEmailRegistered(currentValue, currentMemberIndex);
+    }
   };
 
   // ── Step 1: Member Next Button ──
-  const handleMemberNext = (e: React.FormEvent) => {
+  const handleMemberNext = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setFieldTouched((prev) => ({
@@ -847,13 +967,23 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
     }));
 
     const errors = validateMember(currentMemberIndex, members);
+
+    // Live verification of email before advancing
+    const currentEmail = members[currentMemberIndex]?.email || '';
+    if (!errors.email && currentEmail.trim()) {
+      const duplicateErr = await checkEmailRegistered(currentEmail, currentMemberIndex);
+      if (duplicateErr) {
+        errors.email = duplicateErr;
+      }
+    }
+
     setFieldErrors((prev) => ({
       ...prev,
       [currentMemberIndex]: errors,
     }));
 
     if (Object.values(errors).some(Boolean)) {
-      setErrorMessage('Please correct the highlighted fields before proceeding.');
+      setErrorMessage(errors.email || 'Please correct the highlighted fields before proceeding.');
       return;
     }
 
@@ -901,8 +1031,16 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   };
 
   // ── Add optional member ──
-  const handleAddOptionalMember = () => {
+  const handleAddOptionalMember = async () => {
     const errors = validateMember(currentMemberIndex, members);
+    const currentEmail = members[currentMemberIndex]?.email || '';
+    if (!errors.email && currentEmail.trim()) {
+      const duplicateErr = await checkEmailRegistered(currentEmail, currentMemberIndex);
+      if (duplicateErr) {
+        errors.email = duplicateErr;
+      }
+    }
+
     if (Object.values(errors).some(Boolean)) {
       setFieldTouched((prev) => ({
         ...prev,
@@ -919,7 +1057,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         ...prev,
         [currentMemberIndex]: errors,
       }));
-      setErrorMessage('Please complete the current member details first.');
+      setErrorMessage(errors.email || 'Please complete the current member details first.');
       return;
     }
 
@@ -1116,6 +1254,52 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       const data = await response.json();
 
       if (!response.ok || !data.success) {
+        if (response.status === 409 || data.clashingEmail) {
+          // Identify clashing email and member
+          const clashingEmail = (data.clashingEmail || '').trim().toLowerCase();
+          let clashIdx = members.findIndex(
+            (m) => (m.email || '').trim().toLowerCase() === clashingEmail
+          );
+          if (clashIdx === -1 && data.message) {
+            clashIdx = members.findIndex((m) =>
+              data.message.toLowerCase().includes((m.email || '').trim().toLowerCase())
+            );
+          }
+          if (clashIdx === -1) clashIdx = 0;
+
+          const clashMsg = data.message || 'This email is already registered for this event.';
+
+          if (clashingEmail) {
+            emailCheckCacheRef.current[clashingEmail] = {
+              available: false,
+              message: clashMsg,
+            };
+          }
+
+          // Mark error on that member's email field and navigate back to Step 1 on that member
+          setFieldErrors((prev) => ({
+            ...prev,
+            [clashIdx]: {
+              ...prev[clashIdx],
+              email: clashMsg,
+            },
+          }));
+          setFieldTouched((prev) => ({
+            ...prev,
+            [clashIdx]: {
+              ...prev[clashIdx],
+              email: true,
+            },
+          }));
+
+          setErrorMessage(clashMsg);
+          transitionStep(() => {
+            setStep(1);
+            setCurrentMemberIndex(clashIdx);
+          });
+          return;
+        }
+
         if (data.errors && Array.isArray(data.errors)) {
           throw new Error(data.errors.join(' • '));
         }
@@ -1368,19 +1552,51 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
 
                       {/* Email ID (Preserves user typed casing) */}
                       <div className="reg-field-wrap">
-                        <input
-                          type="email"
-                          value={members[currentMemberIndex]?.email || ''}
-                          onChange={(e) => handleFieldChange('email', e.target.value)}
-                          onBlur={() => handleFieldBlur('email')}
-                          placeholder="COLLEGE EMAIL ID (e.g. name.surname24@pccoepune.org)"
-                          className={`reg-input reg-input-email full-width ${currentTouched.email && currentErrors.email ? 'reg-input-error' : ''}`}
-                          autoCapitalize="none"
-                          autoCorrect="off"
-                          spellCheck="false"
-                        />
-                        {currentTouched.email && currentErrors.email && (
-                          <span className="reg-field-error">⚠ {currentErrors.email}</span>
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type="email"
+                            value={members[currentMemberIndex]?.email || ''}
+                            onChange={(e) => handleFieldChange('email', e.target.value)}
+                            onBlur={() => handleFieldBlur('email')}
+                            placeholder="COLLEGE EMAIL ID (e.g. name.surname24@pccoepune.org)"
+                            className={`reg-input reg-input-email full-width ${currentErrors.email ? 'reg-input-error' : ''}`}
+                            style={currentErrors.email ? { borderColor: '#dc2626', borderWidth: '2px', backgroundColor: 'rgba(254, 226, 226, 0.95)', boxShadow: '0 0 0 3px rgba(220, 38, 38, 0.25)', color: '#7f1d1d' } : {}}
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck="false"
+                          />
+                          {checkingEmailIndex === currentMemberIndex && (
+                            <span
+                              style={{
+                                position: 'absolute',
+                                right: '12px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                fontSize: '0.72rem',
+                                color: '#dfa742',
+                                pointerEvents: 'none',
+                                opacity: 0.85,
+                              }}
+                            >
+                              Verifying...
+                            </span>
+                          )}
+                        </div>
+                        {currentErrors.email && (
+                          <span
+                            className="reg-field-error"
+                            style={{
+                              color: '#b91c1c',
+                              fontWeight: 700,
+                              fontSize: '13.5px',
+                              marginTop: '6px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                            }}
+                          >
+                            ⚠ {currentErrors.email}
+                          </span>
                         )}
                       </div>
 
@@ -1631,10 +1847,6 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                       </div>
                     )}
 
-                    <p style={{ color: '#4a3018', fontSize: '13px', textAlign: 'center', margin: '8px 0 20px', fontWeight: 600 }}>
-                      Click below to seal your entry. Your registration will be confirmed immediately.
-                    </p>
-
                     {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
 
                     <div className="reg-btn-row reg-btn-row-submit">
@@ -1771,7 +1983,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                       </div>
                     )}
 
-                    <p className="reg-success-note">
+                    <p className="reg-success-note" style={{ color: '#3b1d06', fontWeight: 700, fontSize: '15px', textAlign: 'center', margin: '16px auto 20px' }}>
                       A confirmation email has been dispatched. Please save your Pass ID for on-desk verification.
                     </p>
 

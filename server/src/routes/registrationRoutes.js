@@ -4,6 +4,7 @@ const {
   createRegistration,
   getRegistration,
   uploadPaymentScreenshot,
+  checkEmailAvailability,
 } = require('../controllers/registrationController');
 const {
   uploadCtfScreenshot,
@@ -37,6 +38,10 @@ router.post(
   upload.any(),
   uploadPaymentScreenshot
 );
+
+// Check if an email is already registered for an event
+router.post('/check-email', checkEmailAvailability);
+router.get('/check-email', checkEmailAvailability);
 
 // GET /api/registrations/:registrationId — Public lookup by Pass ID (non-sensitive)
 router.get('/:registrationId', getRegistration);
