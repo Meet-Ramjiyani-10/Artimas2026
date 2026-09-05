@@ -2604,14 +2604,42 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .scroll-card .decree-btn-group {
-    gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(6px, 0.8vw, 10px);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     margin-top: 2px;
 }
 
 .scroll-card .decree-btn {
-    padding: 8px 16px;
-    min-width: 120px;
-    font-size: clamp(11px, 0.95vw, 13px);
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 8px clamp(4px, 0.8vw, 12px);
+    font-size: clamp(10px, 0.82vw, 12px);
+    letter-spacing: 0.035em;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.18;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scroll-card .decree-btn.closed {
+    font-size: clamp(9px, 0.72vw, 11px) !important;
+    letter-spacing: 0.025em !important;
+    padding: 7px clamp(3px, 0.6vw, 8px) !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.15 !important;
 }
 
 .scroll-card.active .decree-card-panel:hover {
@@ -2792,16 +2820,18 @@ body.mode-yugas .yuga-title-img.active {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 24px;
-    min-width: 140px;
+    padding: 8px clamp(6px, 1vw, 16px);
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
     background: rgba(58, 36, 21, 0.72);
     border: 1px solid var(--btn-border-gold);
     border-radius: 4px;
     color: var(--heading-ivory);
     font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: clamp(13px, 1.1vw, 14.5px);
+    font-size: clamp(10.5px, 0.88vw, 12.5px);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.035em;
     text-transform: uppercase;
     cursor: pointer;
     text-decoration: none;
@@ -2809,9 +2839,35 @@ body.mode-yugas .yuga-title-img.active {
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 0 8px rgba(58, 36, 21, 0.4);
+    text-align: center;
+    line-height: 1.18;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
-.decree-btn:hover {
+.decree-btn.closed,
+.register-action-btn.closed {
+    cursor: not-allowed !important;
+    opacity: 0.72 !important;
+    border-color: #76552f !important;
+    background: rgba(25, 12, 12, 0.75) !important;
+    color: #a89070 !important;
+    font-size: clamp(9.5px, 0.75vw, 11.2px) !important;
+    letter-spacing: 0.025em !important;
+    padding: 7px clamp(4px, 0.6vw, 10px) !important;
+    box-shadow: none !important;
+    transform: none !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    line-height: 1.15 !important;
+    text-align: center !important;
+}
+
+.decree-btn:hover:not(.closed) {
     background: rgba(75, 48, 28, 0.9);
     border-color: var(--panel-highlight);
     color: #ffffff;
@@ -2819,7 +2875,7 @@ body.mode-yugas .yuga-title-img.active {
     transform: translateY(-1px);
 }
 
-.decree-btn:active {
+.decree-btn:active:not(.closed) {
     transform: translateY(1px);
 }
 
@@ -3172,20 +3228,39 @@ body.mode-yugas .yuga-title-img.active {
     }
 
     .scroll-card .decree-btn-group {
-        gap: 6px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 5px;
         width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
         margin-top: 0;
     }
 
     .scroll-card .decree-btn {
-        flex: 1 1 0;
-        width: 50%;
+        width: 100%;
         min-width: 0;
-        padding: 6px 8px;
-        font-size: 10.5px;
-        white-space: nowrap;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: clamp(4px, 0.8vh, 6px) 2px;
+        font-size: clamp(8px, 1.05vh, 9.5px);
+        letter-spacing: 0.018em;
+        white-space: normal;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-align: center;
+        line-height: 1.14;
+        word-break: normal;
+        overflow-wrap: break-word;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .scroll-card .decree-btn.closed {
+        font-size: clamp(7.5px, 0.95vh, 8.8px) !important;
+        letter-spacing: 0.012em !important;
+        padding: clamp(4px, 0.7vh, 5px) 1.5px !important;
     }
 }
 
@@ -3309,29 +3384,41 @@ body.mode-yugas .yuga-title-img.active {
     }
 
     .scroll-card .decree-btn-group {
-        display: flex;
-        flex-direction: row;
-        gap: 6px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 5px;
         width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
         margin-top: 0;
     }
 
     .scroll-card .decree-btn {
-        flex: 1 1 0;
-        width: 50%;
+        width: 100%;
         min-width: 0;
-        padding: clamp(6px, 1vh, 8px) 3px;
-        font-size: clamp(9px, 1.2vh, 10.5px);
-        letter-spacing: 0.08em;
-        white-space: nowrap;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: clamp(4px, 0.8vh, 6px) 2px;
+        font-size: clamp(7.8px, 1vh, 9.2px);
+        letter-spacing: 0.016em;
+        white-space: normal;
         overflow: hidden;
         text-overflow: ellipsis;
         text-align: center;
+        line-height: 1.14;
+        word-break: normal;
+        overflow-wrap: break-word;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         background: rgba(58, 36, 21, 0.75);
         border: 1px solid var(--btn-border-gold);
+    }
+
+    .scroll-card .decree-btn.closed {
+        font-size: clamp(7.2px, 0.95vh, 8.5px) !important;
+        letter-spacing: 0.01em !important;
+        padding: clamp(3.5px, 0.7vh, 5px) 1.5px !important;
     }
 
     .carousel-arrow {
@@ -3584,9 +3671,19 @@ body.mode-yugas .yuga-title-img.active {
     }
 
     .scroll-card .decree-btn {
-        padding: 5px 3px;
-        font-size: 9px;
-        letter-spacing: 0.05em;
+        padding: 4px 1.5px !important;
+        font-size: clamp(7.2px, 2.2vw, 8.5px) !important;
+        letter-spacing: 0.012em !important;
+        line-height: 1.12 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    .scroll-card .decree-btn.closed {
+        font-size: clamp(6.8px, 2vw, 8px) !important;
+        letter-spacing: 0.008em !important;
+        padding: 3.5px 1px !important;
     }
 }
 
@@ -4613,7 +4710,7 @@ body.mode-yugas .yuga-title-img.active {
     border-radius: 6px;
     padding: 12px 16px;
     margin-bottom: 16px;
-    font-size: 13.5px;
+    font-size: 17px;
     font-weight: 500;
     display: flex;
     align-items: center;
@@ -4660,16 +4757,23 @@ body.mode-yugas .yuga-title-img.active {
 .parchment-content .reg-action-btn.submit-btn {
     flex: 1.2;
     min-height: 48px;
-    padding: 12px 24px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 10px clamp(12px, 1.8vw, 24px);
     background: linear-gradient(180deg, #44240c 0%, #1c0c03 100%);
     border: 1.5px solid #d4a753;
     color: #fdf5e6;
     box-shadow: 0 4px 14px rgba(32, 14, 3, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3);
     font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.14em;
+    font-size: clamp(12.5px, 1.1vw, 14.5px);
+    letter-spacing: 0.08em;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     transition: all 0.25s ease;
+    text-align: center;
+    line-height: 1.2;
+    white-space: normal;
+    word-break: normal;
+    overflow: hidden;
 }
 
 .parchment-content .reg-action-btn.next-btn:hover:not(:disabled),
@@ -4683,14 +4787,17 @@ body.mode-yugas .yuga-title-img.active {
 
 .parchment-content .reg-secondary-btn {
     min-height: 48px;
-    padding: 12px 22px;
+    box-sizing: border-box;
+    padding: 10px clamp(12px, 1.5vw, 22px);
     background: rgba(88, 52, 20, 0.14);
     border: 1.5px solid #946736;
     color: #2b1506;
     font-weight: 700;
-    font-size: 14.5px;
-    letter-spacing: 0.12em;
+    font-size: clamp(12px, 1vw, 13.5px);
+    letter-spacing: 0.08em;
     transition: all 0.25s ease;
+    white-space: nowrap;
+    text-align: center;
 }
 
 .parchment-content .reg-secondary-btn:hover {
@@ -4703,12 +4810,16 @@ body.mode-yugas .yuga-title-img.active {
 .parchment-content .reg-optional-btn {
     flex: 1.5;
     min-height: 48px;
-    padding: 12px 24px;
-    font-size: 14.5px;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 10px clamp(10px, 1.5vw, 20px);
+    font-size: clamp(11.5px, 1vw, 13.5px);
     font-weight: 700;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
-    white-space: nowrap;
+    white-space: normal;
+    line-height: 1.2;
+    text-align: center;
     border-radius: 4px;
     background: linear-gradient(180deg, rgba(218, 168, 85, 0.32) 0%, rgba(138, 95, 45, 0.24) 100%);
     border: 1.5px solid #8e622b;
@@ -4720,6 +4831,7 @@ body.mode-yugas .yuga-title-img.active {
     gap: 6px;
     cursor: pointer;
     transition: all 0.25s ease;
+    word-break: normal;
 }
 
 .parchment-content .reg-optional-btn:hover:not(:disabled) {
@@ -5018,12 +5130,14 @@ body.mode-yugas .yuga-title-img.active {
         grid-column: 1 / -1;
     }
 
-    /* ── Mobile Button Layout: 2-Row Grid (Zero Cut-Offs or Overflows!) ── */
+    /* ── Mobile Button Layout: Zero Cut-Offs or Overflows! ── */
     .parchment-content .reg-btn-row {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         gap: 8px;
         width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
         margin-top: 10px;
     }
 
@@ -5031,38 +5145,77 @@ body.mode-yugas .yuga-title-img.active {
     .parchment-content .reg-btn-row .reg-optional-btn {
         grid-column: 1 / -1;
         width: 100%;
-        min-height: 44px;
-        padding: 10px 12px;
-        font-size: 13px;
-        letter-spacing: 0.08em;
+        min-height: 42px;
+        padding: 8px 10px;
+        font-size: clamp(10.5px, 3vw, 12px);
+        letter-spacing: 0.035em;
         white-space: normal;
+        word-break: normal;
+        overflow-wrap: break-word;
+        line-height: 1.18;
         order: -1;
+        text-align: center;
     }
 
-    /* PREV button on bottom-left */
+    /* PREV button */
     .parchment-content .reg-btn-row .reg-secondary-btn {
         grid-column: 1;
         width: 100%;
-        min-height: 44px;
-        padding: 10px 8px;
-        font-size: 13px;
-        letter-spacing: 0.08em;
+        min-height: 42px;
+        padding: 8px 4px;
+        font-size: clamp(11px, 3.2vw, 12.5px);
+        letter-spacing: 0.04em;
+        text-align: center;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: break-word;
     }
 
-    /* NEXT / SUBMIT button on bottom-right */
-    .parchment-content .reg-btn-row .reg-action-btn.next-btn,
-    .parchment-content .reg-btn-row .reg-action-btn.submit-btn {
+    /* NEXT button on bottom-right (Step 0 & 1) */
+    .parchment-content .reg-btn-row .reg-action-btn.next-btn {
         grid-column: 2;
         width: 100%;
+        min-height: 42px;
+        padding: 8px 4px;
+        font-size: clamp(11px, 3.2vw, 12.5px);
+        letter-spacing: 0.04em;
+        text-align: center;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: break-word;
+    }
+
+    /* SUBMIT button (Step 2: CONFIRM REGISTRATION) - Full width so 20+ chars never leak! */
+    .parchment-content .reg-btn-row .reg-action-btn.submit-btn,
+    .parchment-content .reg-btn-row-submit .reg-action-btn.submit-btn {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
         min-height: 44px;
         padding: 10px 8px;
-        font-size: 13px;
-        letter-spacing: 0.08em;
+        font-size: clamp(11px, 3.2vw, 12.8px);
+        letter-spacing: 0.035em;
+        white-space: normal;
+        word-break: normal;
+        overflow-wrap: break-word;
+        line-height: 1.18;
+        text-align: center;
+        order: 1;
+    }
+
+    .parchment-content .reg-btn-row:has(.reg-action-btn.submit-btn) .reg-secondary-btn,
+    .parchment-content .reg-btn-row-submit .reg-secondary-btn {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        min-height: 38px;
+        order: 2;
     }
 
     /* Single child (e.g. Return to Events) */
     .parchment-content .reg-btn-row>*:only-child {
         grid-column: 1 / -1;
+        width: 100%;
+        max-width: 260px;
+        margin: 0 auto;
     }
 }
 
@@ -5712,15 +5865,16 @@ body.mode-yugas .yuga-title-img.active {
 /* ── Action Buttons ── */
 .reg-action-btn {
     width: 100%;
-    padding: 11px 26px;
+    box-sizing: border-box;
+    padding: 10px clamp(12px, 1.5vw, 22px);
     border-radius: 4px;
     background: rgba(58, 36, 21, 0.78);
     border: 1px solid var(--btn-border-gold);
     color: var(--heading-ivory);
     font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: 14.5px;
+    font-size: clamp(12px, 1vw, 14px);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.25s ease;
@@ -5730,6 +5884,11 @@ body.mode-yugas .yuga-title-img.active {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.2;
 }
 
 .reg-action-btn:hover:not(:disabled) {
@@ -5752,21 +5911,28 @@ body.mode-yugas .yuga-title-img.active {
     gap: 12px;
     width: 100%;
     margin-top: 6px;
+    box-sizing: border-box;
 }
 
 .reg-secondary-btn {
-    padding: 11px 22px;
+    box-sizing: border-box;
+    padding: 10px clamp(10px, 1.2vw, 18px);
     border-radius: 4px;
     background: rgba(28, 16, 10, 0.75);
     border: 1px solid var(--border-bronze);
     color: var(--text-parchment);
     font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: 14px;
+    font-size: clamp(11.5px, 0.95vw, 13px);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.2;
 }
 
 .reg-secondary-btn:hover {
@@ -5776,19 +5942,24 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .reg-optional-btn {
-    padding: 11px 20px;
+    box-sizing: border-box;
+    padding: 10px clamp(10px, 1.2vw, 18px);
     border-radius: 4px;
     background: rgba(58, 36, 21, 0.6);
     border: 1px solid var(--panel-highlight);
     color: var(--heading-ivory);
     font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: 13.5px;
+    font-size: clamp(11.5px, 0.95vw, 13px);
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     cursor: pointer;
     transition: all 0.2s ease;
-}
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.2;
 
 .reg-optional-btn:hover {
     background: rgba(75, 48, 28, 0.85);
@@ -6053,7 +6224,47 @@ body.mode-yugas .yuga-title-img.active {
 
 .rulebook-btn-row {
     width: 100%;
+    display: flex;
     justify-content: center;
+    align-items: center;
+}
+
+.rulebook-btn-row .decree-btn {
+    width: auto;
+    min-width: min(100%, 200px);
+    max-width: min(100%, 380px);
+    padding: 10px clamp(12px, 2vw, 24px);
+    font-size: clamp(12px, 1.1vw, 14px);
+    letter-spacing: 0.05em;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.25;
+    box-sizing: border-box;
+}
+
+.rulebook-btn-row .decree-btn.closed {
+    font-size: clamp(11px, 0.95vw, 12.8px) !important;
+    letter-spacing: 0.035em !important;
+    padding: 9px clamp(10px, 1.5vw, 20px) !important;
+}
+
+@media (max-width: 640px) {
+    .rulebook-btn-row .decree-btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        font-size: clamp(11px, 3.4vw, 13px) !important;
+        letter-spacing: 0.03em !important;
+        padding: 10px 8px !important;
+    }
+
+    .rulebook-btn-row .decree-btn.closed {
+        font-size: clamp(10.5px, 3.2vw, 12px) !important;
+        letter-spacing: 0.025em !important;
+        padding: 9px 8px !important;
+    }
 }
 
 /* ===================================
@@ -7663,8 +7874,15 @@ body.mode-yugas .yuga-title-img.active {
     }
 
     .yuga-decree-btn {
-        padding: 5px 8px !important;
-        font-size: 10px !important;
+        padding: 5px 3px !important;
+        font-size: clamp(8px, 1.1vh, 9.5px) !important;
+        letter-spacing: 0.02em !important;
+    }
+
+    .yuga-decree-btn.closed {
+        padding: 4px 2px !important;
+        font-size: clamp(7.5px, 1vh, 8.5px) !important;
+        letter-spacing: 0.012em !important;
     }
 }
 
@@ -7840,19 +8058,38 @@ body.mode-yugas .yuga-title-img.active {
     }
 
     .yuga-decree-actions {
-        display: flex !important;
-        gap: 8px !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 6px !important;
         width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
         justify-content: center !important;
         margin-top: 1px !important;
     }
 
     .yuga-decree-btn {
-        flex: 1 !important;
-        padding: clamp(6px, 1.1vh, 9px) 6px !important;
-        font-size: clamp(10px, 1.2vh, 11.5px) !important;
-        min-width: unset !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: clamp(4px, 0.8vh, 6px) 2px !important;
+        font-size: clamp(7.8px, 1vh, 9.2px) !important;
+        letter-spacing: 0.015em !important;
         text-align: center !important;
+        line-height: 1.14 !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .yuga-decree-btn.closed {
+        font-size: clamp(7.2px, 0.95vh, 8.4px) !important;
+        letter-spacing: 0.01em !important;
+        padding: clamp(4px, 0.7vh, 5px) 1.5px !important;
     }
 
     /* Front Active Card — takes up ~85% width, anchored left */
@@ -8297,24 +8534,29 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .yuga-decree-actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 8px;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .yuga-decree-btn {
-    flex: 1;
-    padding: 8px 10px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 7px clamp(3px, 0.7vw, 8px);
     border-radius: 4px;
     font-family: var(--font-body, 'Cormorant Garamond', serif);
-    font-size: clamp(11.5px, 0.95vw, 13px);
+    font-size: clamp(9px, 0.78vw, 11px);
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.025em;
     text-transform: uppercase;
     text-decoration: none;
     text-align: center;
+    line-height: 1.15;
     cursor: pointer;
     transition: all 0.25s ease;
     display: inline-flex;
@@ -8323,6 +8565,9 @@ body.mode-yugas .yuga-title-img.active {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .yuga-decree-btn.secondary {
@@ -8357,9 +8602,15 @@ body.mode-yugas .yuga-title-img.active {
     border: 1px solid rgba(118, 85, 47, 0.45) !important;
     color: #a89070 !important;
     cursor: not-allowed !important;
-    opacity: 0.7 !important;
+    opacity: 0.72 !important;
     box-shadow: none !important;
     transform: none !important;
+    font-size: clamp(8px, 0.68vw, 10px) !important;
+    letter-spacing: 0.018em !important;
+    padding: 6px 2.5px !important;
+    white-space: normal !important;
+    line-height: 1.14 !important;
+    text-align: center !important;
 }
 
 /* ===================================

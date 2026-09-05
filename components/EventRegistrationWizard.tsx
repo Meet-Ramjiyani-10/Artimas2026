@@ -1332,11 +1332,11 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                       <div className="reg-underline" />
                     </div>
 
-                    {/* Prominent PCCOE Instruction Banner */}
+                    {/* College Email Instruction Banner */}
                     <div className="reg-pccoe-banner">
                       <span className="reg-pccoe-icon">ℹ</span>
                       <span>
-                        <strong>PCCOE students:</strong> Please use your official PCCOE college email with batch identifier (e.g. <code>name.surname24@pccoepune.org</code>).
+                        <strong>Note:</strong> All students must register using their official college email ID.
                       </span>
                     </div>
 
@@ -1364,7 +1364,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                           value={members[currentMemberIndex]?.email || ''}
                           onChange={(e) => handleFieldChange('email', e.target.value)}
                           onBlur={() => handleFieldBlur('email')}
-                          placeholder="EMAIL ID (e.g. name.surname24@pccoepune.org)"
+                          placeholder="COLLEGE EMAIL ID (e.g. name.surname24@pccoepune.org)"
                           className={`reg-input reg-input-email full-width ${currentTouched.email && currentErrors.email ? 'reg-input-error' : ''}`}
                           autoCapitalize="none"
                           autoCorrect="off"
@@ -1628,7 +1628,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
 
                     {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
 
-                    <div className="reg-btn-row">
+                    <div className="reg-btn-row reg-btn-row-submit">
                       <button type="button" onClick={handlePrev} disabled={isTransitioning} className="reg-secondary-btn">
                         PREV
                       </button>

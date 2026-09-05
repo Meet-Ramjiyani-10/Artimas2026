@@ -98,17 +98,7 @@ export default async function RulebookPage({ params }: RulebookPageProps) {
                     ENTER THE TRIAL (₹{event.fee})
                   </Link>
                 ) : (
-                  <div
-                    className="decree-btn"
-                    style={{
-                      cursor: 'not-allowed',
-                      opacity: 0.6,
-                      borderColor: '#76552f',
-                      background: 'rgba(25, 12, 12, 0.7)',
-                      color: '#a89070',
-                      letterSpacing: '2px',
-                    }}
-                  >
+                  <div className="decree-btn register-action-btn closed">
                     REGISTRATION CLOSED
                   </div>
                 )}

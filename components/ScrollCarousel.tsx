@@ -292,17 +292,9 @@ export default function ScrollCarousel() {
                         </Link>
                       ) : (
                         <div
-                          className="decree-btn register-action-btn"
+                          className="decree-btn register-action-btn closed"
                           onClick={(e) => e.stopPropagation()}
-                          style={{
-                            cursor: 'not-allowed',
-                            opacity: 0.65,
-                            borderColor: '#76552f',
-                            background: 'rgba(25, 12, 12, 0.7)',
-                            color: '#a89070',
-                            letterSpacing: '1px',
-                            fontSize: '12px',
-                          }}
+                          aria-label={`Registration closed for ${item.event.name}`}
                         >
                           REGISTRATION CLOSED
                         </div>
