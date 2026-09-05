@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body { margin: 0; background: #080503; color: #f5eedb; font-family: 'Cinzel Decorative', serif; }
+  .wrapper { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 40px; }
+  .card {
+    background: radial-gradient(ellipse at 50% 15%, rgba(184, 148, 90, 0.12) 0%, rgba(38, 24, 15, 0.9) 60%, rgba(10, 8, 6, 0.98) 100%),
+                linear-gradient(165deg, rgba(46, 30, 18, 0.96) 0%, rgba(16, 11, 7, 0.99) 100%);
+    border: 1.5px solid rgba(168, 130, 78, 0.55);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.88);
+  }
+  .card-title { font-size: 18px; color: #f5eedb; margin: 0 0 12px 0; }
+  .frame {
+    position: relative;
+    width: 100%;
+    border-radius: 8px;
+    border: 1.5px solid rgba(194, 154, 90, 0.65);
+    background:
+      radial-gradient(ellipse 96% 66% at 50% 62%, rgba(250, 236, 204, 0.92) 0%, rgba(228, 199, 148, 0.78) 45%, rgba(130, 88, 44, 0.92) 75%, #140c07 100%),
+      linear-gradient(180deg, #100a06 0%, #1a1008 18%, #4f3318 28%, #8a5e30 45%, #8a5e30 75%, #301e10 90%, #0d0703 100%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 20px rgba(201, 164, 92, 0.2);
+    padding: 8px;
+    box-sizing: border-box;
+  }
+  img { width: 100%; display: block; border-radius: 4px; filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.7)); }
+</style>
+</head>
+<body>
+  <div class="wrapper">
+    <h1 style="text-align: center; color: #dfa742;">Unified Consistent Design Across All 4 Pages</h1>
+    <div class="grid">
+      <div class="card">
+        <h3 class="card-title">PAGE 1 · ONLINE PRELIMINARY ROUNDS</h3>
+        <div class="frame"><img src="page1.webp" /></div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">PAGE 2 · 9TH OCTOBER 2026</h3>
+        <div class="frame"><img src="page2.webp" /></div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">PAGE 3 · 10TH OCTOBER 2026</h3>
+        <div class="frame"><img src="page3.webp" /></div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">PAGE 4 · 11TH OCTOBER 2026</h3>
+        <div class="frame"><img src="page4.webp" /></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

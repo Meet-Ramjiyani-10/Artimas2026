@@ -1442,7 +1442,10 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .calendar-mode-btn {
-    padding: 6px 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
     border: none;
     border-radius: 4px;
     background: transparent;
@@ -1557,18 +1560,22 @@ body.mode-yugas .yuga-title-img.active {
     width: 100%;
     max-width: 1000px;
     margin: 0 auto;
-    border-radius: 6px;
-    border: 1.5px solid rgba(138, 106, 64, 0.55);
-    background: #090604;
+    border-radius: 8px;
+    border: 1.5px solid rgba(194, 154, 90, 0.65);
+    background:
+        radial-gradient(ellipse 96% 66% at 50% 62%, rgba(250, 236, 204, 0.92) 0%, rgba(228, 199, 148, 0.78) 45%, rgba(130, 88, 44, 0.92) 75%, #140c07 100%),
+        linear-gradient(180deg, #100a06 0%, #1a1008 18%, #4f3318 28%, #8a5e30 45%, #8a5e30 75%, #301e10 90%, #0d0703 100%);
     overflow: hidden;
     cursor: zoom-in;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9);
-    transition: all 0.3s ease;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 24px rgba(201, 164, 92, 0.22);
+    transition: all 0.35s ease;
+    padding: clamp(8px, 1.4vw, 16px);
+    box-sizing: border-box;
 }
 
 .calendar-graphic-frame:hover {
     border-color: var(--panel-highlight);
-    box-shadow: 0 14px 45px rgba(0, 0, 0, 0.95), 0 0 22px var(--active-glow-gold);
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.95), 0 0 32px var(--active-glow-gold);
 }
 
 .calendar-graphic-img {
@@ -1578,20 +1585,23 @@ body.mode-yugas .yuga-title-img.active {
     object-fit: contain;
     display: block;
     margin: 0 auto;
-    transition: transform 0.35s ease;
+    border-radius: 6px;
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.75));
+    transition: transform 0.35s ease, filter 0.35s ease;
 }
 
 .calendar-graphic-frame:hover .calendar-graphic-img {
-    transform: scale(1.01);
+    transform: scale(1.015);
+    filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.85));
 }
 
 .calendar-graphic-overlay {
     position: absolute;
-    bottom: 12px;
-    right: 12px;
+    bottom: 16px;
+    right: 16px;
     padding: 6px 14px;
     border-radius: 4px;
-    background: rgba(14, 10, 7, 0.88);
+    background: rgba(14, 10, 7, 0.9);
     border: 1px solid var(--btn-border-gold);
     color: var(--heading-ivory);
     font-family: var(--font-body, 'Cormorant Garamond', serif);
@@ -1602,6 +1612,12 @@ body.mode-yugas .yuga-title-img.active {
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
     transition: all 0.25s ease;
+}
+
+.calendar-zoom-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .calendar-graphic-frame:hover .calendar-graphic-overlay {
@@ -1742,11 +1758,22 @@ body.mode-yugas .yuga-title-img.active {
 
 .calendar-time-pill,
 .calendar-date-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     font-family: var(--font-body, 'Cormorant Garamond', serif);
     font-size: 13px;
     font-weight: 700;
     color: var(--panel-highlight);
     letter-spacing: 0.5px;
+}
+
+.calendar-pill-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--panel-highlight);
+    opacity: 0.9;
+    flex-shrink: 0;
 }
 
 .calendar-round-badge {
@@ -1858,12 +1885,17 @@ body.mode-yugas .yuga-title-img.active {
 .calendar-grid-image-wrap {
     position: relative;
     width: 100%;
-    border-radius: 6px;
-    border: 1px solid rgba(138, 106, 64, 0.5);
-    background: #090604;
+    border-radius: 8px;
+    border: 1.5px solid rgba(194, 154, 90, 0.65);
+    background:
+        radial-gradient(ellipse 96% 66% at 50% 62%, rgba(250, 236, 204, 0.92) 0%, rgba(228, 199, 148, 0.78) 45%, rgba(130, 88, 44, 0.92) 75%, #140c07 100%),
+        linear-gradient(180deg, #100a06 0%, #1a1008 18%, #4f3318 28%, #8a5e30 45%, #8a5e30 75%, #301e10 90%, #0d0703 100%);
     overflow: hidden;
     cursor: zoom-in;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 18px rgba(201, 164, 92, 0.18);
+    padding: 8px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
 .calendar-grid-img {
@@ -1873,11 +1905,14 @@ body.mode-yugas .yuga-title-img.active {
     object-fit: contain;
     display: block;
     margin: 0 auto;
-    transition: transform 0.35s ease;
+    border-radius: 4px;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.7));
+    transition: transform 0.35s ease, filter 0.35s ease;
 }
 
 .calendar-grid-image-wrap:hover .calendar-grid-img {
     transform: scale(1.02);
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.85));
 }
 
 .calendar-grid-events-summary {
@@ -2035,20 +2070,23 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .calendar-lightbox-body {
-    padding: 10px;
+    padding: clamp(10px, 2vw, 20px);
     overflow: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #080604;
+    background:
+        radial-gradient(ellipse 96% 66% at 50% 62%, rgba(250, 236, 204, 0.92) 0%, rgba(228, 199, 148, 0.78) 45%, rgba(130, 88, 44, 0.92) 75%, #140c07 100%),
+        linear-gradient(180deg, #100a06 0%, #1a1008 18%, #4f3318 28%, #8a5e30 45%, #8a5e30 75%, #301e10 90%, #0d0703 100%);
 }
 
 .calendar-lightbox-img {
     max-width: 100%;
     max-height: calc(94vh - 75px);
     object-fit: contain;
-    border-radius: 4px;
+    border-radius: 6px;
     display: block;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9);
 }
 
 /* ── Mobile Responsiveness for Calendar Codex ── */
