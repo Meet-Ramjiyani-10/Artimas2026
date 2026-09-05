@@ -15,7 +15,7 @@ const SCROLL_ITEMS = EVENTS.map((event, i) => ({
   event,
 }));
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api').replace(/\/+$/, '');
 
 export default function ScrollCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);

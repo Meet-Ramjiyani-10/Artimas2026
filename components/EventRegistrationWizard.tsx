@@ -7,7 +7,7 @@ import { EventItem } from '@/lib/events';
 import { getIsPageTransitionLoading, subscribeToPageTransition } from '@/lib/pageTransitionState';
 import WhatsAppGroupCard from './WhatsAppGroupCard';
 
-const API_BASE = typeof window !== 'undefined' ? '/api' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api');
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api').replace(/\/+$/, '');
 
 export interface MemberData {
   name: string;
@@ -1283,7 +1283,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         if (!response.ok) {
           throw new Error(
             response.status === 404 || response.status === 502 || response.status === 503
-              ? 'Unable to reach backend server. Please verify the backend service (port 5000) is running.'
+              ? 'Unable to reach backend server. Please verify the backend service is deployed and running.'
               : `Server returned an error (${response.status}). Please try again.`
           );
         }
@@ -1355,7 +1355,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         msg.includes('Unexpected token') ||
         msg.includes('NetworkError')
       ) {
-        setErrorMessage('Unable to reach server. Please ensure the backend (port 5000) and database are running.');
+        setErrorMessage('Unable to reach backend server. Please ensure the backend service is running and accessible.');
       } else {
         setErrorMessage(msg || 'Something went wrong. Please try again.');
       }

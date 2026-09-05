@@ -15,7 +15,7 @@ import { getHasSeenIntro, setHasSeenIntro } from '@/lib/introState';
 // model-viewer is a browser-only web component — dynamically imported without SSR
 const ChakraMedallion = dynamic(() => import('./ChakraMedallion'), { ssr: false });
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api').replace(/\/+$/, '');
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import { getEventBySlug } from '@/lib/events';
 import SubpageLayout from '@/components/SubpageLayout';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const rawBackend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE = rawBackend.endsWith('/api') ? rawBackend : `${rawBackend.replace(/\/+$/, '')}/api`;
 
 interface RulebookPageProps {
   params: Promise<{

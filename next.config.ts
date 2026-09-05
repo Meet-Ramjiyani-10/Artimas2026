@@ -2,6 +2,10 @@ import type { NextConfig } from 'next';
 
 import path from 'path';
 
+// Backend target URL for proxying API requests
+const rawBackend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const backendOrigin = rawBackend.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+
 const config: NextConfig = {
   outputFileTracingRoot: path.resolve(__dirname),
   images: {
@@ -14,7 +18,7 @@ const config: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*',
+        destination: `${backendOrigin}/api/:path*`,
       },
     ];
   },
