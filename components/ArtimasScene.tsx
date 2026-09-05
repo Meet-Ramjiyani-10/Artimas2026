@@ -685,7 +685,7 @@ export default function ArtimasScene() {
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={MEDIA.images.pixelPerfectTurtle || MEDIA.images.surpriseEventTurtle}
-                              alt="Pixel Perfect Kurma Golden Turtle"
+                              alt="Surprise Event Kurma Golden Turtle"
                               className="yuga-art-img yuga-surprise-turtle"
                               draggable={false}
                             />

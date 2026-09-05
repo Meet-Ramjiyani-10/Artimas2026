@@ -94,7 +94,7 @@ const events = [
     active: true,
   },
   {
-    name: 'Pixel Perfect',
+    name: 'Surprise Event',
     slug: 'pixel-perfect',
     category: 'Competitive Photography',
     yuga: 'Satya Yuga',

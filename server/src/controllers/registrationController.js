@@ -31,7 +31,7 @@ const isValidIndianMobile = (phone) => {
 };
 
 /**
- * Validate international phone numbers (used for Pixel Perfect and other international events):
+ * Validate international phone numbers (used for Surprise Event / Pixel Perfect and other international events):
  * - Optional leading +
  * - 7 to 16 digits
  */
@@ -42,7 +42,7 @@ const isValidInternationalPhone = (phone) => {
 };
 
 /**
- * Helper to check if event slug is Pixel Perfect or any of its aliases
+ * Helper to check if event slug is Surprise Event (Pixel Perfect) or any of its aliases
  */
 const isPixelPerfectEvent = (slug) => {
   const s = (slug || '').toLowerCase().trim();

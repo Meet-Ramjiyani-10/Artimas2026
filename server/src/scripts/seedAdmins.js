@@ -66,7 +66,7 @@ async function seedAdmins() {
       },
       {
         slug: 'pixel-perfect',
-        name: 'Pixel Perfect Admin',
+        name: 'Surprise Event Admin',
         email: 'pixelperfect@artimas.in',
         username: 'pixel-perfect',
         password: 'pixel-perfect_0987654321',

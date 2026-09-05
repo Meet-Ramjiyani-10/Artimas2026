@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import '../admin.css';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -59,7 +60,8 @@ interface EventStats {
 // Map event slug to standard display names
 const SLUG_TO_NAME: Record<string, string> = {
   'datathon': 'Datathon',
-  'pixel-perfect': 'Pixel Perfect',
+  'pixel-perfect': 'Surprise Event',
+  'surprise-event': 'Surprise Event',
   'prompt-relay': 'Prompt Relay',
   'brandathon': 'Brandathon',
   'capture-the-flag': 'Capture the Flag (CTF)',
@@ -94,6 +96,7 @@ export default function EventAdminPortal() {
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [verificationFilter, setVerificationFilter] = useState<'ALL' | 'VERIFIED' | 'UNVERIFIED'>('ALL');
+  const [viewMode, setViewMode] = useState<'auto' | 'cards' | 'table'>('auto');
   const [selectedRegistration, setSelectedRegistration] = useState<RegistrationItem | null>(null);
 
   // Confirmation dialog for Unverify
@@ -423,27 +426,16 @@ export default function EventAdminPortal() {
   // ── 1. LOGIN VIEW ──
   if (!token) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          backgroundColor: '#0a0d12',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-          fontFamily: "'Segoe UI', Roboto, sans-serif",
-          color: '#e2e8f0',
-        }}
-      >
+      <div className="admin-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div
           style={{
             width: '100%',
             maxWidth: '420px',
             backgroundColor: '#111722',
             border: '1px solid #1e293b',
-            borderRadius: '8px',
+            borderRadius: '10px',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-            padding: '32px 28px',
+            padding: '28px 22px',
           }}
         >
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -487,12 +479,13 @@ export default function EventAdminPortal() {
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  padding: '11px 13px',
+                  padding: '12px 14px',
                   backgroundColor: '#0a0d12',
                   border: '1px solid #334155',
                   borderRadius: '6px',
                   color: '#ffffff',
-                  fontSize: '14px',
+                  fontSize: '16px', // Prevents auto-zoom on iOS
+                  minHeight: '44px',
                   outline: 'none',
                 }}
                 required
@@ -511,16 +504,17 @@ export default function EventAdminPortal() {
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder={`Enter password`}
+                placeholder="Enter password"
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  padding: '11px 13px',
+                  padding: '12px 14px',
                   backgroundColor: '#0a0d12',
                   border: '1px solid #334155',
                   borderRadius: '6px',
                   color: '#ffffff',
-                  fontSize: '14px',
+                  fontSize: '16px', // Prevents auto-zoom on iOS
+                  minHeight: '44px',
                   outline: 'none',
                 }}
                 required
@@ -550,6 +544,7 @@ export default function EventAdminPortal() {
               style={{
                 width: '100%',
                 padding: '12px',
+                minHeight: '44px',
                 backgroundColor: '#2563eb',
                 border: 'none',
                 borderRadius: '6px',
@@ -572,25 +567,15 @@ export default function EventAdminPortal() {
   // ── 2. UNAUTHORIZED / CROSS-EVENT FORBIDDEN VIEW ──
   if (!isAuthorizedForThisEvent) {
     return (
-      <div
-        style={{
-          minHeight: '100vh',
-          backgroundColor: '#0a0d12',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-          fontFamily: "'Segoe UI', Roboto, sans-serif",
-          color: '#e2e8f0',
-        }}
-      >
+      <div className="admin-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div
           style={{
             maxWidth: '480px',
+            width: '100%',
             backgroundColor: '#111722',
             border: '1px solid rgba(239, 68, 68, 0.4)',
-            borderRadius: '8px',
-            padding: '28px',
+            borderRadius: '10px',
+            padding: '28px 20px',
             textAlign: 'center',
           }}
         >
@@ -603,7 +588,7 @@ export default function EventAdminPortal() {
             You only have authorization to manage <strong>{adminUser?.eventName || adminUser?.eventSlug}</strong>.
           </p>
 
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
             {adminUser?.eventSlug && (
               <button
                 type="button"
@@ -617,6 +602,7 @@ export default function EventAdminPortal() {
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  minHeight: '42px',
                 }}
               >
                 Go to {adminUser.eventName || adminUser.eventSlug} Dashboard
@@ -634,6 +620,7 @@ export default function EventAdminPortal() {
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
+                minHeight: '42px',
               }}
             >
               Log Out
@@ -652,31 +639,12 @@ export default function EventAdminPortal() {
 
   // ── 3. EVENT ADMIN DASHBOARD ──
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#0a0d12',
-        color: '#e2e8f0',
-        fontFamily: "'Segoe UI', Roboto, sans-serif",
-        padding: '24px 20px',
-      }}
-    >
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="admin-container">
+      <div className="admin-wrapper">
         {/* Top Header */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid #1e293b',
-            paddingBottom: '16px',
-            marginBottom: '20px',
-            flexWrap: 'wrap',
-            gap: '14px',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div className="admin-header">
+          <div className="admin-header-title-area">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '1px', color: '#f8fafc', margin: 0 }}>
                 ARTIMAS 26
               </h1>
@@ -715,13 +683,13 @@ export default function EventAdminPortal() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="admin-header-actions">
             {isMaster && (
               <button
                 type="button"
                 onClick={() => router.push('/admin')}
                 style={{
-                  padding: '8px 14px',
+                  padding: '9px 15px',
                   backgroundColor: '#1e293b',
                   border: '1px solid #334155',
                   borderRadius: '6px',
@@ -729,6 +697,7 @@ export default function EventAdminPortal() {
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  minHeight: '38px',
                 }}
               >
                 ← Master Admin
@@ -740,7 +709,7 @@ export default function EventAdminPortal() {
               onClick={() => fetchData(token)}
               disabled={isLoading}
               style={{
-                padding: '8px 14px',
+                padding: '9px 15px',
                 backgroundColor: '#1e293b',
                 border: '1px solid #334155',
                 borderRadius: '6px',
@@ -748,6 +717,7 @@ export default function EventAdminPortal() {
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
+                minHeight: '38px',
               }}
             >
               {isLoading ? 'REFRESHING...' : '↻ REFRESH'}
@@ -757,7 +727,7 @@ export default function EventAdminPortal() {
               type="button"
               onClick={handleLogout}
               style={{
-                padding: '8px 14px',
+                padding: '9px 15px',
                 backgroundColor: 'rgba(239, 68, 68, 0.1)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
                 borderRadius: '6px',
@@ -765,6 +735,7 @@ export default function EventAdminPortal() {
                 fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
+                minHeight: '38px',
               }}
             >
               LOGOUT
@@ -789,133 +760,60 @@ export default function EventAdminPortal() {
           </div>
         )}
 
-        {/* ── Key Metrics Cards Banner ── */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '14px',
-            marginBottom: '24px',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#111722',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: '16px 20px',
-            }}
-          >
-            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Total Registrations
-            </span>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
+        {/* ── Key Metrics Cards Banner (2-column on mobile, row on desktop) ── */}
+        <div className="admin-metrics-grid">
+          <div className="admin-metric-card">
+            <span className="admin-metric-label">Total Registrations</span>
+            <div className="admin-metric-value" style={{ color: '#f8fafc' }}>
               {totalCount}
             </div>
           </div>
 
-          <div
-            style={{
-              backgroundColor: '#111722',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: '16px 20px',
-            }}
-          >
-            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Verified
-            </span>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#22c55e', marginTop: '4px' }}>
+          <div className="admin-metric-card">
+            <span className="admin-metric-label">Verified</span>
+            <div className="admin-metric-value" style={{ color: '#22c55e' }}>
               {verifiedCount}
             </div>
           </div>
 
-          <div
-            style={{
-              backgroundColor: '#111722',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: '16px 20px',
-            }}
-          >
-            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Unverified
-            </span>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>
+          <div className="admin-metric-card">
+            <span className="admin-metric-label">Unverified</span>
+            <div className="admin-metric-value" style={{ color: '#f59e0b' }}>
               {unverifiedCount}
             </div>
           </div>
 
-          <div
-            style={{
-              backgroundColor: '#111722',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              padding: '16px 20px',
-            }}
-          >
-            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Total Teams
-            </span>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#60a5fa', marginTop: '4px' }}>
+          <div className="admin-metric-card">
+            <span className="admin-metric-label">Total Teams</span>
+            <div className="admin-metric-value" style={{ color: '#60a5fa' }}>
               {totalTeamsCount}
             </div>
           </div>
         </div>
 
         {/* ── Search & Filter Controls ── */}
-        <div
-          style={{
-            backgroundColor: '#111722',
-            border: '1px solid #1e293b',
-            borderRadius: '8px',
-            padding: '16px',
-            marginBottom: '16px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '12px',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', flex: 1 }}>
+        <div className="admin-filters-card">
+          <div className="admin-filters-inputs">
             {/* Search Input */}
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by ID, team, lead, email, phone, college..."
-              style={{
-                backgroundColor: '#0a0d12',
-                border: '1px solid #334155',
-                borderRadius: '6px',
-                padding: '8px 12px',
-                color: '#ffffff',
-                fontSize: '13px',
-                minWidth: '260px',
-                flex: '1 1 260px',
-                outline: 'none',
-              }}
-            />
+            <div className="admin-search-wrapper">
+              <span className="admin-search-icon">🔍</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by ID, team, lead, email, phone, college..."
+                className="admin-search-input"
+              />
+            </div>
 
-            {/* Verification Status Filter */}
-            <div style={{ display: 'flex', gap: '6px' }}>
+            {/* Verification Status Filter Pills */}
+            <div className="admin-filter-pills">
               {(['ALL', 'VERIFIED', 'UNVERIFIED'] as const).map((statusKey) => (
                 <button
                   key={statusKey}
                   type="button"
                   onClick={() => setVerificationFilter(statusKey)}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    backgroundColor: verificationFilter === statusKey ? '#2563eb' : '#0a0d12',
-                    border: verificationFilter === statusKey ? '1px solid #3b82f6' : '1px solid #334155',
-                    color: verificationFilter === statusKey ? '#ffffff' : '#cbd5e1',
-                    transition: 'all 0.15s',
-                  }}
+                  className={`admin-filter-pill-btn ${verificationFilter === statusKey ? 'active' : ''}`}
                 >
                   {statusKey === 'ALL' && `All (${registrations.length})`}
                   {statusKey === 'VERIFIED' && `Verified (${verifiedCount})`}
@@ -926,28 +824,51 @@ export default function EventAdminPortal() {
           </div>
 
           {/* Export Verified CSV Button */}
-          <button
-            type="button"
-            onClick={handleExportVerifiedCsv}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#166534',
-              border: '1px solid #22c55e',
-              borderRadius: '6px',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            📥 EXPORT VERIFIED CSV ({verifiedCount})
-          </button>
+          <div className="admin-export-group">
+            <button
+              type="button"
+              onClick={handleExportVerifiedCsv}
+              className="admin-btn-export-verified"
+            >
+              📥 EXPORT VERIFIED CSV ({verifiedCount})
+            </button>
+          </div>
         </div>
 
-        {/* ── Registrations Data Table ── */}
+        {/* View Switcher & Counter Bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '13px', color: '#94a3b8' }}>
+            Showing <strong style={{ color: '#f8fafc' }}>{filteredRegistrations.length}</strong> of {registrations.length} attendees
+          </div>
+          <div className="admin-view-toggle">
+            <button
+              type="button"
+              className={`admin-view-toggle-btn ${viewMode === 'auto' ? 'active' : ''}`}
+              onClick={() => setViewMode('auto')}
+              title="Auto (Cards on phone, Table on desktop)"
+            >
+              📱 Auto
+            </button>
+            <button
+              type="button"
+              className={`admin-view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              onClick={() => setViewMode('cards')}
+              title="Force Card View"
+            >
+              🗂️ Cards
+            </button>
+            <button
+              type="button"
+              className={`admin-view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Force Table View"
+            >
+              📋 Table
+            </button>
+          </div>
+        </div>
+
+        {/* ── Registrations Data Views ── */}
         {isLoading && registrations.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
             Loading {eventDisplayName} registrations...
@@ -957,242 +878,312 @@ export default function EventAdminPortal() {
             No registrations found matching your filters.
           </div>
         ) : (
-          <div
-            style={{
-              backgroundColor: '#111722',
-              border: '1px solid #1e293b',
-              borderRadius: '8px',
-              overflowX: 'auto',
-            }}
-          >
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#0a0d12', borderBottom: '1px solid #1e293b', color: '#94a3b8' }}>
-                  <th style={{ padding: '12px 16px', fontWeight: 600 }}>REG ID</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600 }}>TEAM NAME</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600 }}>TEAM LEAD</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600 }}>CONTACT</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600 }}>COLLEGE</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600 }}>MEMBERS</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600 }}>VERIFICATION STATUS</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center' }}>ACTION</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRegistrations.map((reg) => {
-                  const isVerified = reg.verified === true || reg.status === 'APPROVED';
-                  const isActionBusy = actionLoadingId === reg._id;
+          <>
+            {/* 1. DESKTOP TABLE VIEW */}
+            <div className={viewMode === 'cards' ? 'desktop-only-view' : viewMode === 'auto' ? 'desktop-only-view admin-table-card' : 'admin-table-card'}>
+              <table className="admin-data-table">
+                <thead>
+                  <tr>
+                    <th>REG ID</th>
+                    <th>TEAM NAME</th>
+                    <th>TEAM LEAD</th>
+                    <th>CONTACT</th>
+                    <th>COLLEGE</th>
+                    <th>MEMBERS</th>
+                    <th>VERIFICATION STATUS</th>
+                    <th style={{ textAlign: 'center' }}>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRegistrations.map((reg) => {
+                    const isVerified = reg.verified === true || reg.status === 'APPROVED';
+                    const isActionBusy = actionLoadingId === reg._id;
 
-                  return (
-                    <tr
-                      key={reg._id}
-                      style={{
-                        borderBottom: '1px solid #1e293b',
-                        transition: 'background-color 0.15s',
-                      }}
-                    >
-                      {/* REG ID */}
-                      <td style={{ padding: '12px 16px', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap' }}>
-                        <span
-                          style={{
-                            backgroundColor: '#1e293b',
-                            padding: '3px 8px',
-                            borderRadius: '4px',
-                            fontSize: '12px',
-                            fontFamily: 'monospace',
-                          }}
-                        >
-                          {reg.registrationId}
-                        </span>
-                      </td>
-
-                      {/* TEAM NAME */}
-                      <td style={{ padding: '12px 16px', fontWeight: 600, color: '#f8fafc' }}>
-                        {reg.teamName || reg.leadName || '—'}
-                      </td>
-
-                      {/* TEAM LEAD */}
-                      <td style={{ padding: '12px 16px', color: '#e2e8f0' }}>
-                        <div style={{ fontWeight: 600 }}>{reg.leadName}</div>
-                      </td>
-
-                      {/* CONTACT */}
-                      <td style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '12px' }}>
-                        <div>{reg.leadPhone}</div>
-                        <div style={{ color: '#64748b', fontSize: '11px' }}>{reg.leadEmail}</div>
-                      </td>
-
-                      {/* COLLEGE */}
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                        <span style={{ color: '#cbd5e1' }}>{reg.leadCollege || 'PCCOE'}</span>
-                        {reg.isPccoe && (
+                    return (
+                      <tr key={reg._id}>
+                        {/* REG ID */}
+                        <td style={{ fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap' }}>
                           <span
                             style={{
-                              marginLeft: '6px',
-                              fontSize: '10.5px',
-                              fontWeight: 700,
-                              color: '#22c55e',
-                              backgroundColor: 'rgba(34, 197, 94, 0.15)',
-                              padding: '2px 6px',
-                              borderRadius: '3px',
-                            }}
-                          >
-                            PCCOE FREE
-                          </span>
-                        )}
-                      </td>
-
-                      {/* MEMBERS */}
-                      <td style={{ padding: '12px 16px', color: '#94a3b8', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            backgroundColor: '#0a0d12',
-                            border: '1px solid #1e293b',
-                            borderRadius: '12px',
-                            padding: '2px 8px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {reg.members?.length || 1}
-                        </span>
-                      </td>
-
-                      {/* VERIFICATION STATUS */}
-                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                        {isVerified ? (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              color: '#22c55e',
-                              backgroundColor: 'rgba(34, 197, 94, 0.12)',
-                              border: '1px solid rgba(34, 197, 94, 0.3)',
-                              padding: '3px 9px',
+                              backgroundColor: '#1e293b',
+                              padding: '3px 8px',
                               borderRadius: '4px',
                               fontSize: '12px',
-                              fontWeight: 700,
-                              letterSpacing: '0.5px',
+                              fontFamily: 'monospace',
                             }}
                           >
+                            {reg.registrationId}
+                          </span>
+                        </td>
+
+                        {/* TEAM NAME */}
+                        <td style={{ fontWeight: 600, color: '#f8fafc' }}>
+                          {reg.teamName || reg.leadName || '—'}
+                        </td>
+
+                        {/* TEAM LEAD */}
+                        <td style={{ color: '#e2e8f0' }}>
+                          <div style={{ fontWeight: 600 }}>{reg.leadName}</div>
+                        </td>
+
+                        {/* CONTACT */}
+                        <td style={{ color: '#94a3b8', fontSize: '12px' }}>
+                          <div>
+                            <a href={`tel:${reg.leadPhone}`} style={{ color: '#cbd5e1', textDecoration: 'none' }}>
+                              {reg.leadPhone}
+                            </a>
+                          </div>
+                          <div style={{ color: '#64748b', fontSize: '11px' }}>
+                            <a href={`mailto:${reg.leadEmail}`} style={{ color: '#64748b', textDecoration: 'none' }}>
+                              {reg.leadEmail}
+                            </a>
+                          </div>
+                        </td>
+
+                        {/* COLLEGE */}
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          <span style={{ color: '#cbd5e1' }}>{reg.leadCollege || 'PCCOE'}</span>
+                          {reg.isPccoe && (
+                            <span
+                              style={{
+                                marginLeft: '6px',
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                color: '#22c55e',
+                                backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                                padding: '2px 6px',
+                                borderRadius: '3px',
+                              }}
+                            >
+                              PCCOE FREE
+                            </span>
+                          )}
+                        </td>
+
+                        {/* MEMBERS */}
+                        <td style={{ color: '#94a3b8', textAlign: 'center' }}>
+                          <span
+                            style={{
+                              backgroundColor: '#0a0d12',
+                              border: '1px solid #1e293b',
+                              borderRadius: '12px',
+                              padding: '2px 8px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                            }}
+                          >
+                            {reg.members?.length || 1}
+                          </span>
+                        </td>
+
+                        {/* VERIFICATION STATUS */}
+                        <td style={{ whiteSpace: 'nowrap' }}>
+                          {isVerified ? (
+                            <span className="admin-status-verified-badge">
+                              ✓ VERIFIED
+                            </span>
+                          ) : (
+                            <span className="admin-status-unverified-badge">
+                              ● UNVERIFIED
+                            </span>
+                          )}
+                        </td>
+
+                        {/* ACTION */}
+                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            {isVerified ? (
+                              <button
+                                type="button"
+                                disabled={isActionBusy}
+                                onClick={() => setUnverifyTarget(reg)}
+                                style={{
+                                  padding: '5px 10px',
+                                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                                  borderRadius: '4px',
+                                  color: '#f87171',
+                                  fontSize: '12px',
+                                  fontWeight: 600,
+                                  cursor: isActionBusy ? 'not-allowed' : 'pointer',
+                                }}
+                              >
+                                UNVERIFY
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={isActionBusy}
+                                onClick={() => handleVerify(reg)}
+                                style={{
+                                  padding: '5px 12px',
+                                  backgroundColor: '#166534',
+                                  border: '1px solid #22c55e',
+                                  borderRadius: '4px',
+                                  color: '#ffffff',
+                                  fontSize: '12px',
+                                  fontWeight: 700,
+                                  cursor: isActionBusy ? 'not-allowed' : 'pointer',
+                                }}
+                              >
+                                {isActionBusy ? '...' : 'VERIFY'}
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRegistration(reg)}
+                              style={{
+                                padding: '5px 10px',
+                                backgroundColor: '#1e293b',
+                                border: '1px solid #334155',
+                                borderRadius: '4px',
+                                color: '#cbd5e1',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Details
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* 2. MOBILE CARD VIEW */}
+            <div className={viewMode === 'table' ? 'mobile-only-view' : viewMode === 'auto' ? 'mobile-only-view admin-cards-list' : 'admin-cards-list'}>
+              {filteredRegistrations.map((reg) => {
+                const isVerified = reg.verified === true || reg.status === 'APPROVED';
+                const isActionBusy = actionLoadingId === reg._id;
+                const cleanPhone = (reg.leadPhone || '').replace(/\D/g, '');
+
+                return (
+                  <div key={reg._id} className="admin-card-item">
+                    {/* Top ID & Badges */}
+                    <div className="admin-card-top">
+                      <span className="admin-card-id-badge">
+                        {reg.registrationId}
+                      </span>
+                      <div className="admin-card-status-row">
+                        {isVerified ? (
+                          <span className="admin-status-verified-badge">
                             ✓ VERIFIED
                           </span>
                         ) : (
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              color: '#f59e0b',
-                              backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                              border: '1px solid rgba(245, 158, 11, 0.3)',
-                              padding: '3px 9px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              letterSpacing: '0.5px',
-                            }}
-                          >
+                          <span className="admin-status-unverified-badge">
                             ● UNVERIFIED
                           </span>
                         )}
-                      </td>
+                        <span className={`admin-fee-badge ${reg.amount === 0 ? 'admin-fee-free' : 'admin-fee-paid'}`}>
+                          {reg.amount === 0 ? '₹0 Free' : `₹${reg.amount}`}
+                        </span>
+                      </div>
+                    </div>
 
-                      {/* ACTION */}
-                      <td style={{ padding: '12px 16px', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          {isVerified ? (
-                            <button
-                              type="button"
-                              disabled={isActionBusy}
-                              onClick={() => setUnverifyTarget(reg)}
-                              style={{
-                                padding: '5px 10px',
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                borderRadius: '4px',
-                                color: '#f87171',
-                                fontSize: '12px',
-                                fontWeight: 600,
-                                cursor: isActionBusy ? 'not-allowed' : 'pointer',
-                              }}
-                            >
-                              UNVERIFY
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              disabled={isActionBusy}
-                              onClick={() => handleVerify(reg)}
-                              style={{
-                                padding: '5px 12px',
-                                backgroundColor: '#166534',
-                                border: '1px solid #22c55e',
-                                borderRadius: '4px',
-                                color: '#ffffff',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                cursor: isActionBusy ? 'not-allowed' : 'pointer',
-                              }}
-                            >
-                              {isActionBusy ? '...' : 'VERIFY'}
-                            </button>
-                          )}
+                    {/* Team Name / Lead Name */}
+                    <div className="admin-card-title">
+                      {reg.teamName || reg.leadName}
+                    </div>
+                    {reg.teamName && reg.leadName && reg.teamName.toLowerCase() !== reg.leadName.toLowerCase() && (
+                      <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>
+                        Lead: <strong style={{ color: '#cbd5e1' }}>{reg.leadName}</strong>
+                      </div>
+                    )}
 
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRegistration(reg)}
-                            style={{
-                              padding: '5px 10px',
-                              backgroundColor: '#1e293b',
-                              border: '1px solid #334155',
-                              borderRadius: '4px',
-                              color: '#cbd5e1',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                            }}
+                    {/* College & Member tags */}
+                    <div className="admin-card-event-line">
+                      <span className="admin-card-college">
+                        {reg.leadCollege || 'PCCOE'}
+                      </span>
+                      {reg.isPccoe && (
+                        <span className="admin-pccoe-free-tag">
+                          PCCOE FREE
+                        </span>
+                      )}
+                      <span style={{ fontSize: '11px', color: '#64748b', marginLeft: 'auto' }}>
+                        👥 {reg.members?.length || 1} {reg.members && reg.members.length > 1 ? 'members' : 'member'}
+                      </span>
+                    </div>
+
+                    {/* Touch-friendly Contact Shortcuts */}
+                    <div className="admin-card-contact-row">
+                      <div className="admin-contact-item">
+                        <a href={`tel:${reg.leadPhone}`} className="admin-contact-link">
+                          📞 {reg.leadPhone}
+                        </a>
+                        {cleanPhone.length >= 10 && (
+                          <a
+                            href={`https://wa.me/91${cleanPhone.slice(-10)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="admin-contact-link"
+                            style={{ color: '#22c55e', fontSize: '12px' }}
                           >
-                            Details
-                          </button>
+                            💬 WhatsApp
+                          </a>
+                        )}
+                      </div>
+                      {reg.leadEmail && (
+                        <div className="admin-contact-item">
+                          <a href={`mailto:${reg.leadEmail}`} className="admin-contact-link" style={{ fontSize: '11.5px', color: '#94a3b8' }}>
+                            ✉️ {reg.leadEmail}
+                          </a>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      )}
+                    </div>
+
+                    {/* Touch Action Buttons */}
+                    <div className="admin-card-actions">
+                      {isVerified ? (
+                        <button
+                          type="button"
+                          className="admin-btn-card-unverify"
+                          disabled={isActionBusy}
+                          onClick={() => setUnverifyTarget(reg)}
+                        >
+                          UNVERIFY
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="admin-btn-card-verify"
+                          disabled={isActionBusy}
+                          onClick={() => handleVerify(reg)}
+                        >
+                          {isActionBusy ? 'VERIFYING...' : '✓ VERIFY'}
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        className="admin-btn-card-details"
+                        onClick={() => setSelectedRegistration(reg)}
+                      >
+                        Details ↗
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
       {/* ── 4. CONFIRMATION MODAL FOR UNVERIFY ── */}
       {unverifyTarget && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1100,
-            padding: '20px',
-          }}
+          className="admin-modal-overlay"
           onClick={() => setUnverifyTarget(null)}
         >
           <div
-            style={{
-              backgroundColor: '#111722',
-              border: '1px solid #334155',
-              borderRadius: '8px',
-              maxWidth: '440px',
-              width: '100%',
-              padding: '24px',
-              color: '#e2e8f0',
-            }}
+            className="admin-modal-dialog"
+            style={{ maxWidth: '440px' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#f8fafc', margin: '0 0 10px' }}>
@@ -1210,7 +1201,7 @@ export default function EventAdminPortal() {
                 type="button"
                 onClick={() => setUnverifyTarget(null)}
                 style={{
-                  padding: '8px 14px',
+                  padding: '9px 16px',
                   backgroundColor: '#1e293b',
                   border: '1px solid #334155',
                   borderRadius: '6px',
@@ -1218,6 +1209,7 @@ export default function EventAdminPortal() {
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  minHeight: '40px',
                 }}
               >
                 Cancel
@@ -1226,7 +1218,7 @@ export default function EventAdminPortal() {
                 type="button"
                 onClick={handleConfirmUnverify}
                 style={{
-                  padding: '8px 16px',
+                  padding: '9px 18px',
                   backgroundColor: '#dc2626',
                   border: 'none',
                   borderRadius: '6px',
@@ -1234,6 +1226,7 @@ export default function EventAdminPortal() {
                   fontSize: '13px',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  minHeight: '40px',
                 }}
               >
                 Yes, Unverify
@@ -1246,36 +1239,15 @@ export default function EventAdminPortal() {
       {/* ── 5. REGISTRATION DETAILS MODAL ── */}
       {selectedRegistration && (
         <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px',
-          }}
+          className="admin-modal-overlay"
           onClick={() => setSelectedRegistration(null)}
         >
           <div
-            style={{
-              backgroundColor: '#111722',
-              border: '1px solid #334155',
-              borderRadius: '10px',
-              maxWidth: '620px',
-              width: '100%',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              padding: '24px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
-              color: '#e2e8f0',
-            }}
+            className="admin-modal-dialog"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '14px', marginBottom: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '14px', marginBottom: '16px' }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#f8fafc' }}>
                   {selectedRegistration.eventName}
@@ -1286,17 +1258,8 @@ export default function EventAdminPortal() {
               </div>
               <button
                 type="button"
+                className="admin-modal-close-btn"
                 onClick={() => setSelectedRegistration(null)}
-                style={{
-                  backgroundColor: '#1e293b',
-                  border: '1px solid #334155',
-                  color: '#94a3b8',
-                  borderRadius: '6px',
-                  width: '32px',
-                  height: '32px',
-                  fontSize: '16px',
-                  cursor: 'pointer',
-                }}
               >
                 ✕
               </button>
@@ -1311,7 +1274,7 @@ export default function EventAdminPortal() {
                 border: (selectedRegistration.verified || selectedRegistration.status === 'APPROVED')
                   ? '1px solid rgba(34, 197, 94, 0.3)'
                   : '1px solid rgba(245, 158, 11, 0.3)',
-                borderRadius: '6px',
+                borderRadius: '8px',
                 padding: '12px 16px',
                 marginBottom: '16px',
                 display: 'flex',
@@ -1344,14 +1307,15 @@ export default function EventAdminPortal() {
                     setUnverifyTarget(r);
                   }}
                   style={{
-                    padding: '6px 12px',
+                    padding: '8px 14px',
                     backgroundColor: 'rgba(239, 68, 68, 0.15)',
                     border: '1px solid rgba(239, 68, 68, 0.4)',
-                    borderRadius: '4px',
+                    borderRadius: '6px',
                     color: '#f87171',
                     fontSize: '12px',
                     fontWeight: 600,
                     cursor: 'pointer',
+                    minHeight: '38px',
                   }}
                 >
                   UNVERIFY
@@ -1364,14 +1328,15 @@ export default function EventAdminPortal() {
                     setSelectedRegistration((prev) => prev ? { ...prev, verified: true, status: 'APPROVED' } : null);
                   }}
                   style={{
-                    padding: '6px 14px',
+                    padding: '8px 16px',
                     backgroundColor: '#166534',
                     border: '1px solid #22c55e',
-                    borderRadius: '4px',
+                    borderRadius: '6px',
                     color: '#ffffff',
                     fontSize: '12px',
                     fontWeight: 700,
                     cursor: 'pointer',
+                    minHeight: '38px',
                   }}
                 >
                   VERIFY NOW
@@ -1379,18 +1344,41 @@ export default function EventAdminPortal() {
               )}
             </div>
 
-            {/* Team / Lead Details */}
-            <div style={{ backgroundColor: '#0a0d12', padding: '14px', borderRadius: '6px', marginBottom: '16px', border: '1px solid #1e293b' }}>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>
+            {/* Team / Lead Details with Tap-to-Call/Mail/WhatsApp */}
+            <div style={{ backgroundColor: '#0a0d12', padding: '14px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #1e293b' }}>
+              <div style={{ fontSize: '15px', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>
                 {selectedRegistration.teamName && selectedRegistration.leadName && selectedRegistration.teamName.toLowerCase() !== selectedRegistration.leadName.toLowerCase()
                   ? `Team: ${selectedRegistration.teamName}`
                   : `Participant: ${selectedRegistration.leadName || selectedRegistration.teamName}`}
               </div>
-              <div style={{ fontSize: '13px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ fontSize: '13px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <div>Lead Name: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadName}</strong></div>
-                <div>Email: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadEmail}</strong></div>
-                <div>Phone: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadPhone}</strong></div>
-                <div>College: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadCollege || 'PCCOE'}</strong> {selectedRegistration.isPccoe && <span style={{ color: '#22c55e', fontWeight: 700 }}>[PCCOE Free Registration]</span>}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <span>Email:</span>
+                  <a href={`mailto:${selectedRegistration.leadEmail}`} style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                    ✉️ {selectedRegistration.leadEmail}
+                  </a>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <span>Phone:</span>
+                  <a href={`tel:${selectedRegistration.leadPhone}`} style={{ color: '#60a5fa', textDecoration: 'none', fontWeight: 600 }}>
+                    📞 {selectedRegistration.leadPhone}
+                  </a>
+                  {selectedRegistration.leadPhone && (
+                    <a
+                      href={`https://wa.me/91${selectedRegistration.leadPhone.replace(/\D/g, '').slice(-10)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 600, fontSize: '12px' }}
+                    >
+                      💬 WhatsApp
+                    </a>
+                  )}
+                </div>
+                <div>
+                  College: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadCollege || 'PCCOE'}</strong>{' '}
+                  {selectedRegistration.isPccoe && <span style={{ color: '#22c55e', fontWeight: 700 }}>[PCCOE Free Registration]</span>}
+                </div>
               </div>
             </div>
 
@@ -1415,10 +1403,19 @@ export default function EventAdminPortal() {
                       <div style={{ fontWeight: 700, color: '#f8fafc' }}>
                         #{idx + 1} {m.name || 'Member'}
                       </div>
-                      <div style={{ color: '#94a3b8', marginTop: '2px' }}>
-                        {m.email} • {m.phone}
+                      <div style={{ display: 'flex', gap: '12px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        {m.phone && (
+                          <a href={`tel:${m.phone}`} style={{ color: '#60a5fa', textDecoration: 'none' }}>
+                            📞 {m.phone}
+                          </a>
+                        )}
+                        {m.email && (
+                          <a href={`mailto:${m.email}`} style={{ color: '#94a3b8', textDecoration: 'none' }}>
+                            ✉️ {m.email}
+                          </a>
+                        )}
                       </div>
-                      <div style={{ color: '#64748b', fontSize: '11.5px', marginTop: '2px' }}>
+                      <div style={{ color: '#64748b', fontSize: '11.5px', marginTop: '3px' }}>
                         {m.college || 'PCCOE'} {m.year ? `(${m.year})` : ''} {m.branch ? `[${m.branch}]` : ''}
                       </div>
                     </div>
@@ -1428,7 +1425,7 @@ export default function EventAdminPortal() {
             )}
 
             {/* Payment & Transaction details */}
-            <div style={{ backgroundColor: '#0a0d12', padding: '14px', borderRadius: '6px', border: '1px solid #1e293b', marginBottom: '18px' }}>
+            <div style={{ backgroundColor: '#0a0d12', padding: '14px', borderRadius: '8px', border: '1px solid #1e293b', marginBottom: '18px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <span style={{ fontSize: '13px', color: '#94a3b8' }}>Fee Amount:</span>
                 <span style={{ fontSize: '16px', fontWeight: 700, color: selectedRegistration.amount === 0 ? '#22c55e' : '#facc15' }}>
@@ -1445,12 +1442,13 @@ export default function EventAdminPortal() {
                   <span style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>
                     Payment Screenshot:
                   </span>
-                  <a href={selectedRegistration.screenshotUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={selectedRegistration.screenshotUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block' }}>
                     <img
                       src={selectedRegistration.screenshotUrl}
                       alt="Payment proof"
-                      style={{ maxWidth: '100%', maxHeight: '180px', borderRadius: '4px', border: '1px solid #334155' }}
+                      style={{ width: '100%', maxWidth: '100%', maxHeight: '240px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #334155' }}
                     />
+                    <div style={{ fontSize: '11.5px', color: '#38bdf8', marginTop: '4px' }}>↗ Tap to view full size</div>
                   </a>
                 </div>
               )}
@@ -1461,13 +1459,14 @@ export default function EventAdminPortal() {
               onClick={() => setSelectedRegistration(null)}
               style={{
                 width: '100%',
-                padding: '10px',
+                padding: '12px',
+                minHeight: '44px',
                 backgroundColor: '#1e293b',
                 border: '1px solid #334155',
                 borderRadius: '6px',
                 color: '#f8fafc',
                 fontWeight: 600,
-                fontSize: '13px',
+                fontSize: '14px',
                 cursor: 'pointer',
               }}
             >

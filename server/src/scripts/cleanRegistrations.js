@@ -1,7 +1,7 @@
 /**
  * Data Migration & Optimization Script — Compact Event-Tailored Schema
  *
- * 1. Solo events (Among Us, Pixel Perfect, or single-member entries):
+ * 1. Solo events (Among Us, Surprise Event, or single-member entries):
  *    - Removes teamName, teamSummary, members array, and eventSlug!
  *    - Only keeps: registrationId, leadName, leadEmail, leadPhone, leadCollege, amount, transactionId, screenshotUrl, status, createdAt
  *
@@ -174,6 +174,7 @@ const cleanRegistrations = async () => {
         const nameMap = {
           'datathon': 'registrations_datathon',
           'pixel perfect': 'registrations_pixel_perfect',
+          'surprise event': 'registrations_pixel_perfect',
           'among us': 'registrations_among_us',
           'capture the flag (ctf)': 'registrations_capture_the_flag',
           'capture the flag': 'registrations_capture_the_flag',
@@ -210,7 +211,7 @@ const cleanRegistrations = async () => {
     }
 
     console.log(`\n✦ Streamlined ${updatedCount} registrations in master & event collections!`);
-    console.log('✦ Solo events (Among Us, Pixel Perfect):');
+    console.log('✦ Solo events (Among Us, Surprise Event):');
     console.log('   -> Omitted: teamName, teamSummary, members, eventSlug, memberCount');
     console.log('✦ Team events:');
     console.log('   -> Omitted: eventSlug, memberCount (Houdini Heist 3 compulsory count skipped)');

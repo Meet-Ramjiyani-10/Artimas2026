@@ -66,7 +66,7 @@ export const EVENTS: EventItem[] = [
   {
     id: 2,
     slug: 'pixel-perfect',
-    name: 'Pixel Perfect',
+    name: 'Surprise Event',
     category: 'Competitive Photography',
     yuga: 'Satya Yuga',
     tagline: 'Capture The Moment Through Your Lens',

@@ -12,7 +12,7 @@ export const EVENT_WHATSAPP_GROUPS: Record<string, WhatsAppGroupInfo> = {
   },
   'pixel-perfect': {
     slug: 'pixel-perfect',
-    name: 'Pixel Perfect | ARTIMAS 26',
+    name: 'Surprise Event | ARTIMAS 26',
     url: process.env.NEXT_PUBLIC_WHATSAPP_PIXEL_PERFECT || 'https://chat.whatsapp.com/pixel-perfect-artimas26',
   },
   'prompt-relay': {

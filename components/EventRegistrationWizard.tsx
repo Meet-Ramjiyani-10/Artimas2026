@@ -94,7 +94,7 @@ export interface EventScheduleDetail {
 
 export const EVENT_SCHEDULE_DATA: Record<string, EventScheduleDetail> = {
   'pixel-perfect': {
-    name: 'Pixel Perfect',
+    name: 'Surprise Event',
     date: '11th Oct, 2026',
     time: '10:00 AM – 05:00 PM',
     venue: 'PCCOE Campus Arena',
@@ -102,7 +102,7 @@ export const EVENT_SCHEDULE_DATA: Record<string, EventScheduleDetail> = {
     rounds: '1 Round',
   },
   'surprise-event': {
-    name: 'Pixel Perfect',
+    name: 'Surprise Event',
     date: '11th Oct, 2026',
     time: '10:00 AM – 05:00 PM',
     venue: 'PCCOE Campus Arena',
@@ -593,7 +593,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
             email: trimmed,
           }),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
         if (data && data.success) {
           emailCheckCacheRef.current[normalized] = {
             available: data.available,
@@ -1269,7 +1269,26 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         });
       }
 
-      const data = await response.json();
+      let data: any = null;
+      const contentType = response.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        try {
+          data = await response.json();
+        } catch {
+          data = null;
+        }
+      }
+
+      if (!data) {
+        if (!response.ok) {
+          throw new Error(
+            response.status === 404 || response.status === 502 || response.status === 503
+              ? 'Unable to reach backend server. Please verify the backend service (port 5000) is running.'
+              : `Server returned an error (${response.status}). Please try again.`
+          );
+        }
+        throw new Error('Server returned an unexpected response. Please try again.');
+      }
 
       if (!response.ok || !data.success) {
         if (response.status === 409 || data.clashingEmail) {
@@ -1329,10 +1348,16 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         setIsSuccess(true);
       });
     } catch (error: any) {
-      if (error?.message === 'Failed to fetch') {
+      const msg = error?.message || '';
+      if (
+        msg === 'Failed to fetch' ||
+        msg.includes('is not valid JSON') ||
+        msg.includes('Unexpected token') ||
+        msg.includes('NetworkError')
+      ) {
         setErrorMessage('Unable to reach server. Please ensure the backend (port 5000) and database are running.');
       } else {
-        setErrorMessage(error.message || 'Something went wrong. Please try again.');
+        setErrorMessage(msg || 'Something went wrong. Please try again.');
       }
     } finally {
       setIsSubmitting(false);

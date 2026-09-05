@@ -240,7 +240,7 @@ export default function ScrollCarousel() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={MEDIA.images.pixelPerfectTurtle || MEDIA.images.surpriseEventTurtle}
-                        alt="Pixel Perfect Kurma Golden Turtle"
+                        alt="Surprise Event Kurma Golden Turtle"
                         className="scroll-surprise-turtle-img scroll-pixel-perfect-turtle-img"
                         draggable={false}
                       />
