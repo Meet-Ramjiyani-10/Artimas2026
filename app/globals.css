@@ -4315,38 +4315,38 @@ body.mode-yugas .yuga-title-img.active {
 
 /* ── Dynamic Step Dimensions (Adapts seamlessly to content, eliminating blank voids) ── */
 .medieval-scroll-stage.stage-step-0 {
-    height: clamp(380px, 48vh, 420px);
+    height: var(--scroll-stage-height, clamp(380px, 48vh, 420px));
     min-height: 360px;
     max-width: 580px;
 }
 
 .medieval-scroll-stage.stage-step-1 {
-    height: clamp(590px, 84vh, 710px);
+    height: var(--scroll-stage-height, clamp(590px, 84vh, 710px));
     min-height: 560px;
     max-width: 680px;
 }
 
 .medieval-scroll-stage.stage-step-2 {
-    height: clamp(620px, 88vh, 780px);
+    height: var(--scroll-stage-height, 1080px);
     min-height: 600px;
     max-width: 680px;
 }
 
 .medieval-scroll-stage.stage-step-success {
-    height: clamp(520px, 80vh, 650px);
+    height: var(--scroll-stage-height, clamp(520px, 80vh, 650px));
     min-height: 500px;
     max-width: 680px;
 }
 
 .medieval-scroll-stage.stage-step-closed {
-    height: clamp(340px, 48vh, 400px);
+    height: var(--scroll-stage-height, clamp(340px, 48vh, 400px));
     min-height: 320px;
     max-width: 560px;
 }
 
 /* Default fallback when no step class */
 .medieval-scroll-stage:not([class*="stage-step-"]) {
-    height: min(84vh, 760px);
+    height: var(--scroll-stage-height, min(84vh, 760px));
     min-height: 550px;
 }
 
@@ -4574,8 +4574,8 @@ body.mode-yugas .yuga-title-img.active {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    padding: clamp(32px, 4.5vh, 46px) clamp(22px, 4.5vw, 44px);
-    overflow-y: auto;
+    padding: clamp(32px, 4.5vh, 46px) clamp(22px, 4.5vw, 44px) clamp(38px, 5vh, 56px);
+    overflow-y: visible;
     overflow-x: hidden;
     opacity: 0;
     transform: translateY(6px);
@@ -4586,6 +4586,7 @@ body.mode-yugas .yuga-title-img.active {
 .medieval-scroll-stage.open .parchment-content {
     opacity: 1;
     transform: translateY(0);
+    overflow-y: visible;
 }
 
 /* Step 0 & Closed: Centered Content Layout with Perfect Proportions */
@@ -5000,27 +5001,27 @@ body.mode-yugas .yuga-title-img.active {
 
     /* Dynamic heights for mobile screens */
     .medieval-scroll-stage.stage-step-0 {
-        height: clamp(380px, 58vh, 430px);
+        height: var(--scroll-stage-height, clamp(380px, 58vh, 430px));
         min-height: 360px;
     }
 
     .medieval-scroll-stage.stage-step-1 {
-        height: clamp(580px, 80vh, 700px);
+        height: var(--scroll-stage-height, clamp(580px, 80vh, 700px));
         min-height: 520px;
     }
 
     .medieval-scroll-stage.stage-step-2 {
-        height: clamp(600px, 84vh, 750px);
+        height: var(--scroll-stage-height, 1080px);
         min-height: 540px;
     }
 
     .medieval-scroll-stage.stage-step-success {
-        height: clamp(500px, 76vh, 630px);
+        height: var(--scroll-stage-height, clamp(500px, 76vh, 630px));
         min-height: 480px;
     }
 
     .medieval-scroll-stage.stage-step-closed {
-        height: clamp(330px, 50vh, 390px);
+        height: var(--scroll-stage-height, clamp(330px, 50vh, 390px));
         min-height: 310px;
     }
 
@@ -5047,7 +5048,8 @@ body.mode-yugas .yuga-title-img.active {
 
     /* Tighten inner padding so fields have maximum usable horizontal width */
     .parchment-content {
-        padding: 24px 14px 22px;
+        padding: 24px 14px 34px;
+        overflow-y: visible;
     }
 
     .medieval-scroll-stage.stage-step-0 .parchment-content,

@@ -648,6 +648,47 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
 
   const [hasOpenedInitially, setHasOpenedInitially] = useState<boolean>(false);
 
+  // ── Dynamic Scroll Stage Height Measurement (Scroll as large as content) ──
+  const parchmentContentRef = useRef<HTMLDivElement>(null);
+  const [scrollStageHeight, setScrollStageHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = parchmentContentRef.current;
+    if (!el) return;
+
+    const measureHeight = () => {
+      const activeChild = el.firstElementChild as HTMLElement | null;
+      if (!activeChild) return;
+
+      const contentH = Math.max(activeChild.scrollHeight, activeChild.offsetHeight);
+      if (contentH > 0) {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+        // Padding: desktop has ~84px in parchment-content + 34px rod overlap + 28px bottom buffer
+        const verticalBuffer = isMobile ? 86 : 142;
+        const minStageH = isSuccess ? 520 : step === 0 ? 380 : step === 1 ? 580 : 620;
+        const calculatedH = Math.max(minStageH, Math.ceil(contentH + verticalBuffer));
+        setScrollStageHeight(calculatedH);
+      }
+    };
+
+    measureHeight();
+
+    const ro = new ResizeObserver(() => {
+      measureHeight();
+    });
+
+    ro.observe(el);
+    if (el.firstElementChild) {
+      ro.observe(el.firstElementChild);
+    }
+
+    window.addEventListener('resize', measureHeight);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measureHeight);
+    };
+  }, [step, isSuccess, currentMemberIndex, members, screenshotPreview, errorMessage, paymentErrors, transactionId]);
+
   // Open the scroll immediately as the page loading animation ends
   useEffect(() => {
     if (hasOpenedInitially) return;
@@ -1470,7 +1511,10 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
 
       {/* ── Main Parchment Stage (Medieval Unrolling Scroll) ── */}
       <div className="reg-card-stage">
-        <div className={`medieval-scroll-stage ${stageStepClass} ${isScrollOpen ? 'open' : ''}`}>
+        <div
+          className={`medieval-scroll-stage ${stageStepClass} ${isScrollOpen ? 'open' : ''}`}
+          style={scrollStageHeight ? ({ '--scroll-stage-height': `${scrollStageHeight}px` } as React.CSSProperties) : undefined}
+        >
           {/* Top Rod */}
           <ScrollRodRow position="top" />
 
@@ -1488,7 +1532,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
               <div className="scroll-frame" />
 
               {/* Parchment Content Viewport */}
-              <div className="parchment-content">
+              <div className="parchment-content" ref={parchmentContentRef}>
                 {/* ── Step 0: Team Name Step ── */}
                 {step === 0 && !isSuccess && (
                   <form onSubmit={handleTeamNameNext} noValidate className="reg-form-step">
