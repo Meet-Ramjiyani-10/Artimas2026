@@ -535,11 +535,6 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       const trimmed = email.trim();
       if (!trimmed || !isValidEmailFormat(trimmed)) return '';
 
-      // PCCOE email format check: if format is invalid, let standard validator handle it
-      if (trimmed.toLowerCase().endsWith('@pccoepune.org') && !extractPccoeBatch(trimmed)) {
-        return '';
-      }
-
       const normalized = trimmed.toLowerCase();
       // Check cache first
       if (emailCheckCacheRef.current[normalized]) {
@@ -619,9 +614,6 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   useEffect(() => {
     const trimmed = currentMemberEmail.trim();
     if (!trimmed || !isValidEmailFormat(trimmed)) return;
-    if (trimmed.toLowerCase().endsWith('@pccoepune.org') && !extractPccoeBatch(trimmed)) {
-      return;
-    }
 
     const timer = setTimeout(() => {
       checkEmailRegistered(trimmed, currentMemberIndex);
@@ -796,13 +788,6 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       case 'email':
         if (!val) return 'Email ID is required.';
         if (!isValidEmailFormat(val)) return 'Please enter a valid email address.';
-        // If official PCCOE email is used, enforce name.surname<numbers max 4>@pccoepune.org format
-        if (val.trim().toLowerCase().endsWith('@pccoepune.org')) {
-          const batch = extractPccoeBatch(val);
-          if (!batch) {
-            return 'PCCOE email format for free registration: name.surname<numbers max 4>@pccoepune.org (e.g. first.last24@pccoepune.org)';
-          }
-        }
         // Duplicate check within team (case-insensitive)
         for (let i = 0; i < currentMembersList.length; i++) {
           if (i !== memberIdx && currentMembersList[i].email?.trim().toLowerCase() === val.toLowerCase()) {
@@ -1627,7 +1612,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                             value={members[currentMemberIndex]?.email || ''}
                             onChange={(e) => handleFieldChange('email', e.target.value)}
                             onBlur={() => handleFieldBlur('email')}
-                            placeholder="COLLEGE EMAIL ID (e.g. name.surname24@pccoepune.org)"
+                            placeholder="COLLEGE EMAIL ID"
                             className={`reg-input reg-input-email full-width ${currentErrors.email ? 'reg-input-error' : ''}`}
                             style={currentErrors.email ? { borderColor: '#dc2626', borderWidth: '2px', backgroundColor: 'rgba(254, 226, 226, 0.95)', boxShadow: '0 0 0 3px rgba(220, 38, 38, 0.25)', color: '#7f1d1d' } : {}}
                             autoCapitalize="none"
@@ -1823,7 +1808,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                           </span>
                         </div>
                         <p style={{ margin: 0, fontSize: '13px', color: 'var(--ink-soft)', lineHeight: '1.5' }}>
-                          All team members are verified PCCOE students (Batches 23-26). No payment is required for your entry.
+                          No payment is required for your entry.
                         </p>
                       </div>
                     )}
@@ -1841,7 +1826,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                         </div>
 
                         <p style={{ margin: '0 0 14px', fontSize: '13px', color: 'var(--ink-soft)', lineHeight: '1.5' }}>
-                          At least one team member is outside the PCCOE eligibility criteria. Standard event registration fee applies to the entire team.
+                          Standard event registration fee applies to your entry.
                         </p>
 
                         {/* QR Code */}

@@ -121,13 +121,6 @@ const validateMemberAgainstFields = (member, eventFields, prefix, eventSlug) => 
       case 'email':
         if (!isValidEmail(strValue)) {
           errors.push(`${prefix}: ${field.label || 'Email'} must be a valid email address (e.g. user@example.com)`);
-        } else if (strValue.toLowerCase().endsWith('@pccoepune.org')) {
-          const batch = extractPccoeBatch(strValue);
-          if (!batch) {
-            errors.push(
-              `${prefix}: PCCOE email for free registration must follow the format: name.surname<numbers max 4>@pccoepune.org (e.g. first.last24@pccoepune.org)`
-            );
-          }
         }
         break;
 
