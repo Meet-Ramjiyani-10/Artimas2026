@@ -7937,7 +7937,7 @@ body.mode-yugas .yuga-title-img.active {
         z-index: 22 !important;
         gap: 0 !important;
         transform: none !important;
-        touch-action: pan-y !important;
+        touch-action: none !important;
         overflow: visible !important;
         animation: yugaShowcaseRiseMobile 0.8s cubic-bezier(0.22, 1, 0.36, 1) both !important;
     }

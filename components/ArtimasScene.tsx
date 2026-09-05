@@ -154,7 +154,13 @@ export default function ArtimasScene() {
     };
   }, []);
 
+  const mobileCardIndexRef = useRef(mobileCardIndex);
+  useEffect(() => {
+    mobileCardIndexRef.current = mobileCardIndex;
+  }, [mobileCardIndex]);
+
   const handleDeckTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
     cardTouchStartX.current = e.touches[0].clientX;
     cardTouchStartY.current = e.touches[0].clientY;
     cardTouchDeltaX.current = 0;
@@ -162,11 +168,13 @@ export default function ArtimasScene() {
   };
 
   const handleDeckTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation();
     cardTouchDeltaX.current = e.touches[0].clientX - cardTouchStartX.current;
     cardTouchDeltaY.current = e.touches[0].clientY - cardTouchStartY.current;
   };
 
-  const handleDeckTouchEnd = () => {
+  const handleDeckTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
     if (switchTimerRef.current) return;
     const swipeThreshold = 35;
     if (
@@ -341,13 +349,64 @@ export default function ArtimasScene() {
     };
 
     let touchStartY = 0;
+    let touchStartX = 0;
+    let isCardZoneTouch = false;
+
     const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length) touchStartY = e.touches[0].clientY;
+      if (!e.touches.length) return;
+      const touch = e.touches[0];
+      touchStartY = touch.clientY;
+      touchStartX = touch.clientX;
+
+      const target = e.target as HTMLElement | null;
+      const isCardTarget = Boolean(
+        target && (
+          target.closest('.yuga-events-showcase') ||
+          target.closest('.yuga-decree-card') ||
+          target.closest('.mobile-deck-indicator') ||
+          target.closest('.deck-dot')
+        )
+      );
+
+      // Check if touch starts anywhere within the vertical band of the showcase cards
+      // (this catches edge swipes in the gutters next to the cards)
+      let isInShowcaseBand = false;
+      const showcaseEl = document.querySelector('.yuga-events-showcase');
+      if (showcaseEl) {
+        const rect = showcaseEl.getBoundingClientRect();
+        if (touch.clientY >= rect.top - 24 && touch.clientY <= rect.bottom + 24) {
+          isInShowcaseBand = true;
+        }
+      }
+
+      if (isCardTarget || isInShowcaseBand) {
+        isCardZoneTouch = true;
+        return;
+      }
+
+      isCardZoneTouch = false;
     };
+
     const onTouchEnd = (e: TouchEvent) => {
       if (!e.changedTouches.length || !isYugasModeRef.current) return;
-      const diffY = touchStartY - e.changedTouches[0].clientY;
-      if (Math.abs(diffY) > 35) rotateChakra(diffY > 0 ? 90 : -90);
+
+      const touch = e.changedTouches[0];
+      const diffX = touchStartX - touch.clientX;
+      const diffY = touchStartY - touch.clientY;
+
+      if (isCardZoneTouch) {
+        isCardZoneTouch = false;
+        // If swiped on or near the card edges, trigger card switch instead of changing Yuga!
+        if (Math.abs(diffX) > 35 || Math.abs(diffY) > 35) {
+          switchMobileCard(mobileCardIndexRef.current === 0 ? 1 : 0);
+        }
+        return; // NEVER rotate chakra from card zone!
+      }
+
+      // Outside card zone: only deliberate vertical swipes rotate the Chakra/Yuga
+      if (Math.abs(diffY) > 50 && Math.abs(diffY) > Math.abs(diffX) * 1.5) {
+        rotateChakra(diffY > 0 ? 90 : -90);
+      }
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -371,7 +430,7 @@ export default function ArtimasScene() {
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [goToYuga, rotateChakra]);
+  }, [goToYuga, rotateChakra, switchMobileCard]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
