@@ -552,8 +552,11 @@ export default function ArtimasScene() {
 
             {/* Temple Pillars Foreground */}
             <div className="parallax-layer layer-pillars">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={MEDIA.images.pillar} alt="" draggable={false} />
+              <picture className="pillar-picture">
+                <source media="(max-width: 960px)" srcSet={MEDIA.images.pillarMobile} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={MEDIA.images.pillar} alt="" draggable={false} />
+              </picture>
             </div>
           </div>
 

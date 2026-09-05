@@ -65,8 +65,11 @@ export default function SubpageLayout({
 
         {/* Subtle Temple Pillars framing */}
         <div className="parallax-layer layer-pillars" style={{ opacity: 0.35, pointerEvents: 'none' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={MEDIA.images.pillar} alt="" draggable={false} loading="lazy" decoding="async" />
+          <picture className="pillar-picture">
+            <source media="(max-width: 960px)" srcSet={MEDIA.images.pillarMobile} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={MEDIA.images.pillar} alt="" draggable={false} loading="lazy" decoding="async" />
+          </picture>
         </div>
       </div>
 
