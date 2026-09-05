@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { EVENT_CONTACTS, getAllEventContacts, getEventContacts, ContactPerson } from '@/lib/eventContacts';
-import { getEventWhatsAppGroup } from '@/lib/whatsappGroups';
+import { getEventContacts, ContactPerson } from '@/lib/eventContacts';
 
 interface EventContactButtonProps {
   currentEventSlug?: string;
@@ -17,7 +16,6 @@ export default function EventContactButton({
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState<string>(currentEventSlug);
-  const [showOtherEvents, setShowOtherEvents] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +32,6 @@ export default function EventContactButton({
 
   const handleOpen = () => {
     setSelectedSlug(currentEventSlug);
-    setShowOtherEvents(false);
     setIsOpen(true);
   };
 
@@ -131,9 +128,7 @@ export default function EventContactButton({
     };
   }, [mounted]);
 
-  const allEvents = getAllEventContacts();
   const activeEventGroup = getEventContacts(selectedSlug || currentEventSlug);
-  const whatsAppGroup = getEventWhatsAppGroup(activeEventGroup.eventSlug, activeEventGroup.eventName);
 
   const formatPhoneDisplay = (phone: string) => {
     const clean = phone.replace(/\D/g, '');
@@ -316,13 +311,6 @@ export default function EventContactButton({
             transform: translateY(0) scale(1);
           }
         }
-        .contact-tab-scroll::-webkit-scrollbar {
-          height: 4px;
-        }
-        .contact-tab-scroll::-webkit-scrollbar-thumb {
-          background: rgba(212, 175, 55, 0.4);
-          border-radius: 4px;
-        }
         .contact-list-scroll::-webkit-scrollbar {
           width: 5px;
         }
@@ -435,16 +423,6 @@ export default function EventContactButton({
                 >
                   {activeEventGroup.eventName.toUpperCase()} HEADS
                 </h2>
-                <p
-                  style={{
-                    margin: '3px 0 0',
-                    fontSize: '12px',
-                    color: '#e2d5be',
-                    lineHeight: '1.4',
-                  }}
-                >
-                  Official coordinators for {activeEventGroup.eventName} queries, rules & trial support.
-                </p>
               </div>
 
               {/* Close Button */}
@@ -481,88 +459,6 @@ export default function EventContactButton({
                 ✕
               </button>
             </div>
-
-            {/* Optional Event Switcher Bar */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '7px 18px',
-                background: 'rgba(10, 5, 2, 0.5)',
-                borderBottom: '1px solid rgba(212, 175, 55, 0.12)',
-                fontSize: '11px',
-              }}
-            >
-              <span style={{ color: '#d4af37' }}>
-                Showing heads for: <strong style={{ color: '#fffbeb', letterSpacing: '0.3px' }}>{activeEventGroup.eventName}</strong>
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowOtherEvents(!showOtherEvents)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#fbbf24',
-                  cursor: 'pointer',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  textDecoration: 'underline',
-                }}
-              >
-                {showOtherEvents ? '▲ Hide other events' : '▼ Other events'}
-              </button>
-            </div>
-
-            {/* Event Tabs (Collapsed by default, expands only if user clicks "Other events") */}
-            {showOtherEvents && (
-              <div
-                className="contact-tab-scroll"
-                style={{
-                  display: 'flex',
-                  gap: '8px',
-                  padding: '10px 18px',
-                  overflowX: 'auto',
-                  borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
-                  background: 'rgba(18, 9, 4, 0.7)',
-                  flexShrink: 0,
-                }}
-              >
-                {allEvents.map((evt) => {
-                  const isSelected = evt.eventSlug === activeEventGroup.eventSlug;
-                  return (
-                    <button
-                      key={evt.eventSlug}
-                      type="button"
-                      onClick={() => setSelectedSlug(evt.eventSlug)}
-                      style={{
-                        whiteSpace: 'nowrap',
-                        padding: '5px 12px',
-                        borderRadius: '20px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        letterSpacing: '0.5px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        border: isSelected ? '1.5px solid #fde047' : '1px solid rgba(212, 175, 55, 0.25)',
-                        background: isSelected
-                          ? 'linear-gradient(135deg, #d4af37, #a16207)'
-                          : 'rgba(255, 255, 255, 0.03)',
-                        color: isSelected ? '#120701' : '#fef3c7',
-                        boxShadow: isSelected ? '0 2px 10px rgba(212, 175, 55, 0.35)' : 'none',
-                      }}
-                    >
-                      {evt.eventName}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
 
             {/* Contact List */}
             <div
@@ -769,52 +665,6 @@ export default function EventContactButton({
                   </div>
                 );
               })}
-            </div>
-
-            {/* Footer: Official WhatsApp Community Link */}
-            <div
-              style={{
-                padding: '12px 18px',
-                borderTop: '1px solid rgba(212, 175, 55, 0.2)',
-                background: 'rgba(10, 5, 2, 0.6)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '10px',
-                flexShrink: 0,
-              }}
-            >
-              <div style={{ fontSize: '11.5px', color: '#e2d5be', lineHeight: '1.3' }}>
-                Join the official group for live announcements & schedules:
-              </div>
-
-              <a
-                href={whatsAppGroup.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  backgroundColor: '#25D366',
-                  color: '#062810',
-                  fontWeight: 700,
-                  fontSize: '12px',
-                  padding: '7px 14px',
-                  borderRadius: '6px',
-                  textDecoration: 'none',
-                  letterSpacing: '0.5px',
-                  transition: 'background-color 0.2s ease',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#22c55e')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#25D366')}
-              >
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                  <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c4.54 0 8.24 3.7 8.24 8.24 0 2.2-.86 4.27-2.42 5.82a8.196 8.196 0 0 1-5.82 2.41c-1.47 0-2.91-.39-4.17-1.14l-.3-.18-3.12.82.83-3.04-.2-.31a8.216 8.216 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24zm4.5 11.64c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.07-.39-2.03-1.25-.75-.67-1.26-1.5-1.41-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.22-.16-.47-.29z" />
-                </svg>
-                <span>WHATSAPP GROUP ↗</span>
-              </a>
             </div>
           </div>
         </div>
