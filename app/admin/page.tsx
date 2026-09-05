@@ -106,12 +106,17 @@ export default function AdminPortal() {
     setIsLoading(true);
     setErrorMessage('');
     try {
-      const headers = { Authorization: `Bearer ${authToken}` };
+      const cacheBust = Date.now();
+      const headers = {
+        Authorization: `Bearer ${authToken}`,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+      };
 
       const [eventsRes, regsRes, statsRes] = await Promise.all([
-        fetch(`${API_BASE}/admin/events`, { headers }),
-        fetch(`${API_BASE}/admin/registrations?limit=500`, { headers }),
-        fetch(`${API_BASE}/admin/stats`, { headers }),
+        fetch(`${API_BASE}/admin/events?_t=${cacheBust}`, { headers, cache: 'no-store' }),
+        fetch(`${API_BASE}/admin/registrations?limit=1000&_t=${cacheBust}`, { headers, cache: 'no-store' }),
+        fetch(`${API_BASE}/admin/stats?_t=${cacheBust}`, { headers, cache: 'no-store' }),
       ]);
 
       if (eventsRes.status === 401 || eventsRes.status === 403) {
@@ -240,9 +245,13 @@ export default function AdminPortal() {
     return registrations.filter((reg) => {
       // Event filter
       if (selectedEventFilter !== 'ALL') {
+        const sel = selectedEventFilter.toLowerCase();
+        const regName = (reg.eventName || '').toLowerCase();
+        const regSlug = (reg.eventSlug || '').toLowerCase();
         const matchesEvent =
-          (reg.eventName && reg.eventName.toLowerCase() === selectedEventFilter.toLowerCase()) ||
-          (reg.eventSlug && reg.eventSlug.toLowerCase() === selectedEventFilter.toLowerCase());
+          regName === sel ||
+          regSlug === sel ||
+          (sel.includes('capture') && regName.includes('capture'));
         if (!matchesEvent) return false;
       }
 
@@ -953,6 +962,29 @@ export default function AdminPortal() {
                         {isOpen ? 'OPEN' : 'CLOSED'}
                       </span>
                     </div>
+
+                    {/* View Attendees shortcut */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedEventFilter(event.name);
+                        setActiveTab('registrations');
+                      }}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        backgroundColor: '#1e293b',
+                        border: '1px solid #334155',
+                        color: '#cbd5e1',
+                        transition: 'all 0.2s',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      👥 View Attendees ({event.registrationCount})
+                    </button>
 
                     {/* Action Toggle Button */}
                     <button

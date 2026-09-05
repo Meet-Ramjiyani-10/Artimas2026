@@ -503,7 +503,13 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   const [isCheckingStatus, setIsCheckingStatus] = useState<boolean>(true);
 
   useEffect(() => {
-    fetch(`${API_BASE}/events/${event.slug}`)
+    fetch(`${API_BASE}/events/${event.slug}?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+      },
+    })
       .then((res) => res.json())
       .then((json) => {
         if (json.data) {
@@ -1088,6 +1094,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         response = await fetch(`${API_BASE}/registrations`, {
           method: 'POST',
           body: formData,
+          cache: 'no-store',
         });
       } else {
         // Submit JSON for ₹0 PCCOE registrations
@@ -1095,12 +1102,14 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
           },
           body: JSON.stringify({
             eventSlug: event.slug,
             teamName: teamName.trim() || members[0]?.name || '',
             members,
           }),
+          cache: 'no-store',
         });
       }
 

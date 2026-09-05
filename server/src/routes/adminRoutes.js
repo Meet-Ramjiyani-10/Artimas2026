@@ -17,6 +17,15 @@ const { validateVerification } = require('../middleware/validationMiddleware');
 router.use(protect);
 router.use(authorize('TECH_TEAM', 'ADMIN'));
 
+// Cache-busting middleware: prevent browser and intermediate proxy caching
+router.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
+
 // GET /api/admin/events
 router.get('/events', getAdminEvents);
 

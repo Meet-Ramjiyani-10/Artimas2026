@@ -18,6 +18,19 @@ const registrationSchema = new mongoose.Schema(
       index: true,
     },
 
+    eventId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Event',
+      index: true,
+    },
+
+    eventSlug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      index: true,
+    },
+
     eventName: {
       type: String,
       required: [true, 'Event name is required'],
@@ -82,6 +95,15 @@ const registrationSchema = new mongoose.Schema(
       trim: true,
     },
 
+    verification: {
+      verifiedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Admin',
+      },
+      verifiedAt: Date,
+      remarks: String,
+    },
+
     // Status is immediately CONFIRMED upon registration
     status: {
       type: String,
@@ -117,6 +139,8 @@ const registrationSchema = new mongoose.Schema(
 );
 
 // High-performance indexes
+registrationSchema.index({ eventId: 1, status: 1 });
+registrationSchema.index({ eventSlug: 1, status: 1 });
 registrationSchema.index({ eventName: 1, status: 1 });
 registrationSchema.index({ eventName: 1, leadEmail: 1 });
 registrationSchema.index({ eventName: 1, 'members.email': 1 });

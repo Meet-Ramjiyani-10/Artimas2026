@@ -1,5 +1,6 @@
 const path = require('path');
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
 const { uploadToCloudinary } = require('../config/cloudinary');
@@ -331,43 +332,105 @@ const createRegistration = async (req, res, next) => {
       }
     }
 
-    // B. Check if primary participant / team leader is already registered for this event
-    const leadEmail = sanitizedMembers[0]?.email ? sanitizedMembers[0].email.toLowerCase() : null;
-    if (leadEmail) {
-      const existingLead = await Registration.findOne({
-        eventName: event.name,
-        $or: [
-          { leadEmail: leadEmail },
-          { 'members.email': leadEmail },
-          { 'participantData.0.email': leadEmail },
-        ],
-        status: { $ne: 'REJECTED' },
-      });
-      if (existingLead) {
-        return res.status(409).json({
-          success: false,
-          message: `A registration for ${event.name} with email ${leadEmail} already exists (${existingLead.registrationId})`,
-        });
-      }
-    }
+    // B. Check that EVERY participant email in this submission is unique for this event
+    // (Every participant - whether team leader or member - can only be registered once per event)
+    const allParticipantEmails = sanitizedMembers
+      .map((m) => (m.email || '').trim().toLowerCase())
+      .filter(Boolean);
 
-    // C. Check if any team member is already participating in this event in another team
-    const allMemberEmails = sanitizedMembers.map((m) => m.email.toLowerCase());
-    const existingMemberReg = await Registration.findOne({
-      eventName: event.name,
-      $or: [
-        { 'members.email': { $in: allMemberEmails } },
-        { 'participantData.email': { $in: allMemberEmails } },
-      ],
+    // Find if ANY submitted email already exists in ANY existing registration for this specific event
+    // (checking leadEmail, members.email, participantData.email)
+    const existingRegistration = await Registration.findOne({
       status: { $ne: 'REJECTED' },
+      $and: [
+        {
+          $or: [
+            { eventId: event._id },
+            { eventSlug: event.slug },
+            { eventName: { $regex: new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+            ...(event.slug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
+          ],
+        },
+        {
+          $or: [
+            { leadEmail: { $in: allParticipantEmails } },
+            { 'members.email': { $in: allParticipantEmails } },
+            { 'participantData.email': { $in: allParticipantEmails } },
+            { 'participantData.0.email': { $in: allParticipantEmails } },
+          ],
+        },
+      ],
     });
 
-    if (existingMemberReg) {
+    if (existingRegistration) {
+      // Pinpoint exactly which participant/email caused the conflict
+      const clashingEmail = allParticipantEmails.find((email) => {
+        if (existingRegistration.leadEmail?.toLowerCase() === email) return true;
+        if (
+          Array.isArray(existingRegistration.members) &&
+          existingRegistration.members.some((m) => m.email?.toLowerCase() === email)
+        ) {
+          return true;
+        }
+        if (
+          Array.isArray(existingRegistration.participantData) &&
+          existingRegistration.participantData.some((p) => p.email?.toLowerCase() === email)
+        ) {
+          return true;
+        }
+        return false;
+      }) || allParticipantEmails[0];
+
+      const clashingMember = sanitizedMembers.find(
+        (m) => (m.email || '').trim().toLowerCase() === clashingEmail
+      );
+      const participantLabel = clashingMember?.name
+        ? `Participant "${clashingMember.name}" (${clashingEmail})`
+        : `Email "${clashingEmail}"`;
+
       return res.status(409).json({
         success: false,
-        message: `One or more team members are already registered for ${event.name} in registration ${existingMemberReg.registrationId}`,
+        message: `${participantLabel} is already registered for ${event.name} (Registration ID: ${existingRegistration.registrationId}). Every participant must have a unique email address and can only participate once in this event.`,
       });
     }
+
+    // Also check dedicated collection as safety fallback
+    try {
+      const cleanSlug = event.slug.replace(/-/g, '_');
+      const dedicatedCol = mongoose.connection.db.collection(`registrations_${cleanSlug}`);
+      const existingInDedicated = await dedicatedCol.findOne({
+        status: { $ne: 'REJECTED' },
+        $or: [
+          { leadEmail: { $in: allParticipantEmails } },
+          { 'members.email': { $in: allParticipantEmails } },
+        ],
+      });
+
+      if (existingInDedicated) {
+        const clashingEmail = allParticipantEmails.find((email) => {
+          if (existingInDedicated.leadEmail?.toLowerCase() === email) return true;
+          if (
+            Array.isArray(existingInDedicated.members) &&
+            existingInDedicated.members.some((m) => m.email?.toLowerCase() === email)
+          ) {
+            return true;
+          }
+          return false;
+        }) || allParticipantEmails[0];
+
+        const clashingMember = sanitizedMembers.find(
+          (m) => (m.email || '').trim().toLowerCase() === clashingEmail
+        );
+        const participantLabel = clashingMember?.name
+          ? `Participant "${clashingMember.name}" (${clashingEmail})`
+          : `Email "${clashingEmail}"`;
+
+        return res.status(409).json({
+          success: false,
+          message: `${participantLabel} is already registered for ${event.name} (Registration ID: ${existingInDedicated.registrationId}). Every participant must have a unique email address and can only participate once in this event.`,
+        });
+      }
+    } catch (e) {}
 
     // D. Check duplicate team name for the same event
     if (teamName && teamName.trim() && isTeamEvent) {
@@ -495,6 +558,8 @@ const createRegistration = async (req, res, next) => {
 
     const registrationData = {
       registrationId,
+      eventId: event._id,
+      eventSlug: event.slug,
       eventName: event.name,
 
       // Essential Contact Details
@@ -567,8 +632,8 @@ const createRegistration = async (req, res, next) => {
           required: paymentRequired,
           amount: payableAmount,
           status: paymentStatus,
-          transactionId: registration.payment?.transactionId,
-          screenshotUrl: registration.payment?.screenshotUrl,
+          transactionId: registration.transactionId || registration.payment?.transactionId,
+          screenshotUrl: registration.screenshotUrl || registration.payment?.screenshotUrl,
         },
         eligibility: {
           allPccoeEligible,
@@ -625,9 +690,9 @@ const getRegistration = async (req, res, next) => {
           ? registration.participantData.length
           : 1,
         status: registration.status,
-        paymentRequired: registration.payment?.required || false,
-        payableAmount: registration.payment?.amount || 0,
-        paymentStatus: registration.payment?.status || 'NOT_REQUIRED',
+        paymentRequired: (registration.amount > 0) || Boolean(registration.payment?.required),
+        payableAmount: registration.amount !== undefined ? registration.amount : (registration.payment?.amount || 0),
+        paymentStatus: registration.amount > 0 ? (registration.transactionId ? 'PENDING' : 'REQUIRED') : 'NOT_REQUIRED',
         eligibility: registration.eligibility,
         createdAt: registration.createdAt,
       },

@@ -34,10 +34,10 @@ export const MEDIA = {
     houdiniHeistArt: 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto/v1788310804/Untitled_-_September_02_2026_at_06.29.10.webp',
     chakraRotateBtn: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto/v1788353112/Untitled_-_September_02_2026_at_18.13.57.webp',
     calendarPages: {
-      page1: 'https://res.cloudinary.com/qllarlul/image/upload/v1788619378/1.webp',
-      page2: 'https://res.cloudinary.com/qllarlul/image/upload/v1788619378/2.webp',
-      page3: 'https://res.cloudinary.com/qllarlul/image/upload/v1788619378/1.webp',
-      page4: 'https://res.cloudinary.com/qllarlul/image/upload/v1788619378/4.webp',
+      page1: 'https://res.cloudinary.com/qllarlul/image/upload/v1788619378/1.webp?v=1',
+      page2: 'https://res.cloudinary.com/qllarlul/image/upload/v1788619378/2.webp?v=1',
+      page3: 'https://res.cloudinary.com/qllarlul/image/upload/v1788619378/3.webp?v=1',
+      page4: 'https://res.cloudinary.com/qllarlul/image/upload/v1788619378/4.webp?v=1',
     },
     footerLogos: {
       aimsa: 'https://res.cloudinary.com/qllarlul/image/upload/v1788372702/xijdufnorzgujqejjosp.webp',
