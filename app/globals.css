@@ -6782,12 +6782,12 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .footer-logos-grid {
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-    column-gap: clamp(16px, 2vw, 28px);
-    row-gap: 16px;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: clamp(10px, 1.2vw, 20px);
 }
 
 .footer-logo-aimsa-link {
@@ -6798,6 +6798,7 @@ body.mode-yugas .yuga-title-img.active {
     transition: transform 0.25s ease, filter 0.25s ease;
     cursor: pointer;
     user-select: none;
+    flex-shrink: 0;
 }
 
 .footer-logo-aimsa-link:hover {
@@ -6810,15 +6811,15 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .footer-aimsa-img {
-    height: clamp(48px, 5.4vw, 58px);
+    height: clamp(36px, 3.8vw, 48px);
     width: auto;
     object-fit: contain;
     display: block;
 }
 
 .footer-logo-circle {
-    width: clamp(52px, 5.5vw, 62px);
-    height: clamp(52px, 5.5vw, 62px);
+    width: clamp(40px, 4.2vw, 50px);
+    height: clamp(40px, 4.2vw, 50px);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -6828,6 +6829,7 @@ body.mode-yugas .yuga-title-img.active {
     cursor: pointer;
     user-select: none;
     text-decoration: none;
+    flex-shrink: 0;
 }
 
 .footer-logo-circle:hover {
@@ -6853,9 +6855,10 @@ body.mode-yugas .yuga-title-img.active {
 
 /* IEEE CIS: sharp, high-contrast, large text circular badge */
 .ieee-cis-circle {
-    width: clamp(54px, 5.8vw, 64px);
-    height: clamp(54px, 5.8vw, 64px);
+    width: clamp(42px, 4.4vw, 52px);
+    height: clamp(42px, 4.4vw, 52px);
     padding: 2px;
+    flex-shrink: 0;
 }
 
 .ieee-cis-img {
@@ -6867,8 +6870,8 @@ body.mode-yugas .yuga-title-img.active {
 
 /* IEEE CS: sleek horizontal oval badge with crisp legibility */
 .footer-logo-cs-btn {
-    width: clamp(68px, 7.2vw, 84px);
-    height: clamp(46px, 4.8vw, 54px);
+    width: clamp(56px, 5.8vw, 68px);
+    height: clamp(38px, 4vw, 46px);
     border-radius: 50%;
     display: inline-flex;
     align-items: center;
@@ -6879,6 +6882,7 @@ body.mode-yugas .yuga-title-img.active {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
     user-select: none;
+    flex-shrink: 0;
 }
 
 .footer-logo-cs-btn:hover {
@@ -7190,8 +7194,8 @@ body.mode-yugas .yuga-title-img.active {
 
 @media (max-width: 480px) {
     .footer-logos-grid {
-        column-gap: 12px;
-        row-gap: 12px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .footer-aimsa-img {
