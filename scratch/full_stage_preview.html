@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Full Scroll Stage Preview</title>
+<style>
+  body {
+    background: #0f0704 radial-gradient(circle at 50% 30%, #261208 0%, #0a0402 100%);
+    color: #e5d2b8;
+    font-family: system-ui, -apple-system, sans-serif;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    margin: 0;
+  }
+  h2 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #dfa742;
+  }
+
+  .scroll-stage {
+    position: relative;
+    width: 620px;
+    height: 380px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .scroll-rod-row {
+    position: absolute;
+    left: 50%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    z-index: 8;
+    pointer-events: none;
+  }
+  .scroll-rod-row.top { top: 16px; }
+  .scroll-rod-row.bottom { top: calc(100% - 16px); }
+
+  .parchment-wrap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 84%;
+    max-width: 580px;
+    height: calc(100% - 32px);
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    z-index: 3;
+    border-radius: 2px;
+    box-shadow: 0 14px 42px rgba(0, 0, 0, 0.8), 0 0 24px rgba(200, 130, 40, 0.25);
+  }
+
+  .parchment {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255, 235, 180, 0.32), transparent 50%),
+      radial-gradient(ellipse at 85% 90%, rgba(65, 35, 10, 0.28), transparent 50%),
+      linear-gradient(165deg, #fbf3e2 0%, #f0dcaf 48%, #deb878 100%);
+    box-shadow:
+      inset 0 0 54px rgba(65, 35, 10, 0.48),
+      inset 0 0 18px rgba(185, 120, 40, 0.22);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+
+  /* Paper curled edge contact shadow */
+  .parchment::before,
+  .parchment::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 38px;
+    pointer-events: none;
+    z-index: 5;
+  }
+  .parchment::before {
+    top: 0;
+    background: linear-gradient(180deg, rgba(44, 21, 6, 0.7) 0%, rgba(44, 21, 6, 0.2) 65%, transparent 100%);
+  }
+  .parchment::after {
+    bottom: 0;
+    background: linear-gradient(0deg, rgba(44, 21, 6, 0.7) 0%, rgba(44, 21, 6, 0.2) 65%, transparent 100%);
+  }
+
+  .scroll-frame {
+    position: absolute;
+    inset: 22px 14px;
+    border: 1.5px solid rgba(138, 86, 34, 0.55);
+    outline: 1px solid rgba(212, 160, 50, 0.35);
+    outline-offset: 3px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .scroll-title {
+    font-family: 'Cinzel', serif, 'Times New Roman';
+    font-size: 32px;
+    color: #1f0e03;
+    letter-spacing: 6px;
+    font-weight: 800;
+    margin: 0 0 6px;
+    text-shadow: 0 1px 1px rgba(255,255,255,0.4);
+  }
+  .scroll-subtitle {
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: #7c4c1e;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  /* ================= NEW ROD BAR ================= */
+  .scroll-rod-bar {
+    width: 84%;
+    max-width: 580px;
+    height: 22px;
+    border-radius: 4px;
+    background: linear-gradient(180deg,
+      #fffce8 0%,
+      #fae18c 12%,
+      #dfa742 28%,
+      #9a5e18 48%,
+      #3d1803 72%,
+      #1a0802 85%,
+      #461f05 93%,
+      #9c6622 100%
+    );
+    box-shadow:
+      inset 0 1.5px 1.5px rgba(255, 255, 255, 0.85),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.9),
+      0 6px 20px rgba(0, 0, 0, 0.85),
+      0 0 20px rgba(220, 155, 45, 0.35);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Bottom rod has slightly inverted light reflection */
+  .scroll-rod-row.bottom .scroll-rod-bar {
+    background: linear-gradient(180deg,
+      #fffce8 0%,
+      #fae18c 14%,
+      #dfa742 30%,
+      #965814 50%,
+      #3a1502 70%,
+      #1a0701 84%,
+      #4c2206 93%,
+      #9e6824 100%
+    );
+    box-shadow:
+      inset 0 1.5px 1.5px rgba(255, 255, 255, 0.85),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.9),
+      0 -4px 18px rgba(0, 0, 0, 0.85),
+      0 0 20px rgba(220, 155, 45, 0.35);
+  }
+
+  .scroll-finial {
+    width: 72px;
+    height: 64px;
+    flex: 0 0 auto;
+    margin: 0 -13px;
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 12px rgba(220, 155, 45, 0.45));
+    z-index: 5;
+  }
+  .scroll-finial.right {
+    transform: scaleX(-1);
+  }
+
+  /* Corner Flourishes */
+  .corner-flourish {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .corner-flourish.tl { top: 22px; left: 14px; }
+  .corner-flourish.tr { top: 22px; right: 14px; transform: scaleX(-1); }
+  .corner-flourish.bl { bottom: 22px; left: 14px; transform: scaleY(-1); }
+  .corner-flourish.br { bottom: 22px; right: 14px; transform: scale(-1); }
+</style>
+</head>
+<body>
+
+  <h2>Masterwork Scroll Stage Redesign Preview</h2>
+
+  <div class="scroll-stage">
+    <!-- Top Rod -->
+    <div class="scroll-rod-row top">
+      <svg class="scroll-finial" viewBox="0 0 76 64"><use href="#finial-shape" /></svg>
+      <div class="scroll-rod-bar"></div>
+      <svg class="scroll-finial right" viewBox="0 0 76 64"><use href="#finial-shape" /></svg>
+    </div>
+
+    <!-- Parchment Wrap -->
+    <div class="parchment-wrap">
+      <div class="parchment">
+        <div class="scroll-frame"></div>
+        <svg class="corner-flourish tl" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+        <svg class="corner-flourish tr" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+        <svg class="corner-flourish bl" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+        <svg class="corner-flourish br" viewBox="0 0 64 64"><use href="#corner-shape" /></svg>
+
+        <h1 class="scroll-title">DATATHON</h1>
+        <p class="scroll-subtitle">TRETA YUGA | EPOCH TRIAL</p>
+      </div>
+    </div>
+
+    <!-- Bottom Rod -->
+    <div class="scroll-rod-row bottom">
+      <svg class="scroll-finial" viewBox="0 0 76 64"><use href="#finial-shape" /></svg>
+      <div class="scroll-rod-bar"></div>
+      <svg class="scroll-finial right" viewBox="0 0 76 64"><use href="#finial-shape" /></svg>
+    </div>
+  </div>
+
+  <!-- SVG DEFS -->
+  <svg width="0" height="0" style="position: absolute;">
+    <defs>
+      <!-- Cylindrical gold for collars & rods -->
+      <linearGradient id="goldCylinder" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fff8d2" />
+        <stop offset="12%" stop-color="#fae28e" />
+        <stop offset="28%" stop-color="#dfa742" />
+        <stop offset="52%" stop-color="#8a4f14" />
+        <stop offset="78%" stop-color="#2a1103" />
+        <stop offset="92%" stop-color="#562807" />
+        <stop offset="100%" stop-color="#a86e22" />
+      </linearGradient>
+
+      <!-- Spherical 3D shading for pommel bulbs -->
+      <radialGradient id="pommelRadial" cx="35%" cy="24%" r="72%">
+        <stop offset="0%" stop-color="#fffef0" />
+        <stop offset="20%" stop-color="#fce288" />
+        <stop offset="48%" stop-color="#c98622" />
+        <stop offset="78%" stop-color="#542306" />
+        <stop offset="100%" stop-color="#180701" />
+      </radialGradient>
+
+      <!-- Solar Topaz Gemstone -->
+      <radialGradient id="solarGem" cx="30%" cy="26%" r="68%">
+        <stop offset="0%" stop-color="#ffffff" />
+        <stop offset="22%" stop-color="#ffe68e" />
+        <stop offset="58%" stop-color="#ea580c" />
+        <stop offset="88%" stop-color="#7c1c04" />
+        <stop offset="100%" stop-color="#2a0601" />
+      </radialGradient>
+
+      <!-- MASTERWORK FINIAL -->
+      <g id="finial-shape">
+        <!-- 1. Ferrule / Sleeve: seamlessly caps over the rod cylinder (X=54..76) -->
+        <rect x="56" y="20.5" width="20" height="23" rx="1.5" fill="url(#goldCylinder)" stroke="#3d1903" stroke-width="0.7" />
+        <!-- Stepped Beveled Ring at rod entrance -->
+        <rect x="52" y="18" width="6" height="28" rx="2" fill="url(#goldCylinder)" stroke="#fce392" stroke-width="0.8" />
+        <line x1="55" y1="18.5" x2="55" y2="45.5" stroke="#ffeaa0" stroke-width="0.8" opacity="0.9" />
+
+        <!-- 2. Lathe-Turned Waist (X=42..52) -->
+        <path d="M 52,21 C 48,23 45,24 43,24 L 43,40 C 45,41 48,41 52,43 Z" fill="url(#goldCylinder)" />
+        <!-- Torus Bead -->
+        <ellipse cx="42.5" cy="32" rx="3" ry="12" fill="url(#goldCylinder)" stroke="#ffeaa0" stroke-width="0.7" />
+        <ellipse cx="42" cy="23" rx="1.6" ry="1" fill="#ffffff" opacity="0.75" />
+
+        <!-- 3. Royal Pommel Bulb (X=14..40) -->
+        <path
+          d="M 40,23
+             C 36,15 31,8 23,8
+             C 14,8 11,18 11,24
+             L 11,40
+             C 11,46 14,56 23,56
+             C 31,56 36,49 40,41 Z"
+          fill="url(#pommelRadial)"
+          stroke="#4a2104"
+          stroke-width="1.1"
+        />
+
+        <!-- Top Petal Flute highlight -->
+        <path
+          d="M 39,24
+             C 33,15 28,10 23,10
+             C 16,10 13,18 13,23
+             C 20,21 30,21 39,24 Z"
+          fill="#fff5ca"
+          opacity="0.65"
+        />
+        <ellipse cx="23" cy="13.5" rx="7.5" ry="2.2" fill="#ffffff" opacity="0.8" />
+
+        <!-- Bottom Petal Flute core shadow -->
+        <path
+          d="M 39,40
+             C 33,49 28,54 23,54
+             C 16,54 13,46 13,41
+             C 20,43 30,43 39,40 Z"
+          fill="#160601"
+          opacity="0.75"
+        />
+
+        <!-- Carved Longitudinal Ribs -->
+        <path d="M 38,28 C 30,26 21,26 12,30" fill="none" stroke="#683409" stroke-width="0.8" opacity="0.7" />
+        <path d="M 38,36 C 30,38 21,38 12,34" fill="none" stroke="#2a1003" stroke-width="0.8" opacity="0.7" />
+
+        <!-- Central Gemstone Medallion -->
+        <circle cx="23" cy="32" r="8.5" fill="url(#goldCylinder)" stroke="#fae18c" stroke-width="1.1" />
+        <circle cx="23" cy="32" r="6.6" fill="#2d1203" />
+        <circle cx="23" cy="32" r="5.2" fill="url(#solarGem)" stroke="#ffd777" stroke-width="0.8" />
+        <circle cx="21.2" cy="30.2" r="1.5" fill="#ffffff" opacity="0.95" />
+        <circle cx="24.5" cy="33.5" r="0.7" fill="#ffffff" opacity="0.6" />
+
+        <!-- 4. Spire Tip (X=1..12) -->
+        <rect x="9.5" y="24.5" width="3" height="15" rx="1.5" fill="url(#goldCylinder)" stroke="#f7d58b" stroke-width="0.6" />
+        <path
+          d="M 10,26
+             C 8,26 5,28 1,32
+             C 5,36 8,38 10,38 Z"
+          fill="url(#goldCylinder)"
+          stroke="#4e2104"
+          stroke-width="0.8"
+        />
+        <path d="M 10,26 C 8,26 5,28 1,32 L 10,32 Z" fill="#fff3bd" opacity="0.65" />
+        <path d="M 1,32 L 3,30.5 L 5,32 L 3,33.5 Z" fill="#ffffff" opacity="0.95" />
+        <circle cx="1" cy="32" r="1.2" fill="#ffffff" />
+      </g>
+
+      <!-- Corner flourish from existing code -->
+      <g id="corner-shape">
+        <path
+          d="M2,2 C22,2 24,8 24,14 C24,20 30,18 34,22 C24,20 20,26 20,20 C20,14 14,12 8,12 C4,12 2,8 2,2 Z"
+          fill="none" stroke="#946222" stroke-width="2.2" stroke-linecap="round"
+        />
+        <path d="M2,2 C10,2 14,4 14,10" fill="none" stroke="#ba8536" stroke-width="1.4" stroke-linecap="round" />
+        <circle cx="2" cy="2" r="3.2" fill="#d99f3b" stroke="#4a2a0c" stroke-width="0.6" />
+        <circle cx="30" cy="20" r="2.2" fill="#f0be54" stroke="#4a2a0c" stroke-width="0.5" />
+      </g>
+    </defs>
+  </svg>
+
+</body>
+</html>

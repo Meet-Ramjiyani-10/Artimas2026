@@ -348,6 +348,7 @@ function ScrollSvgDefs() {
   return (
     <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }} aria-hidden="true">
       <defs>
+        {/* Legacy gradients for backwards compatibility */}
         <linearGradient id="metalGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#fae18c" />
           <stop offset="22%" stopColor="#dfa742" />
@@ -362,16 +363,107 @@ function ScrollSvgDefs() {
           <stop offset="100%" stopColor="#92400e" />
         </linearGradient>
 
+        {/* Masterwork Imperial Gold Cylinder Gradient for collars & rods */}
+        <linearGradient id="goldCylinder" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fff8d2" />
+          <stop offset="12%" stopColor="#fae28e" />
+          <stop offset="28%" stopColor="#dfa742" />
+          <stop offset="52%" stopColor="#8a4f14" />
+          <stop offset="78%" stopColor="#2a1103" />
+          <stop offset="92%" stopColor="#562807" />
+          <stop offset="100%" stopColor="#a86e22" />
+        </linearGradient>
+
+        {/* Spherical 3D shading for turned pommel bulb */}
+        <radialGradient id="pommelRadial" cx="35%" cy="24%" r="72%">
+          <stop offset="0%" stopColor="#fffef0" />
+          <stop offset="20%" stopColor="#fce288" />
+          <stop offset="48%" stopColor="#c98622" />
+          <stop offset="78%" stopColor="#542306" />
+          <stop offset="100%" stopColor="#180701" />
+        </radialGradient>
+
+        {/* Faceted Solar Topaz Gemstone */}
+        <radialGradient id="solarGem" cx="30%" cy="26%" r="68%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="22%" stopColor="#ffe68e" />
+          <stop offset="58%" stopColor="#ea580c" />
+          <stop offset="88%" stopColor="#7c1c04" />
+          <stop offset="100%" stopColor="#2a0601" />
+        </radialGradient>
+
+        {/* Masterwork Turned Imperial Baluster Finial */}
         <g id="finial-shape">
+          {/* 1. Ferrule / Sleeve: seamlessly caps over the rod cylinder (X=54..76) */}
+          <rect x="56" y="20.5" width="20" height="23" rx="1.5" fill="url(#goldCylinder)" stroke="#3d1903" strokeWidth="0.7" />
+          {/* Stepped Beveled Ring at rod entrance */}
+          <rect x="52" y="18" width="6" height="28" rx="2" fill="url(#goldCylinder)" stroke="#fce392" strokeWidth="0.8" />
+          <line x1="55" y1="18.5" x2="55" y2="45.5" stroke="#ffeaa0" strokeWidth="0.8" opacity="0.9" />
+
+          {/* 2. Lathe-Turned Waist (X=42..52) */}
+          <path d="M 52,21 C 48,23 45,24 43,24 L 43,40 C 45,41 48,41 52,43 Z" fill="url(#goldCylinder)" />
+          {/* Torus Bead */}
+          <ellipse cx="42.5" cy="32" rx="3" ry="12" fill="url(#goldCylinder)" stroke="#ffeaa0" strokeWidth="0.7" />
+          <ellipse cx="42" cy="23" rx="1.6" ry="1" fill="#ffffff" opacity="0.75" />
+
+          {/* 3. Royal Pommel Bulb (X=14..40) */}
           <path
-            d="M54,32 C50,14 32,6 14,10 C4,12 2,20 8,24 C16,29 24,24 28,29 C24,34 16,29 8,34 C2,38 4,46 14,48 C32,52 50,44 54,32 Z"
-            fill="url(#metalGrad)"
-            stroke="#d4a753"
+            d="M 40,23
+               C 36,15 31,8 23,8
+               C 14,8 11,18 11,24
+               L 11,40
+               C 11,46 14,56 23,56
+               C 31,56 36,49 40,41 Z"
+            fill="url(#pommelRadial)"
+            stroke="#4a2104"
+            strokeWidth="1.1"
+          />
+
+          {/* Top Petal Flute highlight */}
+          <path
+            d="M 39,24
+               C 33,15 28,10 23,10
+               C 16,10 13,18 13,23
+               C 20,21 30,21 39,24 Z"
+            fill="#fff5ca"
+            opacity="0.65"
+          />
+          <ellipse cx="23" cy="13.5" rx="7.5" ry="2.2" fill="#ffffff" opacity="0.8" />
+
+          {/* Bottom Petal Flute core shadow */}
+          <path
+            d="M 39,40
+               C 33,49 28,54 23,54
+               C 16,54 13,46 13,41
+               C 20,43 30,43 39,40 Z"
+            fill="#160601"
+            opacity="0.75"
+          />
+
+          {/* Carved Longitudinal Ribs */}
+          <path d="M 38,28 C 30,26 21,26 12,30" fill="none" stroke="#683409" strokeWidth="0.8" opacity="0.7" />
+          <path d="M 38,36 C 30,38 21,38 12,34" fill="none" stroke="#2a1003" strokeWidth="0.8" opacity="0.7" />
+
+          {/* Central Gemstone Medallion */}
+          <circle cx="23" cy="32" r="8.5" fill="url(#goldCylinder)" stroke="#fae18c" strokeWidth="1.1" />
+          <circle cx="23" cy="32" r="6.6" fill="#2d1203" />
+          <circle cx="23" cy="32" r="5.2" fill="url(#solarGem)" stroke="#ffd777" strokeWidth="0.8" />
+          <circle cx="21.2" cy="30.2" r="1.5" fill="#ffffff" opacity="0.95" />
+          <circle cx="24.5" cy="33.5" r="0.7" fill="#ffffff" opacity="0.6" />
+
+          {/* 4. Spire Tip (X=1..12) */}
+          <rect x="9.5" y="24.5" width="3" height="15" rx="1.5" fill="url(#goldCylinder)" stroke="#f7d58b" strokeWidth="0.6" />
+          <path
+            d="M 10,26
+               C 8,26 5,28 1,32
+               C 5,36 8,38 10,38 Z"
+            fill="url(#goldCylinder)"
+            stroke="#4e2104"
             strokeWidth="0.8"
           />
-          <circle cx="52" cy="32" r="9" fill="url(#metalGrad)" stroke="#f7d58b" strokeWidth="1.2" />
-          <circle cx="52" cy="32" r="4.5" fill="url(#gemGrad)" stroke="#ffd875" strokeWidth="0.8" />
-          <circle cx="53" cy="31" r="1.5" fill="#ffffff" opacity="0.9" />
+          <path d="M 10,26 C 8,26 5,28 1,32 L 10,32 Z" fill="#fff3bd" opacity="0.65" />
+          <path d="M 1,32 L 3,30.5 L 5,32 L 3,33.5 Z" fill="#ffffff" opacity="0.95" />
+          <circle cx="1" cy="32" r="1.2" fill="#ffffff" />
         </g>
 
         <g id="corner-shape">
@@ -388,6 +480,16 @@ function ScrollSvgDefs() {
         </g>
       </defs>
     </svg>
+  );
+}
+
+function ScrollRodRow({ position }: { position: 'top' | 'bottom' }) {
+  return (
+    <div className={`scroll-rod-row ${position}`}>
+      <svg className="scroll-finial" viewBox="0 0 76 64"><use href="#finial-shape" /></svg>
+      <div className="scroll-rod-bar" />
+      <svg className="scroll-finial right" viewBox="0 0 76 64"><use href="#finial-shape" /></svg>
+    </div>
   );
 }
 
@@ -1060,11 +1162,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         <div className="reg-card-stage">
           <div className={`medieval-scroll-stage stage-step-closed ${isScrollOpen ? 'open' : ''}`}>
             {/* Top Rod */}
-            <div className="scroll-rod-row top">
-              <svg className="scroll-finial" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
-              <div className="scroll-rod-bar" />
-              <svg className="scroll-finial right" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
-            </div>
+            <ScrollRodRow position="top" />
 
             {/* Parchment Wrap */}
             <div className="parchment-wrap">
@@ -1114,11 +1212,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
             </div>
 
             {/* Bottom Rod */}
-            <div className="scroll-rod-row bottom">
-              <svg className="scroll-finial" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
-              <div className="scroll-rod-bar" />
-              <svg className="scroll-finial right" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
-            </div>
+            <ScrollRodRow position="bottom" />
           </div>
 
           {/* ── Event Schedule & Trial Specifications ── */}
@@ -1157,11 +1251,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       <div className="reg-card-stage">
         <div className={`medieval-scroll-stage ${stageStepClass} ${isScrollOpen ? 'open' : ''}`}>
           {/* Top Rod */}
-          <div className="scroll-rod-row top">
-            <svg className="scroll-finial" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
-            <div className="scroll-rod-bar" />
-            <svg className="scroll-finial right" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
-          </div>
+          <ScrollRodRow position="top" />
 
           {/* Parchment Wrap */}
           <div className="parchment-wrap">
@@ -1685,11 +1775,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
           </div>
 
           {/* Bottom Rod */}
-          <div className="scroll-rod-row bottom">
-            <svg className="scroll-finial" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
-            <div className="scroll-rod-bar" />
-            <svg className="scroll-finial right" viewBox="0 0 60 64"><use href="#finial-shape" /></svg>
-          </div>
+          <ScrollRodRow position="bottom" />
         </div>
 
         {/* ── Event Schedule & Trial Specifications ── */}
