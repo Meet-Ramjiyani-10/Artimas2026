@@ -16,10 +16,16 @@ const app = express();
 app.use(helmet());
 
 // ── CORS ──
+const rawClientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.trim().replace(/\/+$/, '') : '';
+const normalizedClientUrl = rawClientUrl && !/^https?:\/\//i.test(rawClientUrl)
+  ? `https://${rawClientUrl}`
+  : rawClientUrl;
+
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
-  process.env.CLIENT_URL,
+  rawClientUrl,
+  normalizedClientUrl,
 ].filter(Boolean);
 
 app.use(
@@ -27,7 +33,16 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (curl, server-to-server, mobile)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+
+      // Normalize incoming origin by removing trailing slash
+      const cleanOrigin = origin.replace(/\/+$/, '');
+
+      // Allow matching origins, local development, or any Vercel deployment preview
+      if (
+        allowedOrigins.includes(cleanOrigin) ||
+        cleanOrigin.endsWith('.vercel.app') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
         return callback(null, true);
       }
       return callback(new Error(`CORS policy does not allow access from origin: ${origin}`));
