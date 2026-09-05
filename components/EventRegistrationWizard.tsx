@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { EventItem } from '@/lib/events';
 import { getIsPageTransitionLoading, subscribeToPageTransition } from '@/lib/pageTransitionState';
 import WhatsAppGroupCard from './WhatsAppGroupCard';
+import EventContactButton from './EventContactButton';
 
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL || '/api').replace(/\/+$/, '');
 
@@ -1457,6 +1458,9 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
           {/* ── Event Schedule & Trial Specifications ── */}
           <EventSpecsCard schedule={schedule} />
         </div>
+
+        {/* ── Floating Contact Us Button ── */}
+        <EventContactButton currentEventSlug={event.slug} currentEventName={event.name} />
       </div>
     );
   }
@@ -2029,6 +2033,9 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
         {/* ── Event Schedule & Trial Specifications (Only in wizard, hidden upon success) ── */}
         {!isSuccess && <EventSpecsCard schedule={schedule} />}
       </div>
+
+      {/* ── Floating Contact Us Button in Bottom-Right Corner ── */}
+      <EventContactButton currentEventSlug={event.slug} currentEventName={event.name} />
     </div>
   );
 }

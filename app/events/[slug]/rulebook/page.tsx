@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getEventBySlug } from '@/lib/events';
 import SubpageLayout from '@/components/SubpageLayout';
+import EventContactButton from '@/components/EventContactButton';
 
 const rawBackend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 const API_BASE = rawBackend.endsWith('/api') ? rawBackend : `${rawBackend.replace(/\/+$/, '')}/api`;
@@ -108,6 +109,7 @@ export default async function RulebookPage({ params }: RulebookPageProps) {
           </div>
         </div>
       </div>
+      <EventContactButton currentEventSlug={slug} currentEventName={event.name} />
     </SubpageLayout>
   );
 }
