@@ -16,6 +16,14 @@ const adminSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+      index: true,
+    },
     passwordHash: {
       type: String,
       required: [true, 'Password is required'],
@@ -23,8 +31,27 @@ const adminSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['TECH_TEAM', 'ADMIN'],
-      default: 'TECH_TEAM',
+      enum: ['MASTER_ADMIN', 'ADMIN', 'TECH_TEAM', 'EVENT_ADMIN'],
+      default: 'MASTER_ADMIN',
+      index: true,
+    },
+    eventId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Event',
+      default: null,
+      index: true,
+    },
+    eventSlug: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: null,
+      index: true,
+    },
+    eventName: {
+      type: String,
+      trim: true,
+      default: null,
     },
   },
   {

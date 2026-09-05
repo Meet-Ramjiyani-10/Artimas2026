@@ -95,6 +95,21 @@ const registrationSchema = new mongoose.Schema(
       trim: true,
     },
 
+    verified: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    verifiedAt: {
+      type: Date,
+      default: null,
+    },
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Admin',
+      default: null,
+    },
+
     verification: {
       verifiedBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -141,6 +156,8 @@ const registrationSchema = new mongoose.Schema(
 // High-performance indexes
 registrationSchema.index({ eventId: 1, status: 1 });
 registrationSchema.index({ eventSlug: 1, status: 1 });
+registrationSchema.index({ eventId: 1, verified: 1 });
+registrationSchema.index({ eventSlug: 1, verified: 1 });
 registrationSchema.index({ eventName: 1, status: 1 });
 registrationSchema.index({ eventName: 1, leadEmail: 1 });
 registrationSchema.index({ eventName: 1, 'members.email': 1 });

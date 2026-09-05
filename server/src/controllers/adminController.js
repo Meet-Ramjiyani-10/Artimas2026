@@ -3,6 +3,7 @@ const Registration = require('../models/Registration');
 const Event = require('../models/Event');
 const sendVerificationEmail = require('../utils/sendVerificationEmail');
 const { syncToEventCollection } = require('../utils/eventCollectionHelper');
+const { isMasterAdmin } = require('../middleware/authMiddleware');
 
 /**
  * Helper to build an event name-to-slug mapping cache.
@@ -21,7 +22,7 @@ const getEventMap = async () => {
 /**
  * @desc    Get all registrations (admin view) with filtering, search, and pagination
  * @route   GET /api/admin/registrations
- * @access  Protected (TECH_TEAM, ADMIN)
+ * @access  Protected (MASTER_ADMIN, ADMIN, TECH_TEAM, EVENT_ADMIN)
  */
 const getRegistrations = async (req, res, next) => {
   try {
@@ -36,56 +37,103 @@ const getRegistrations = async (req, res, next) => {
       page = 1,
       limit = 25,
       search,
+      verificationStatus,
+      verified,
     } = req.query;
 
     const andConditions = [];
 
+    // Role-based scoping: Event admins can ONLY access their assigned event
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const requestedSlug = eventSlug && eventSlug !== 'ALL' ? eventSlug.toLowerCase() : null;
+      const requestedId = eventId && eventId !== 'ALL' ? String(eventId) : null;
+
+      if (requestedSlug && requestedSlug !== req.admin.eventSlug?.toLowerCase()) {
+        return res.status(403).json({
+          success: false,
+          message: `Forbidden: You are only authorized to access ${req.admin.eventName || req.admin.eventSlug}`,
+        });
+      }
+      if (requestedId && requestedId !== String(req.admin.eventId)) {
+        return res.status(403).json({
+          success: false,
+          message: `Forbidden: You are only authorized to access ${req.admin.eventName || req.admin.eventSlug}`,
+        });
+      }
+
+      // Enforce query restriction to event admin's assigned event
+      const eventNameRegex = new RegExp(`^${(req.admin.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+      andConditions.push({
+        $or: [
+          ...(req.admin.eventId ? [{ eventId: req.admin.eventId }] : []),
+          ...(req.admin.eventSlug ? [{ eventSlug: req.admin.eventSlug }] : []),
+          ...(req.admin.eventName ? [{ eventName: eventNameRegex }] : []),
+          ...(req.admin.eventSlug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
+        ],
+      });
+    } else {
+      // Master Admin / Tech Team filtering
+      if (eventSlug && eventSlug !== 'ALL') {
+        const event = await Event.findOne({ slug: eventSlug.toLowerCase() }).lean();
+        if (event) {
+          const nameRegex = new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+          andConditions.push({
+            $or: [
+              { eventId: event._id },
+              { eventSlug: event.slug },
+              { eventName: nameRegex },
+              ...(event.slug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
+            ],
+          });
+        } else {
+          andConditions.push({ eventName: { $regex: new RegExp(eventSlug.replace(/-/g, ' '), 'i') } });
+        }
+      } else if (eventName && eventName !== 'ALL') {
+        const event = await Event.findOne({
+          name: { $regex: new RegExp(`^${eventName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
+        }).lean();
+        if (event) {
+          const nameRegex = new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+          andConditions.push({
+            $or: [
+              { eventId: event._id },
+              { eventSlug: event.slug },
+              { eventName: nameRegex },
+              ...(event.slug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
+            ],
+          });
+        } else {
+          andConditions.push({ eventName: { $regex: new RegExp(`^${eventName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+        }
+      } else if (eventId && eventId !== 'ALL') {
+        const isValidObjectId = eventId.match(/^[0-9a-fA-F]{24}$/);
+        andConditions.push({
+          $or: [
+            { eventId: isValidObjectId ? eventId : undefined },
+            { _id: isValidObjectId ? eventId : undefined },
+          ].filter((c) => Object.values(c)[0] !== undefined),
+        });
+      }
+    }
+
+    // Filter by verification status (All, Verified, Unverified)
+    const vStatus = (verificationStatus || verified || '').toString().toUpperCase();
+    if (vStatus === 'VERIFIED' || vStatus === 'TRUE') {
+      andConditions.push({
+        $or: [{ verified: true }, { status: 'APPROVED' }],
+      });
+    } else if (vStatus === 'UNVERIFIED' || vStatus === 'FALSE') {
+      andConditions.push({
+        $and: [
+          { verified: { $ne: true } },
+          { status: { $ne: 'APPROVED' } },
+        ],
+      });
+    }
+
     // Filter by status (case-insensitive)
     if (status && status !== 'ALL') {
       andConditions.push({ status: status.toUpperCase() });
-    }
-
-    // Filter by event (support slug, name, or MongoDB eventId)
-    if (eventSlug && eventSlug !== 'ALL') {
-      const event = await Event.findOne({ slug: eventSlug.toLowerCase() }).lean();
-      if (event) {
-        const nameRegex = new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
-        andConditions.push({
-          $or: [
-            { eventId: event._id },
-            { eventSlug: event.slug },
-            { eventName: nameRegex },
-            ...(event.slug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
-          ],
-        });
-      } else {
-        andConditions.push({ eventName: { $regex: new RegExp(eventSlug.replace(/-/g, ' '), 'i') } });
-      }
-    } else if (eventName && eventName !== 'ALL') {
-      const event = await Event.findOne({
-        name: { $regex: new RegExp(`^${eventName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
-      }).lean();
-      if (event) {
-        const nameRegex = new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
-        andConditions.push({
-          $or: [
-            { eventId: event._id },
-            { eventSlug: event.slug },
-            { eventName: nameRegex },
-            ...(event.slug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
-          ],
-        });
-      } else {
-        andConditions.push({ eventName: { $regex: new RegExp(`^${eventName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
-      }
-    } else if (eventId && eventId !== 'ALL') {
-      const isValidObjectId = eventId.match(/^[0-9a-fA-F]{24}$/);
-      andConditions.push({
-        $or: [
-          { eventId: isValidObjectId ? eventId : undefined },
-          { _id: isValidObjectId ? eventId : undefined },
-        ].filter((c) => Object.values(c)[0] !== undefined),
-      });
     }
 
     // Filter by PCCOE free registration flag
@@ -114,6 +162,10 @@ const getRegistrations = async (req, res, next) => {
           { leadCollege: { $regex: q, $options: 'i' } },
           { transactionId: { $regex: q, $options: 'i' } },
           { eventName: { $regex: q, $options: 'i' } },
+          { 'members.name': { $regex: q, $options: 'i' } },
+          { 'members.email': { $regex: q, $options: 'i' } },
+          { 'members.phone': { $regex: q, $options: 'i' } },
+          { 'members.college': { $regex: q, $options: 'i' } },
         ],
       });
     }
@@ -133,10 +185,11 @@ const getRegistrations = async (req, res, next) => {
       Registration.countDocuments(filter),
     ]);
 
-    // Attach event slug to each registration for UI ease
+    // Attach event slug and normalized verified boolean to each registration
     const { nameToSlug } = await getEventMap();
     const enriched = registrations.map((r) => ({
       ...r,
+      verified: r.verified === true || r.status === 'APPROVED',
       eventSlug: r.eventSlug || nameToSlug[(r.eventName || '').toLowerCase()] || '',
     }));
 
@@ -156,7 +209,7 @@ const getRegistrations = async (req, res, next) => {
 /**
  * @desc    Get a single registration detail (admin view)
  * @route   GET /api/admin/registrations/:id
- * @access  Protected (TECH_TEAM, ADMIN)
+ * @access  Protected (MASTER_ADMIN, ADMIN, TECH_TEAM, EVENT_ADMIN)
  */
 const getRegistrationDetail = async (req, res, next) => {
   try {
@@ -176,6 +229,21 @@ const getRegistrationDetail = async (req, res, next) => {
       });
     }
 
+    // Role-based check: Event admin can only view their assigned event's registrations
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const matchesEvent =
+        (registration.eventId && String(registration.eventId) === String(req.admin.eventId)) ||
+        (registration.eventSlug && registration.eventSlug.toLowerCase() === req.admin.eventSlug?.toLowerCase()) ||
+        (registration.eventName && registration.eventName.toLowerCase() === req.admin.eventName?.toLowerCase());
+
+      if (!matchesEvent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You cannot access registrations from other events',
+        });
+      }
+    }
+
     const event = await Event.findOne({
       $or: [
         { _id: registration.eventId },
@@ -188,6 +256,7 @@ const getRegistrationDetail = async (req, res, next) => {
       success: true,
       data: {
         ...registration,
+        verified: registration.verified === true || registration.status === 'APPROVED',
         event: event || null,
         eventSlug: event?.slug || registration.eventSlug || '',
       },
@@ -200,7 +269,7 @@ const getRegistrationDetail = async (req, res, next) => {
 /**
  * @desc    Approve/verify a registration payment
  * @route   PATCH /api/admin/registrations/:id/verify
- * @access  Protected (TECH_TEAM, ADMIN)
+ * @access  Protected (MASTER_ADMIN, ADMIN, TECH_TEAM, EVENT_ADMIN)
  */
 const verifyRegistration = async (req, res, next) => {
   try {
@@ -220,17 +289,50 @@ const verifyRegistration = async (req, res, next) => {
       });
     }
 
-    if (registration.status === 'APPROVED') {
-      return res.status(400).json({
-        success: false,
-        message: 'Registration is already approved',
+    // Role-based authorization: Event admin can verify ONLY their assigned event
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const matchesEvent =
+        (registration.eventId && String(registration.eventId) === String(req.admin.eventId)) ||
+        (registration.eventSlug && registration.eventSlug.toLowerCase() === req.admin.eventSlug?.toLowerCase()) ||
+        (registration.eventName && registration.eventName.toLowerCase() === req.admin.eventName?.toLowerCase());
+
+      if (!matchesEvent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You can only verify participants for your assigned event',
+        });
+      }
+    }
+
+    if (registration.verified && registration.status === 'APPROVED') {
+      if (remarks && registration.verification) {
+        registration.verification.remarks = remarks;
+        await registration.save();
+      }
+      return res.status(200).json({
+        success: true,
+        message: 'Registration is already verified',
+        data: {
+          registrationId: registration.registrationId,
+          status: registration.status,
+          verified: true,
+          verifiedAt: registration.verifiedAt,
+          verifiedBy: registration.verifiedBy,
+        },
       });
     }
 
+    const adminId = req.admin?._id;
+    const now = new Date();
+
     registration.status = 'APPROVED';
+    registration.verified = true;
+    registration.verifiedAt = now;
+    registration.verifiedBy = adminId;
+
     if (!registration.verification) registration.verification = {};
-    registration.verification.verifiedBy = req.user?._id;
-    registration.verification.verifiedAt = new Date();
+    registration.verification.verifiedBy = adminId;
+    registration.verification.verifiedAt = now;
     if (remarks) registration.verification.remarks = remarks;
 
     await registration.save();
@@ -268,6 +370,83 @@ const verifyRegistration = async (req, res, next) => {
       data: {
         registrationId: registration.registrationId,
         status: registration.status,
+        verified: registration.verified,
+        verifiedAt: registration.verifiedAt,
+        verifiedBy: registration.verifiedBy,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Unverify a registration (undo verification)
+ * @route   PATCH /api/admin/registrations/:id/unverify
+ * @access  Protected (MASTER_ADMIN, ADMIN, TECH_TEAM, EVENT_ADMIN)
+ */
+const unverifyRegistration = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { remarks } = req.body;
+
+    let registration = await Registration.findOne({ registrationId: id.toUpperCase() });
+
+    if (!registration && id.match(/^[0-9a-fA-F]{24}$/)) {
+      registration = await Registration.findById(id);
+    }
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Registration not found',
+      });
+    }
+
+    // Role-based authorization: Event admin can unverify ONLY their assigned event
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const matchesEvent =
+        (registration.eventId && String(registration.eventId) === String(req.admin.eventId)) ||
+        (registration.eventSlug && registration.eventSlug.toLowerCase() === req.admin.eventSlug?.toLowerCase()) ||
+        (registration.eventName && registration.eventName.toLowerCase() === req.admin.eventName?.toLowerCase());
+
+      if (!matchesEvent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You can only unverify participants for your assigned event',
+        });
+      }
+    }
+
+    registration.status = 'CONFIRMED';
+    registration.verified = false;
+    registration.verifiedAt = null;
+    registration.verifiedBy = null;
+
+    if (registration.verification) {
+      registration.verification.verifiedBy = null;
+      registration.verification.verifiedAt = null;
+      if (remarks) registration.verification.remarks = remarks;
+    }
+
+    await registration.save();
+
+    const event = await Event.findOne({
+      $or: [
+        { _id: registration.eventId },
+        { slug: registration.eventSlug },
+        { name: { $regex: new RegExp(`^${(registration.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+      ],
+    }).lean();
+    await syncToEventCollection(registration, event?.slug || registration.eventSlug);
+
+    res.status(200).json({
+      success: true,
+      message: 'Registration unverified successfully',
+      data: {
+        registrationId: registration.registrationId,
+        status: registration.status,
+        verified: registration.verified,
       },
     });
   } catch (error) {
@@ -329,9 +508,119 @@ const rejectRegistration = async (req, res, next) => {
 };
 
 /**
+ * @desc    Export verified participants as CSV (server-generated)
+ * @route   GET /api/admin/export/verified-csv
+ * @access  Protected (MASTER_ADMIN, ADMIN, TECH_TEAM, EVENT_ADMIN)
+ */
+const exportVerifiedCsv = async (req, res, next) => {
+  try {
+    const { eventSlug, eventId } = req.query;
+    const andConditions = [];
+
+    // The CSV export must contain ONLY VERIFIED participants
+    andConditions.push({
+      $or: [{ verified: true }, { status: 'APPROVED' }],
+    });
+
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const eventNameRegex = new RegExp(`^${(req.admin.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+      andConditions.push({
+        $or: [
+          ...(req.admin.eventId ? [{ eventId: req.admin.eventId }] : []),
+          ...(req.admin.eventSlug ? [{ eventSlug: req.admin.eventSlug }] : []),
+          ...(req.admin.eventName ? [{ eventName: eventNameRegex }] : []),
+          ...(req.admin.eventSlug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
+        ],
+      });
+    } else {
+      // Master Admin: optional event filter
+      if (eventSlug && eventSlug !== 'ALL') {
+        const event = await Event.findOne({ slug: eventSlug.toLowerCase() }).lean();
+        if (event) {
+          const nameRegex = new RegExp(`^${event.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+          andConditions.push({
+            $or: [
+              { eventId: event._id },
+              { eventSlug: event.slug },
+              { eventName: nameRegex },
+              ...(event.slug === 'capture-the-flag' ? [{ eventName: /capture/i }] : []),
+            ],
+          });
+        }
+      } else if (eventId && eventId !== 'ALL' && eventId.match(/^[0-9a-fA-F]{24}$/)) {
+        andConditions.push({ eventId });
+      }
+    }
+
+    const filter = { $and: andConditions };
+    const registrations = await Registration.find(filter)
+      .sort({ createdAt: 1 })
+      .lean();
+
+    // Helper to safely escape CSV values
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '';
+      const str = String(val).trim();
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    // Columns: Team Name,Registration ID,Email,Contact,College,Members
+    const headerRow = 'Team Name,Registration ID,Email,Contact,College,Members';
+
+    const dataRows = registrations.map((r) => {
+      const teamName = r.teamName || r.leadName || 'Solo';
+      const regId = r.registrationId || '';
+      const email = r.leadEmail || '';
+      const contact = r.leadPhone || '';
+      const college = r.leadCollege || (r.isPccoe ? 'PCCOE' : '');
+
+      let membersStr = '';
+      if (Array.isArray(r.members) && r.members.length > 0) {
+        membersStr = r.members
+          .map((m) => {
+            const memberName = m.name || '';
+            const memberEmail = m.email ? ` (${m.email})` : '';
+            return `${memberName}${memberEmail}`.trim();
+          })
+          .filter(Boolean)
+          .join(', ');
+      } else {
+        membersStr = r.leadName || '';
+      }
+
+      return [
+        escapeCsv(teamName),
+        escapeCsv(regId),
+        escapeCsv(email),
+        escapeCsv(contact),
+        escapeCsv(college),
+        escapeCsv(membersStr),
+      ].join(',');
+    });
+
+    const csvContent = [headerRow, ...dataRows].join('\r\n');
+
+    const filePrefix = req.admin?.role === 'EVENT_ADMIN'
+      ? (req.admin.eventSlug || 'event')
+      : (eventSlug && eventSlug !== 'ALL' ? eventSlug : 'all_events');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="verified_${filePrefix}_${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+
+    return res.status(200).send(csvContent);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Get registration stats summary
  * @route   GET /api/admin/stats
- * @access  Protected (TECH_TEAM, ADMIN)
+ * @access  Protected (MASTER_ADMIN, ADMIN, TECH_TEAM, EVENT_ADMIN)
  */
 const getStats = async (req, res, next) => {
   try {
@@ -340,11 +629,43 @@ const getStats = async (req, res, next) => {
       Registration.find().lean(),
     ]);
 
+    // Role-based stats for EVENT_ADMIN
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const eventNameRegex = new RegExp(`^${(req.admin.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+      const eventRegs = registrations.filter((r) => {
+        if (r.eventId && String(r.eventId) === String(req.admin.eventId)) return true;
+        if (r.eventSlug && r.eventSlug.toLowerCase() === req.admin.eventSlug?.toLowerCase()) return true;
+        if (r.eventName && eventNameRegex.test(r.eventName)) return true;
+        if (req.admin.eventSlug === 'capture-the-flag' && r.eventName && r.eventName.toLowerCase().includes('capture')) return true;
+        return false;
+      });
+
+      const total = eventRegs.length;
+      const verified = eventRegs.filter((r) => r.verified === true || r.status === 'APPROVED').length;
+      const unverified = eventRegs.filter((r) => r.verified !== true && r.status !== 'APPROVED' && r.status !== 'REJECTED').length;
+      const totalTeams = eventRegs.filter((r) => (r.teamName && r.teamName.trim()) || (r.members && r.members.length > 1)).length;
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          total,
+          verified,
+          unverified,
+          totalTeams,
+          eventName: req.admin.eventName,
+          eventSlug: req.admin.eventSlug,
+        },
+      });
+    }
+
+    // Master Admin full stats
     const total = registrations.length;
     const pending = registrations.filter((r) => r.status === 'PENDING').length;
     const confirmed = registrations.filter((r) => r.status === 'CONFIRMED').length;
-    const approved = registrations.filter((r) => r.status === 'APPROVED').length;
+    const approved = registrations.filter((r) => r.status === 'APPROVED' || r.verified === true).length;
     const rejected = registrations.filter((r) => r.status === 'REJECTED').length;
+    const verified = approved;
+    const unverified = registrations.filter((r) => r.status !== 'APPROVED' && r.verified !== true && r.status !== 'REJECTED').length;
     const pccoeFree = registrations.filter((r) => r.isPccoe === true).length;
     const totalRevenue = registrations
       .filter((r) => r.status !== 'REJECTED')
@@ -360,13 +681,18 @@ const getStats = async (req, res, next) => {
         return false;
       });
 
+      const evApproved = eventRegs.filter((r) => r.status === 'APPROVED' || r.verified === true).length;
+      const evUnverified = eventRegs.filter((r) => r.status !== 'APPROVED' && r.verified !== true && r.status !== 'REJECTED').length;
+
       return {
         eventName: ev.name,
         eventSlug: ev.slug,
         count: eventRegs.length,
         confirmed: eventRegs.filter((r) => r.status === 'CONFIRMED').length,
         pending: eventRegs.filter((r) => r.status === 'PENDING').length,
-        approved: eventRegs.filter((r) => r.status === 'APPROVED').length,
+        approved: evApproved,
+        verified: evApproved,
+        unverified: evUnverified,
         rejected: eventRegs.filter((r) => r.status === 'REJECTED').length,
         pccoeCount: eventRegs.filter((r) => r.isPccoe === true).length,
         revenue: eventRegs
@@ -379,12 +705,18 @@ const getStats = async (req, res, next) => {
       success: true,
       data: {
         total,
+        totalRegistrations: total,
+        totalVerified: verified,
+        totalUnverified: unverified,
         pending,
         confirmed,
         approved,
+        verified,
+        unverified,
         rejected,
         pccoeFree,
         totalRevenue,
+        totalEvents: events.length,
         byEvent,
       },
     });
@@ -483,6 +815,18 @@ const toggleEventRegistration = async (req, res, next) => {
       });
     }
 
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const allowed =
+        String(event._id) === String(req.admin.eventId) ||
+        event.slug.toLowerCase() === req.admin.eventSlug?.toLowerCase();
+      if (!allowed) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You can only toggle registration for your assigned event',
+        });
+      }
+    }
+
     const newStatus = typeof registrationOpen === 'boolean'
       ? registrationOpen
       : !event.registrationOpen;
@@ -511,7 +855,9 @@ module.exports = {
   getRegistrations,
   getRegistrationDetail,
   verifyRegistration,
+  unverifyRegistration,
   rejectRegistration,
+  exportVerifiedCsv,
   getStats,
   getAdminEvents,
   toggleEventRegistration,

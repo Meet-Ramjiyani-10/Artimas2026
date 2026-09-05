@@ -4,7 +4,9 @@ const {
   getRegistrations,
   getRegistrationDetail,
   verifyRegistration,
+  unverifyRegistration,
   rejectRegistration,
+  exportVerifiedCsv,
   getStats,
   getAdminEvents,
   toggleEventRegistration,
@@ -13,9 +15,9 @@ const { getAdminCtfScreenshots } = require('../controllers/ctfController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const { validateVerification } = require('../middleware/validationMiddleware');
 
-// All admin routes are protected
+// All admin routes are protected and require one of the admin roles
 router.use(protect);
-router.use(authorize('TECH_TEAM', 'ADMIN'));
+router.use(authorize('MASTER_ADMIN', 'ADMIN', 'TECH_TEAM', 'EVENT_ADMIN'));
 
 // Cache-busting middleware: prevent browser and intermediate proxy caching
 router.use((req, res, next) => {
@@ -35,6 +37,9 @@ router.patch('/events/:id/registration', toggleEventRegistration);
 // GET /api/admin/stats
 router.get('/stats', getStats);
 
+// GET /api/admin/export/verified-csv (must be before /registrations/:id)
+router.get('/export/verified-csv', exportVerifiedCsv);
+
 // GET /api/admin/registrations
 router.get('/registrations', getRegistrations);
 
@@ -46,6 +51,9 @@ router.get('/registrations/:id/ctf/screenshots', getAdminCtfScreenshots);
 
 // PATCH /api/admin/registrations/:id/verify
 router.patch('/registrations/:id/verify', validateVerification, verifyRegistration);
+
+// PATCH /api/admin/registrations/:id/unverify
+router.patch('/registrations/:id/unverify', validateVerification, unverifyRegistration);
 
 // PATCH /api/admin/registrations/:id/reject
 router.patch('/registrations/:id/reject', validateVerification, rejectRegistration);

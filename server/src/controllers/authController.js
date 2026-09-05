@@ -9,7 +9,8 @@ const Admin = require('../models/Admin');
 const login = async (req, res, next) => {
   try {
     const { password } = req.body;
-    const email = req.body.email || process.env.ADMIN_EMAIL || 'admin@artimas.in';
+    const rawIdentifier = req.body.username || req.body.email || req.body.identifier;
+    const identifier = rawIdentifier ? String(rawIdentifier).trim().toLowerCase() : '';
 
     if (!password) {
       return res.status(400).json({
@@ -18,8 +19,22 @@ const login = async (req, res, next) => {
       });
     }
 
+    let query;
+    if (identifier) {
+      query = {
+        $or: [
+          { email: identifier },
+          { username: identifier },
+        ],
+      };
+    } else {
+      // Fallback for legacy password-only master login
+      const defaultEmail = (process.env.ADMIN_EMAIL || 'admin@artimas.in').toLowerCase();
+      query = { email: defaultEmail };
+    }
+
     // Find admin with password hash included
-    const admin = await Admin.findOne({ email }).select('+passwordHash');
+    const admin = await Admin.findOne(query).select('+passwordHash');
 
     if (!admin) {
       return res.status(401).json({
@@ -38,9 +53,14 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Generate JWT
+    // Generate JWT with admin details
     const token = jwt.sign(
-      { id: admin._id, role: admin.role },
+      {
+        id: admin._id,
+        role: admin.role,
+        eventId: admin.eventId || null,
+        eventSlug: admin.eventSlug || null,
+      },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
@@ -53,8 +73,12 @@ const login = async (req, res, next) => {
         admin: {
           id: admin._id,
           name: admin.name,
+          username: admin.username || '',
           email: admin.email,
           role: admin.role,
+          eventId: admin.eventId || null,
+          eventSlug: admin.eventSlug || null,
+          eventName: admin.eventName || null,
         },
       },
     });
@@ -74,8 +98,12 @@ const getMe = async (req, res) => {
     data: {
       id: req.admin._id,
       name: req.admin.name,
+      username: req.admin.username || '',
       email: req.admin.email,
       role: req.admin.role,
+      eventId: req.admin.eventId || null,
+      eventSlug: req.admin.eventSlug || null,
+      eventName: req.admin.eventName || null,
     },
   });
 };

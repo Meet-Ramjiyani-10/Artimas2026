@@ -578,10 +578,23 @@ const createRegistration = async (req, res, next) => {
       status: 'CONFIRMED',
     };
 
-    // Attach team details ONLY if it is a multi-member / team event
+    // Always preserve team name if typed by user; fallback to participant's name
+    const typedTeamName = (teamName && teamName.trim()) ? teamName.trim() : (lead.name && lead.name.trim() ? lead.name.trim() : '');
+    if (typedTeamName) {
+      registrationData.teamName = typedTeamName;
+    }
+
     if (!isSoloEvent) {
-      if (teamName?.trim()) registrationData.teamName = teamName.trim();
       if (teamSummary) registrationData.teamSummary = teamSummary;
+      registrationData.members = sanitizedMembers.map((m) => ({
+        name: m.name,
+        email: m.email?.toLowerCase(),
+        phone: m.phone,
+        college: isMemberPccoeEligible(m) ? 'PCCOE' : (m.college || ''),
+        year: m.year,
+        branch: m.branch,
+      }));
+    } else {
       registrationData.members = sanitizedMembers.map((m) => ({
         name: m.name,
         email: m.email?.toLowerCase(),

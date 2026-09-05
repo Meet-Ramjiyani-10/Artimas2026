@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
@@ -28,9 +29,23 @@ interface RegistrationItem {
   transactionId?: string;
   screenshotUrl?: string;
   status: string;
+  verified?: boolean;
+  verifiedAt?: string;
+  verifiedBy?: string;
   members?: Member[];
   createdAt: string;
   updatedAt: string;
+}
+
+interface AdminProfile {
+  id: string;
+  name: string;
+  username?: string;
+  email: string;
+  role: 'MASTER_ADMIN' | 'ADMIN' | 'TECH_TEAM' | 'EVENT_ADMIN';
+  eventId?: string | null;
+  eventSlug?: string | null;
+  eventName?: string | null;
 }
 
 interface AdminEvent {
@@ -47,9 +62,15 @@ interface AdminEvent {
 
 interface AdminStats {
   total: number;
+  totalRegistrations?: number;
+  totalVerified?: number;
+  totalUnverified?: number;
+  totalEvents?: number;
   confirmed: number;
   pending: number;
   approved: number;
+  verified?: number;
+  unverified?: number;
   rejected: number;
   pccoeFree: number;
   totalRevenue: number;
@@ -60,6 +81,8 @@ interface AdminStats {
     confirmed: number;
     pending: number;
     approved: number;
+    verified?: number;
+    unverified?: number;
     rejected: number;
     pccoeCount: number;
     revenue: number;
@@ -67,10 +90,13 @@ interface AdminStats {
 }
 
 export default function AdminPortal() {
+  const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
+  const [adminUser, setAdminUser] = useState<AdminProfile | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
 
   // Login form state
+  const [username, setUsername] = useState<string>('admin');
   const [password, setPassword] = useState<string>('');
   const [loginError, setLoginError] = useState<string>('');
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
@@ -85,21 +111,36 @@ export default function AdminPortal() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [togglingEventId, setTogglingEventId] = useState<string | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   // Filter & Search states
   const [selectedEventFilter, setSelectedEventFilter] = useState<string>('ALL');
   const [selectedPccoeFilter, setSelectedPccoeFilter] = useState<string>('ALL');
+  const [selectedVerificationFilter, setSelectedVerificationFilter] = useState<'ALL' | 'VERIFIED' | 'UNVERIFIED'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedRegistration, setSelectedRegistration] = useState<RegistrationItem | null>(null);
+  const [unverifyTarget, setUnverifyTarget] = useState<RegistrationItem | null>(null);
 
-  // Check saved token on mount
+  // Check saved token on mount and redirect event admin if needed
   useEffect(() => {
     const savedToken = typeof window !== 'undefined' ? sessionStorage.getItem('artimas_admin_token') : null;
+    const savedUserStr = typeof window !== 'undefined' ? sessionStorage.getItem('artimas_admin_user') : null;
+
     if (savedToken) {
       setToken(savedToken);
+      if (savedUserStr) {
+        try {
+          const parsed = JSON.parse(savedUserStr);
+          setAdminUser(parsed);
+          if (parsed.role === 'EVENT_ADMIN' && parsed.eventSlug) {
+            router.push(`/admin/${parsed.eventSlug}`);
+            return;
+          }
+        } catch {}
+      }
     }
     setIsCheckingAuth(false);
-  }, []);
+  }, [router]);
 
   // Fetch all dashboard data (Events, Registrations, Stats)
   const fetchData = useCallback(async (authToken: string) => {
@@ -171,21 +212,33 @@ export default function AdminPortal() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ password: password.trim() }),
+        body: JSON.stringify({
+          username: username.trim() || undefined,
+          password: password.trim(),
+        }),
       });
 
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        setLoginError(json.message || 'Invalid password');
+        setLoginError(json.message || 'Invalid credentials');
         return;
       }
 
       const receivedToken = json.data?.token;
-      if (receivedToken) {
+      const user = json.data?.admin;
+
+      if (receivedToken && user) {
         sessionStorage.setItem('artimas_admin_token', receivedToken);
+        sessionStorage.setItem('artimas_admin_user', JSON.stringify(user));
         setToken(receivedToken);
+        setAdminUser(user);
         setPassword('');
+
+        // If an event admin logged in, redirect to their specific event dashboard
+        if (user.role === 'EVENT_ADMIN' && user.eventSlug) {
+          router.push(`/admin/${user.eventSlug}`);
+        }
       } else {
         setLoginError('Authentication failed: No token received');
       }
@@ -199,12 +252,92 @@ export default function AdminPortal() {
   // Handle Logout
   const handleLogout = () => {
     sessionStorage.removeItem('artimas_admin_token');
+    sessionStorage.removeItem('artimas_admin_user');
     setToken(null);
+    setAdminUser(null);
     setEvents([]);
     setRegistrations([]);
     setStats(null);
     setPassword('');
     setLoginError('');
+  };
+
+  // Verify participant
+  const handleVerify = async (reg: RegistrationItem) => {
+    if (!token) return;
+    setActionLoadingId(reg._id);
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/registrations/${reg.registrationId}/verify`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ remarks: 'Verified by Master Admin' }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setRegistrations((prev) =>
+          prev.map((r) =>
+            r._id === reg._id ? { ...r, verified: true, status: 'APPROVED' } : r
+          )
+        );
+        setStats((prev) => prev ? {
+          ...prev,
+          approved: prev.approved + 1,
+          verified: (prev.verified ?? prev.approved) + 1,
+          unverified: Math.max((prev.unverified ?? 0) - 1, 0),
+        } : null);
+      } else {
+        alert(json.message || 'Failed to verify participant');
+      }
+    } catch {
+      alert('Network error while verifying participant');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // Unverify participant
+  const handleConfirmUnverify = async () => {
+    if (!token || !unverifyTarget) return;
+    const reg = unverifyTarget;
+    setActionLoadingId(reg._id);
+    setUnverifyTarget(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/registrations/${reg.registrationId}/unverify`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ remarks: 'Verification undone by Master Admin' }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setRegistrations((prev) =>
+          prev.map((r) =>
+            r._id === reg._id ? { ...r, verified: false, status: 'CONFIRMED' } : r
+          )
+        );
+        setStats((prev) => prev ? {
+          ...prev,
+          approved: Math.max(prev.approved - 1, 0),
+          verified: Math.max((prev.verified ?? prev.approved) - 1, 0),
+          unverified: (prev.unverified ?? 0) + 1,
+        } : null);
+      } else {
+        alert(json.message || 'Failed to unverify participant');
+      }
+    } catch {
+      alert('Network error while unverifying participant');
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
   // Toggle registration open/closed
@@ -240,9 +373,15 @@ export default function AdminPortal() {
     }
   };
 
-  // Filtered registrations based on Event, PCCOE flag, and Search query
+  // Filtered registrations based on Event, PCCOE flag, Verification, and Search query
   const filteredRegistrations = useMemo(() => {
     return registrations.filter((reg) => {
+      const isVerified = reg.verified === true || reg.status === 'APPROVED';
+
+      // Verification status filter
+      if (selectedVerificationFilter === 'VERIFIED' && !isVerified) return false;
+      if (selectedVerificationFilter === 'UNVERIFIED' && isVerified) return false;
+
       // Event filter
       if (selectedEventFilter !== 'ALL') {
         const sel = selectedEventFilter.toLowerCase();
@@ -282,9 +421,46 @@ export default function AdminPortal() {
 
       return true;
     });
-  }, [registrations, selectedEventFilter, selectedPccoeFilter, searchQuery]);
+  }, [registrations, selectedVerificationFilter, selectedEventFilter, selectedPccoeFilter, searchQuery]);
 
-  // CSV Export
+  // Server-side Verified CSV Export
+  const handleExportVerifiedCSV = () => {
+    if (!token) return;
+    const verifiedCount = filteredRegistrations.filter((r) => r.verified || r.status === 'APPROVED').length;
+    if (verifiedCount === 0) {
+      alert('No verified registrations found matching the current filter.');
+      return;
+    }
+
+    const eventParam = selectedEventFilter !== 'ALL' ? `?eventSlug=${encodeURIComponent(selectedEventFilter)}` : '';
+    const url = `${API_BASE}/admin/export/verified-csv${eventParam}`;
+
+    fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'Failed to export verified CSV');
+        }
+        return res.blob();
+      })
+      .then((blob) => {
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `ARTIMAS26_Verified_${selectedEventFilter !== 'ALL' ? selectedEventFilter : 'ALL'}_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(downloadUrl);
+      })
+      .catch((err) => {
+        alert(`Export failed: ${err.message}`);
+      });
+  };
+
+  // Full CSV Export (Existing functionality)
   const handleExportCSV = () => {
     if (filteredRegistrations.length === 0) {
       alert('No registrations to export.');
@@ -300,6 +476,7 @@ export default function AdminPortal() {
       'Lead Phone',
       'Lead College',
       'PCCOE Student',
+      'Verification Status',
       'Total Members',
       'All Members (Name, Email, Phone, College, Year, Branch)',
       'Fee Amount (INR)',
@@ -327,6 +504,7 @@ export default function AdminPortal() {
         `"${r.leadPhone || ''}"`,
         `"${(r.leadCollege || '').replace(/"/g, '""')}"`,
         `"${r.isPccoe ? 'YES (Free)' : 'NO (Paid)'}"`,
+        `"${(r.verified || r.status === 'APPROVED') ? 'VERIFIED' : 'UNVERIFIED'}"`,
         `"${r.members?.length || 1}"`,
         `"${allMembersStr.replace(/"/g, '""')}"`,
         `"${r.amount || 0}"`,
@@ -387,6 +565,33 @@ export default function AdminPortal() {
           </div>
 
           <form onSubmit={handleLogin} noValidate>
+            <div style={{ marginBottom: '16px' }}>
+              <label
+                htmlFor="admin-username"
+                style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px', letterSpacing: '0.5px' }}
+              >
+                ADMIN USERNAME / EMAIL
+              </label>
+              <input
+                id="admin-username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="admin or event username"
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '12px 14px',
+                  backgroundColor: '#0a0d12',
+                  border: '1px solid #334155',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '14px',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
             <div style={{ marginBottom: '20px' }}>
               <label
                 htmlFor="admin-password"
@@ -545,15 +750,16 @@ export default function AdminPortal() {
           </div>
         )}
 
-        {/* ── Key Metrics Cards Banner ── */}
+        {/* ── Key Metrics Cards Banner (Enhanced with 5 core stats) ── */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
             gap: '14px',
             marginBottom: '24px',
           }}
         >
+          {/* Total Registrations */}
           <div
             style={{
               backgroundColor: '#111722',
@@ -566,10 +772,11 @@ export default function AdminPortal() {
               Total Registrations
             </span>
             <div style={{ fontSize: '26px', fontWeight: 700, color: '#f8fafc', marginTop: '4px' }}>
-              {stats?.total ?? registrations.length}
+              {stats?.totalRegistrations ?? stats?.total ?? registrations.length}
             </div>
           </div>
 
+          {/* Total Verified */}
           <div
             style={{
               backgroundColor: '#111722',
@@ -579,13 +786,31 @@ export default function AdminPortal() {
             }}
           >
             <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              PCCOE Free Entries
+              Total Verified
             </span>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#4ade80', marginTop: '4px' }}>
-              {stats?.pccoeFree ?? registrations.filter((r) => r.isPccoe).length}
+            <div style={{ fontSize: '26px', fontWeight: 700, color: '#22c55e', marginTop: '4px' }}>
+              {stats?.totalVerified ?? stats?.approved ?? registrations.filter((r) => r.verified || r.status === 'APPROVED').length}
             </div>
           </div>
 
+          {/* Total Unverified */}
+          <div
+            style={{
+              backgroundColor: '#111722',
+              border: '1px solid #1e293b',
+              borderRadius: '8px',
+              padding: '16px 20px',
+            }}
+          >
+            <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Total Unverified
+            </span>
+            <div style={{ fontSize: '26px', fontWeight: 700, color: '#f59e0b', marginTop: '4px' }}>
+              {stats?.totalUnverified ?? registrations.filter((r) => !r.verified && r.status !== 'APPROVED').length}
+            </div>
+          </div>
+
+          {/* Total Revenue */}
           <div
             style={{
               backgroundColor: '#111722',
@@ -602,6 +827,7 @@ export default function AdminPortal() {
             </div>
           </div>
 
+          {/* Total Events */}
           <div
             style={{
               backgroundColor: '#111722',
@@ -611,10 +837,10 @@ export default function AdminPortal() {
             }}
           >
             <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Festival Events
+              Total Events
             </span>
             <div style={{ fontSize: '26px', fontWeight: 700, color: '#60a5fa', marginTop: '4px' }}>
-              {events.length || 8}
+              {stats?.totalEvents ?? events.length}
             </div>
           </div>
         </div>
@@ -726,6 +952,26 @@ export default function AdminPortal() {
                   ))}
                 </select>
 
+                {/* Verification Status Filter */}
+                <select
+                  value={selectedVerificationFilter}
+                  onChange={(e) => setSelectedVerificationFilter(e.target.value as 'ALL' | 'VERIFIED' | 'UNVERIFIED')}
+                  style={{
+                    backgroundColor: '#0a0d12',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    padding: '8px 12px',
+                    color: '#e2e8f0',
+                    fontSize: '13px',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="ALL">All Verification</option>
+                  <option value="VERIFIED">Verified Only</option>
+                  <option value="UNVERIFIED">Unverified Only</option>
+                </select>
+
                 {/* PCCOE Filter */}
                 <select
                   value={selectedPccoeFilter}
@@ -747,26 +993,48 @@ export default function AdminPortal() {
                 </select>
               </div>
 
-              {/* Export CSV Button */}
-              <button
-                type="button"
-                onClick={handleExportCSV}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#166534',
-                  border: '1px solid #22c55e',
-                  borderRadius: '6px',
-                  color: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                📥 EXPORT CSV ({filteredRegistrations.length})
-              </button>
+              {/* Action Buttons: Export Verified CSV + Full CSV */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleExportVerifiedCSV}
+                  style={{
+                    padding: '8px 14px',
+                    backgroundColor: '#166534',
+                    border: '1px solid #22c55e',
+                    borderRadius: '6px',
+                    color: '#ffffff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  📥 EXPORT VERIFIED CSV ({filteredRegistrations.filter((r) => r.verified || r.status === 'APPROVED').length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  style={{
+                    padding: '8px 14px',
+                    backgroundColor: '#1e293b',
+                    border: '1px solid #334155',
+                    borderRadius: '6px',
+                    color: '#cbd5e1',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  📥 EXPORT ALL ({filteredRegistrations.length})
+                </button>
+              </div>
             </div>
 
             {/* Registrations Data Table */}
@@ -797,91 +1065,174 @@ export default function AdminPortal() {
                       <th style={{ padding: '12px 16px', fontWeight: 600 }}>COLLEGE</th>
                       <th style={{ padding: '12px 16px', fontWeight: 600 }}>MEMBERS</th>
                       <th style={{ padding: '12px 16px', fontWeight: 600 }}>FEE</th>
-                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>ACTION</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600 }}>STATUS</th>
+                      <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center' }}>ACTION</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredRegistrations.map((reg) => (
-                      <tr
-                        key={reg._id}
-                        style={{
-                          borderBottom: '1px solid #1e293b',
-                          transition: 'background-color 0.15s',
-                        }}
-                      >
-                        <td style={{ padding: '12px 16px', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap' }}>
-                          <span
-                            style={{
-                              backgroundColor: '#1e293b',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontSize: '12px',
-                            }}
-                          >
-                            {reg.registrationId}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px 16px', fontWeight: 600, color: '#cbd5e1' }}>
-                          {reg.eventName}
-                        </td>
-                        <td style={{ padding: '12px 16px', color: '#e2e8f0' }}>
-                          <div style={{ fontWeight: 600 }}>{reg.teamName || reg.leadName}</div>
-                          {reg.teamName && reg.leadName && (
-                            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Lead: {reg.leadName}</div>
-                          )}
-                        </td>
-                        <td style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '12px' }}>
-                          <div>{reg.leadEmail}</div>
-                          <div>{reg.leadPhone}</div>
-                        </td>
-                        <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                          <span style={{ color: '#cbd5e1' }}>{reg.leadCollege || 'PCCOE'}</span>
-                          {reg.isPccoe && (
+                    {filteredRegistrations.map((reg) => {
+                      const isVerified = reg.verified === true || reg.status === 'APPROVED';
+                      const isActionBusy = actionLoadingId === reg._id;
+
+                      return (
+                        <tr
+                          key={reg._id}
+                          style={{
+                            borderBottom: '1px solid #1e293b',
+                            transition: 'background-color 0.15s',
+                          }}
+                        >
+                          <td style={{ padding: '12px 16px', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap' }}>
                             <span
                               style={{
-                                marginLeft: '6px',
-                                fontSize: '10.5px',
-                                fontWeight: 700,
-                                color: '#22c55e',
-                                backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                                backgroundColor: '#1e293b',
                                 padding: '2px 6px',
-                                borderRadius: '3px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
                               }}
                             >
-                              PCCOE FREE
+                              {reg.registrationId}
                             </span>
-                          )}
-                        </td>
-                        <td style={{ padding: '12px 16px', color: '#94a3b8', textAlign: 'center' }}>
-                          {reg.members?.length || 1}
-                        </td>
-                        <td style={{ padding: '12px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                          {reg.amount === 0 ? (
-                            <span style={{ color: '#22c55e' }}>₹0</span>
-                          ) : (
-                            <span style={{ color: '#facc15' }}>₹{reg.amount}</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedRegistration(reg)}
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: '#1e293b',
-                              border: '1px solid #334155',
-                              borderRadius: '4px',
-                              color: '#cbd5e1',
-                              fontSize: '12px',
-                              cursor: 'pointer',
-                              fontWeight: 600,
-                            }}
-                          >
-                            Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontWeight: 600, color: '#cbd5e1' }}>
+                            {reg.eventName}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#e2e8f0' }}>
+                            <div style={{ fontWeight: 600 }}>{reg.teamName || reg.leadName}</div>
+                            {reg.teamName && reg.leadName && reg.teamName.toLowerCase() !== reg.leadName.toLowerCase() && (
+                              <div style={{ fontSize: '11px', color: '#94a3b8' }}>Lead: {reg.leadName}</div>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#94a3b8', fontSize: '12px' }}>
+                            <div>{reg.leadEmail}</div>
+                            <div>{reg.leadPhone}</div>
+                          </td>
+                          <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                            <span style={{ color: '#cbd5e1' }}>{reg.leadCollege || 'PCCOE'}</span>
+                            {reg.isPccoe && (
+                              <span
+                                style={{
+                                  marginLeft: '6px',
+                                  fontSize: '10.5px',
+                                  fontWeight: 700,
+                                  color: '#22c55e',
+                                  backgroundColor: 'rgba(34, 197, 94, 0.15)',
+                                  padding: '2px 6px',
+                                  borderRadius: '3px',
+                                }}
+                              >
+                                PCCOE FREE
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px 16px', color: '#94a3b8', textAlign: 'center' }}>
+                            {reg.members?.length || 1}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                            {reg.amount === 0 ? (
+                              <span style={{ color: '#22c55e' }}>₹0</span>
+                            ) : (
+                              <span style={{ color: '#facc15' }}>₹{reg.amount}</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                            {isVerified ? (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  color: '#22c55e',
+                                  backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                ✓ VERIFIED
+                              </span>
+                            ) : (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  color: '#f59e0b',
+                                  backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                ● UNVERIFIED
+                              </span>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px 16px', whiteSpace: 'nowrap', textAlign: 'center' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                              {isVerified ? (
+                                <button
+                                  type="button"
+                                  disabled={isActionBusy}
+                                  onClick={() => setUnverifyTarget(reg)}
+                                  style={{
+                                    padding: '5px 8px',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    borderRadius: '4px',
+                                    color: '#f87171',
+                                    fontSize: '11.5px',
+                                    fontWeight: 600,
+                                    cursor: isActionBusy ? 'not-allowed' : 'pointer',
+                                  }}
+                                >
+                                  UNVERIFY
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={isActionBusy}
+                                  onClick={() => handleVerify(reg)}
+                                  style={{
+                                    padding: '5px 10px',
+                                    backgroundColor: '#166534',
+                                    border: '1px solid #22c55e',
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    fontSize: '11.5px',
+                                    fontWeight: 700,
+                                    cursor: isActionBusy ? 'not-allowed' : 'pointer',
+                                  }}
+                                >
+                                  {isActionBusy ? '...' : 'VERIFY'}
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => setSelectedRegistration(reg)}
+                                style={{
+                                  padding: '5px 10px',
+                                  backgroundColor: '#1e293b',
+                                  border: '1px solid #334155',
+                                  borderRadius: '4px',
+                                  color: '#cbd5e1',
+                                  fontSize: '11.5px',
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Details
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -986,6 +1337,27 @@ export default function AdminPortal() {
                       👥 View Attendees ({event.registrationCount})
                     </button>
 
+                    {/* Open Event Dashboard link */}
+                    <a
+                      href={`/admin/${event.slug}`}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                        border: '1px solid rgba(56, 189, 248, 0.3)',
+                        color: '#38bdf8',
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      ↗ Event Portal
+                    </a>
+
                     {/* Action Toggle Button */}
                     <button
                       type="button"
@@ -1083,7 +1455,9 @@ export default function AdminPortal() {
             {/* Team / Lead Details */}
             <div style={{ backgroundColor: '#0a0d12', padding: '14px', borderRadius: '6px', marginBottom: '16px', border: '1px solid #1e293b' }}>
               <div style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>
-                {selectedRegistration.teamName ? `Team: ${selectedRegistration.teamName}` : `Lead: ${selectedRegistration.leadName}`}
+                {selectedRegistration.teamName && selectedRegistration.leadName && selectedRegistration.teamName.toLowerCase() !== selectedRegistration.leadName.toLowerCase()
+                  ? `Team: ${selectedRegistration.teamName}`
+                  : `Participant: ${selectedRegistration.leadName || selectedRegistration.teamName}`}
               </div>
               <div style={{ fontSize: '13px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <div>Lead: <strong style={{ color: '#cbd5e1' }}>{selectedRegistration.leadName}</strong></div>
@@ -1172,6 +1546,82 @@ export default function AdminPortal() {
             >
               CLOSE
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── 4. CONFIRMATION MODAL FOR UNVERIFY ── */}
+      {unverifyTarget && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1100,
+            padding: '20px',
+          }}
+          onClick={() => setUnverifyTarget(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#111722',
+              border: '1px solid #334155',
+              borderRadius: '8px',
+              maxWidth: '440px',
+              width: '100%',
+              padding: '24px',
+              color: '#e2e8f0',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#f8fafc', margin: '0 0 10px' }}>
+              Confirm Unverify
+            </h3>
+            <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5', margin: '0 0 20px' }}>
+              Are you sure you want to mark registration{' '}
+              <strong style={{ color: '#60a5fa' }}>{unverifyTarget.registrationId}</strong> (
+              {unverifyTarget.teamName || unverifyTarget.leadName}) as <strong>UNVERIFIED</strong>?
+              This will remove them from verified participants and CSV exports.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setUnverifyTarget(null)}
+                style={{
+                  padding: '8px 14px',
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #334155',
+                  borderRadius: '6px',
+                  color: '#cbd5e1',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmUnverify}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#dc2626',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Yes, Unverify
+              </button>
+            </div>
           </div>
         </div>
       )}

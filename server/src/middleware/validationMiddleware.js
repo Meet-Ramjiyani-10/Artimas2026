@@ -19,14 +19,21 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 /**
- * Validation rules for admin login.
+ * Validation rules for admin login (supports username or email).
  */
 const validateLogin = [
   body('email')
     .optional()
-    .isEmail()
-    .withMessage('Valid email is required')
-    .normalizeEmail(),
+    .isString()
+    .trim(),
+  body('username')
+    .optional()
+    .isString()
+    .trim(),
+  body('identifier')
+    .optional()
+    .isString()
+    .trim(),
   body('password')
     .notEmpty()
     .withMessage('Password is required')
