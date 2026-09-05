@@ -31,6 +31,25 @@ const isValidIndianMobile = (phone) => {
 };
 
 /**
+ * Validate international phone numbers (used for Pixel Perfect and other international events):
+ * - Optional leading +
+ * - 7 to 16 digits
+ */
+const isValidInternationalPhone = (phone) => {
+  if (!phone || (typeof phone !== 'string' && typeof phone !== 'number')) return false;
+  const cleaned = String(phone).replace(/[\s\-()]/g, '');
+  return /^\+?\d{7,16}$/.test(cleaned);
+};
+
+/**
+ * Helper to check if event slug is Pixel Perfect or any of its aliases
+ */
+const isPixelPerfectEvent = (slug) => {
+  const s = (slug || '').toLowerCase().trim();
+  return ['pixel-perfect', 'surprise-event', 'surprise', 'pixelperfect', 'photography', 'secret-event'].includes(s);
+};
+
+/**
  * Normalize Indian mobile number to 10 standard digits.
  */
 const normalizeIndianMobile = (phone) => {
@@ -70,10 +89,12 @@ const isMemberPccoeEligible = (member) => {
  * @param {Object} member       The member data object
  * @param {Array}  eventFields  The event's fields[] array
  * @param {string} prefix       Label prefix for error messages (e.g. "Team Leader", "Member 2")
+ * @param {string} eventSlug    The event's slug
  * @returns {string[]}          Array of validation error messages
  */
-const validateMemberAgainstFields = (member, eventFields, prefix) => {
+const validateMemberAgainstFields = (member, eventFields, prefix, eventSlug) => {
   const errors = [];
+  const isPixel = isPixelPerfectEvent(eventSlug);
 
   if (!member || typeof member !== 'object') {
     errors.push(`${prefix}: Member data must be a valid object`);
@@ -111,10 +132,18 @@ const validateMemberAgainstFields = (member, eventFields, prefix) => {
         break;
 
       case 'phone':
-        if (!isValidIndianMobile(strValue)) {
-          errors.push(
-            `${prefix}: ${field.label || 'Phone number'} must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9`
-          );
+        if (isPixel) {
+          if (!isValidInternationalPhone(strValue)) {
+            errors.push(
+              `${prefix}: ${field.label || 'Phone number'} must be a valid phone number (7-16 digits, international format accepted)`
+            );
+          }
+        } else {
+          if (!isValidIndianMobile(strValue)) {
+            errors.push(
+              `${prefix}: ${field.label || 'Phone number'} must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9`
+            );
+          }
         }
         break;
 
@@ -151,9 +180,17 @@ const validateMemberAgainstFields = (member, eventFields, prefix) => {
       errors.push(`${prefix}: Valid email address is required`);
     }
   }
-  if (!member.phone || !isValidIndianMobile(member.phone)) {
-    if (!errors.some((e) => e.includes('phone') || e.includes('Phone'))) {
-      errors.push(`${prefix}: Valid 10-digit Indian mobile number starting with 6-9 is required`);
+  if (isPixel) {
+    if (!member.phone || !isValidInternationalPhone(member.phone)) {
+      if (!errors.some((e) => e.includes('phone') || e.includes('Phone'))) {
+        errors.push(`${prefix}: Valid phone number (7-16 digits) is required`);
+      }
+    }
+  } else {
+    if (!member.phone || !isValidIndianMobile(member.phone)) {
+      if (!errors.some((e) => e.includes('phone') || e.includes('Phone'))) {
+        errors.push(`${prefix}: Valid 10-digit Indian mobile number starting with 6-9 is required`);
+      }
     }
   }
   if (!member.college || String(member.college).trim().length === 0) {
@@ -168,13 +205,14 @@ const validateMemberAgainstFields = (member, eventFields, prefix) => {
 /**
  * Sanitize member data — only retain defined event fields and normalize values.
  */
-const sanitizeMemberData = (member, eventFields) => {
+const sanitizeMemberData = (member, eventFields, eventSlug) => {
+  const isPixel = isPixelPerfectEvent(eventSlug);
   const sanitized = {};
   for (const field of eventFields) {
     if (member[field.name] !== undefined && member[field.name] !== null) {
       let val = String(member[field.name]).trim();
       if (field.type === 'phone') {
-        val = normalizeIndianMobile(val);
+        val = isPixel ? val.replace(/[\s\-()]/g, '') : normalizeIndianMobile(val);
       } else if (field.type === 'email') {
         val = val.toLowerCase();
       }
@@ -184,7 +222,11 @@ const sanitizeMemberData = (member, eventFields) => {
   // Ensure primary fields are included — PRESERVE user's entered email casing
   if (member.name) sanitized.name = String(member.name).trim();
   if (member.email) sanitized.email = String(member.email).trim();
-  if (member.phone) sanitized.phone = normalizeIndianMobile(member.phone);
+  if (member.phone) {
+    sanitized.phone = isPixel
+      ? String(member.phone).trim().replace(/[\s\-()]/g, '')
+      : normalizeIndianMobile(member.phone);
+  }
   if (member.college) sanitized.college = String(member.college).trim();
   if (member.year) sanitized.year = String(member.year).trim();
   if (member.branch) sanitized.branch = String(member.branch).trim();
@@ -279,7 +321,7 @@ const createRegistration = async (req, res, next) => {
       let prefix = isSolo ? 'Participant' : `Member ${index + 1}`;
       if (index === 0 && !isSolo) prefix = 'Team Leader';
 
-      const fieldErrors = validateMemberAgainstFields(member, event.fields, prefix);
+      const fieldErrors = validateMemberAgainstFields(member, event.fields, prefix, event.slug);
       validationErrors.push(...fieldErrors);
     });
 
@@ -293,7 +335,7 @@ const createRegistration = async (req, res, next) => {
 
     // Sanitize all members data
     const sanitizedMembers = members.map((member) =>
-      sanitizeMemberData(member, event.fields)
+      sanitizeMemberData(member, event.fields, event.slug)
     );
 
     // Validate team name for team events

@@ -63,6 +63,12 @@ const isValidIndianPhone = (phone: string): boolean => {
   return regex.test(clean);
 };
 
+const isValidInternationalPhone = (phone: string): boolean => {
+  if (!phone) return false;
+  const clean = String(phone).replace(/[\s\-()]/g, '');
+  return /^\+?\d{7,16}$/.test(clean);
+};
+
 // ── PCCOE Batch Extraction From Email (name.surname<max 4 digits>@pccoepune.org format) ──
 export const extractPccoeBatch = (email: string): string | null => {
   if (!email || typeof email !== 'string') return null;
@@ -494,6 +500,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   const router = useRouter();
 
   const isCtf = event.slug === 'capture-the-flag';
+  const isPixelPerfect = ['pixel-perfect', 'surprise-event', 'surprise', 'pixelperfect', 'photography', 'secret-event'].includes(event.slug?.toLowerCase()?.trim() || '');
   const minMembers = isCtf ? 2 : (event.teamConfig?.minMembers ?? 1);
   const maxMembers = isCtf ? 4 : (event.teamConfig?.maxMembers ?? 1);
   const isSolo = maxMembers === 1;
@@ -795,13 +802,23 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
 
       case 'phone':
         if (!val) return 'Phone number is required.';
-        if (!isValidIndianPhone(val)) {
-          return 'Please enter a valid 10-digit Indian mobile number.';
+        if (isPixelPerfect) {
+          if (!isValidInternationalPhone(val)) {
+            return 'Please enter a valid phone number (7–16 digits).';
+          }
+        } else {
+          if (!isValidIndianPhone(val)) {
+            return 'Please enter a valid 10-digit Indian mobile number.';
+          }
         }
-        const cleanPhone = val.replace(/[\s\-()]/g, '').slice(-10);
+        const cleanPhone = isPixelPerfect
+          ? val.replace(/[\s\-()]/g, '')
+          : val.replace(/[\s\-()]/g, '').slice(-10);
         for (let i = 0; i < currentMembersList.length; i++) {
           if (i !== memberIdx) {
-            const otherClean = (currentMembersList[i].phone || '').replace(/[\s\-()]/g, '').slice(-10);
+            const otherClean = isPixelPerfect
+              ? (currentMembersList[i].phone || '').replace(/[\s\-()]/g, '')
+              : (currentMembersList[i].phone || '').replace(/[\s\-()]/g, '').slice(-10);
             if (otherClean && otherClean === cleanPhone) {
               return 'This phone number is already used by another team member.';
             }
@@ -1610,7 +1627,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                           value={members[currentMemberIndex]?.phone || ''}
                           onChange={(e) => handleFieldChange('phone', e.target.value)}
                           onBlur={() => handleFieldBlur('phone')}
-                          placeholder="PHONE NUMBER (10 DIGITS)"
+                          placeholder={isPixelPerfect ? "PHONE NUMBER" : "PHONE NUMBER (10 DIGITS)"}
                           className={`reg-input full-width ${currentTouched.phone && currentErrors.phone ? 'reg-input-error' : ''}`}
                         />
                         {currentTouched.phone && currentErrors.phone && (
