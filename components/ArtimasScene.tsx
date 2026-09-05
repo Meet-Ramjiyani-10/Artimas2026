@@ -115,31 +115,68 @@ export default function ArtimasScene() {
 
   // ── Mobile Card Deck State & Touch Swipe Handlers ──────────────────────────
   const [mobileCardIndex, setMobileCardIndex] = useState(0);
+  const [switchingCard, setSwitchingCard] = useState<{ outgoing: number; incoming: number } | null>(null);
+  const switchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cardTouchStartX = useRef(0);
   const cardTouchStartY = useRef(0);
   const cardTouchDeltaX = useRef(0);
+  const cardTouchDeltaY = useRef(0);
 
-  // Reset mobile card index when activeYuga changes
+  const switchMobileCard = useCallback((targetIndex: number) => {
+    if (switchTimerRef.current) return;
+    setMobileCardIndex((current) => {
+      if (targetIndex === current) return current;
+      setSwitchingCard({ outgoing: current, incoming: targetIndex });
+      switchTimerRef.current = setTimeout(() => {
+        setSwitchingCard(null);
+        switchTimerRef.current = null;
+      }, 2000);
+      return targetIndex;
+    });
+  }, []);
+
+  // Reset mobile card index & cancel ongoing animation when activeYuga changes
   useEffect(() => {
+    if (switchTimerRef.current) {
+      clearTimeout(switchTimerRef.current);
+      switchTimerRef.current = null;
+    }
+    setSwitchingCard(null);
     setMobileCardIndex(0);
   }, [activeYuga]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (switchTimerRef.current) {
+        clearTimeout(switchTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleDeckTouchStart = (e: React.TouchEvent) => {
     cardTouchStartX.current = e.touches[0].clientX;
     cardTouchStartY.current = e.touches[0].clientY;
     cardTouchDeltaX.current = 0;
+    cardTouchDeltaY.current = 0;
   };
 
   const handleDeckTouchMove = (e: React.TouchEvent) => {
     cardTouchDeltaX.current = e.touches[0].clientX - cardTouchStartX.current;
+    cardTouchDeltaY.current = e.touches[0].clientY - cardTouchStartY.current;
   };
 
   const handleDeckTouchEnd = () => {
+    if (switchTimerRef.current) return;
     const swipeThreshold = 35;
-    if (Math.abs(cardTouchDeltaX.current) > swipeThreshold) {
-      setMobileCardIndex((prev) => (prev === 0 ? 1 : 0));
+    if (
+      Math.abs(cardTouchDeltaX.current) > swipeThreshold ||
+      Math.abs(cardTouchDeltaY.current) > swipeThreshold
+    ) {
+      switchMobileCard(mobileCardIndex === 0 ? 1 : 0);
     }
     cardTouchDeltaX.current = 0;
+    cardTouchDeltaY.current = 0;
   };
 
   // ── Refs ───────────────────────────────────────────────────────────────────
@@ -472,15 +509,26 @@ export default function ArtimasScene() {
             >
               {EVENTS.filter((e) => e.yuga === YUGA_NAME_MAP[activeYuga]).map((evt, idx) => {
                 const isFront = idx === mobileCardIndex;
+                const isSwitchingOut = switchingCard?.outgoing === idx;
+                const isSwitchingIn = switchingCard?.incoming === idx;
+
+                let deckClass = isFront ? 'deck-front' : 'deck-back';
+                if (isSwitchingOut) {
+                  deckClass = 'deck-switching-out';
+                } else if (isSwitchingIn) {
+                  deckClass = 'deck-switching-in';
+                }
+
                 return (
                   <div
                     key={evt.id}
-                    className={`yuga-decree-card yuga-card-${activeYuga} ${isFront ? 'deck-front' : 'deck-back'}`}
+                    className={`yuga-decree-card yuga-card-${activeYuga} ${deckClass}`}
                     style={{ animationDelay: `${idx * 0.08}s` }}
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (switchingCard) return;
                       if (!isFront) {
-                        setMobileCardIndex(idx);
+                        switchMobileCard(idx);
                       }
                     }}
                   >
@@ -644,14 +692,14 @@ export default function ArtimasScene() {
                   className={`deck-dot ${mobileCardIndex === 0 ? 'active' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setMobileCardIndex(0);
+                    switchMobileCard(0);
                   }}
                 />
                 <span
                   className={`deck-dot ${mobileCardIndex === 1 ? 'active' : ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setMobileCardIndex(1);
+                    switchMobileCard(1);
                   }}
                 />
               </div>
