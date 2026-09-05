@@ -18,13 +18,6 @@ const registrationSchema = new mongoose.Schema(
       index: true,
     },
 
-    eventId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Event',
-      required: [true, 'Event ID is required'],
-      index: true,
-    },
-
     eventSlug: {
       type: String,
       required: [true, 'Event slug is required'],
@@ -42,19 +35,129 @@ const registrationSchema = new mongoose.Schema(
     teamName: {
       type: String,
       trim: true,
+      default: '',
     },
 
-    // Flexible participant data — array of member objects
-    participantData: {
-      type: mongoose.Schema.Types.Mixed,
-      required: [true, 'Participant data is required'],
-    },
-
-    // Secure submission token for authenticated operations (e.g. CTF screenshot upload)
-    submissionToken: {
+    // ── Primary Lead / Member 1 Details ──
+    leadName: {
       type: String,
+      trim: true,
       required: true,
       index: true,
+    },
+    leadEmail: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      required: true,
+      index: true,
+    },
+    leadPhone: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    leadCollege: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    leadYear: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    leadBranch: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+
+    // ── Member 2 Details (for team events) ──
+    member2Name: { type: String, trim: true, default: '' },
+    member2Email: { type: String, trim: true, lowercase: true, default: '' },
+    member2Phone: { type: String, trim: true, default: '' },
+    member2College: { type: String, trim: true, default: '' },
+    member2Year: { type: String, trim: true, default: '' },
+    member2Branch: { type: String, trim: true, default: '' },
+
+    // ── Member 3 Details (for team events) ──
+    member3Name: { type: String, trim: true, default: '' },
+    member3Email: { type: String, trim: true, lowercase: true, default: '' },
+    member3Phone: { type: String, trim: true, default: '' },
+    member3College: { type: String, trim: true, default: '' },
+    member3Year: { type: String, trim: true, default: '' },
+    member3Branch: { type: String, trim: true, default: '' },
+
+    // ── Member 4 Details (for team events) ──
+    member4Name: { type: String, trim: true, default: '' },
+    member4Email: { type: String, trim: true, lowercase: true, default: '' },
+    member4Phone: { type: String, trim: true, default: '' },
+    member4College: { type: String, trim: true, default: '' },
+    member4Year: { type: String, trim: true, default: '' },
+    member4Branch: { type: String, trim: true, default: '' },
+
+    // One-line readable summary of all participants
+    teamMembersSummary: { type: String, trim: true, default: '' },
+
+    // ── Team & Participant Details ──
+    memberCount: {
+      type: Number,
+      default: 1,
+    },
+    isPccoe: {
+      type: Boolean,
+      default: false,
+    },
+    members: [
+      {
+        _id: false,
+        name: { type: String, trim: true, required: true },
+        email: { type: String, trim: true, lowercase: true, required: true },
+        phone: { type: String, trim: true },
+        college: { type: String, trim: true },
+        year: { type: String, trim: true },
+        branch: { type: String, trim: true },
+        isPccoe: { type: Boolean, default: false },
+      },
+    ],
+
+    // Backward-compatibility mirror for legacy queries
+    participantData: {
+      type: mongoose.Schema.Types.Mixed,
+    },
+
+    // ── Payment Details ──
+    amount: {
+      type: Number,
+      default: 0,
+    },
+    transactionId: {
+      type: String,
+      trim: true,
+    },
+    screenshotUrl: {
+      type: String,
+      trim: true,
+    },
+    payment: {
+      amount: {
+        type: Number,
+        default: 0,
+      },
+      status: {
+        type: String,
+        enum: ['FREE_PCCOE', 'PENDING', 'CONFIRMED', 'APPROVED', 'REJECTED', 'NOT_REQUIRED'],
+        default: 'NOT_REQUIRED',
+      },
+      transactionId: {
+        type: String,
+        trim: true,
+      },
+      screenshotUrl: {
+        type: String,
+        trim: true,
+      },
     },
 
     // Status is immediately CONFIRMED upon registration
@@ -65,81 +168,22 @@ const registrationSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Eligibility breakdown (PCCOE vs External)
-    eligibility: {
-      allPccoeEligible: {
-        type: Boolean,
-        default: false,
-      },
-      pccoeMemberCount: {
-        type: Number,
-        default: 0,
-      },
-      totalMemberCount: {
-        type: Number,
-        default: 0,
-      },
-    },
-
-    // Payment fields calculated from official Event fee and PCCOE eligibility
-    payment: {
-      amount: {
-        type: Number,
-        default: 0,
-      },
-      required: {
-        type: Boolean,
-        default: false,
-      },
-      reason: {
-        type: String,
-        trim: true,
-      },
-      screenshotUrl: {
-        type: String,
-      },
-      screenshotPublicId: {
-        type: String,
-      },
-      transactionId: {
-        type: String,
-        trim: true,
-      },
-      status: {
-        type: String,
-        default: 'NOT_REQUIRED',
-      },
-    },
-
-    verification: {
-      verifiedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Admin',
-      },
-      verifiedAt: {
-        type: Date,
-      },
-      remarks: {
-        type: String,
-        trim: true,
-      },
-    },
-
-    emailStatus: {
+    // Only present if CTF event requires submission token
+    submissionToken: {
       type: String,
-      enum: ['NOT_REQUIRED', 'PENDING', 'SENT', 'FAILED'],
-      default: 'NOT_REQUIRED',
+      sparse: true,
+      index: true,
     },
-    emailSentAt: {
-      type: Date,
-    },
-    emailError: {
-      type: String,
-      trim: true,
+
+    eventId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Event',
+      index: true,
     },
   },
   {
     timestamps: true,
+    versionKey: false, // Disables __v field in MongoDB
     toJSON: {
       transform(doc, ret) {
         ret.id = ret._id;
@@ -150,12 +194,12 @@ const registrationSchema = new mongoose.Schema(
   }
 );
 
-// Compound indexes for scaling up to thousands of registrations and preventing duplicates
-registrationSchema.index({ eventId: 1, status: 1 });
+// High-performance compound indexes for search, deduplication and reporting
 registrationSchema.index({ eventSlug: 1, status: 1 });
-registrationSchema.index({ eventId: 1, 'participantData.email': 1 });
-registrationSchema.index({ eventId: 1, teamName: 1 });
+registrationSchema.index({ eventSlug: 1, leadEmail: 1 });
+registrationSchema.index({ eventSlug: 1, 'members.email': 1 });
+registrationSchema.index({ eventSlug: 1, teamName: 1 });
 registrationSchema.index({ createdAt: -1 });
-registrationSchema.index({ 'payment.transactionId': 1 }, { sparse: true });
+registrationSchema.index({ transactionId: 1 }, { sparse: true });
 
 module.exports = mongoose.model('Registration', registrationSchema);

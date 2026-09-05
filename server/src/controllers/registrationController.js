@@ -5,6 +5,7 @@ const Registration = require('../models/Registration');
 const { uploadToCloudinary } = require('../config/cloudinary');
 const generateRegistrationId = require('../utils/generateRegistrationId');
 const sendConfirmationEmail = require('../utils/sendConfirmationEmail');
+const { syncToEventCollection } = require('../utils/eventCollectionHelper');
 
 /**
  * Validate RFC 5322 compatible email format.
@@ -333,11 +334,15 @@ const createRegistration = async (req, res, next) => {
     }
 
     // B. Check if primary participant / team leader is already registered for this event
-    const leadEmail = sanitizedMembers[0]?.email;
+    const leadEmail = sanitizedMembers[0]?.email ? sanitizedMembers[0].email.toLowerCase() : null;
     if (leadEmail) {
       const existingLead = await Registration.findOne({
-        eventId: event._id,
-        'participantData.0.email': leadEmail,
+        eventSlug: event.slug,
+        $or: [
+          { leadEmail: leadEmail },
+          { 'members.email': leadEmail },
+          { 'participantData.0.email': leadEmail },
+        ],
         status: { $ne: 'REJECTED' },
       });
       if (existingLead) {
@@ -349,10 +354,13 @@ const createRegistration = async (req, res, next) => {
     }
 
     // C. Check if any team member is already participating in this event in another team
-    const allMemberEmails = sanitizedMembers.map((m) => m.email);
+    const allMemberEmails = sanitizedMembers.map((m) => m.email.toLowerCase());
     const existingMemberReg = await Registration.findOne({
-      eventId: event._id,
-      'participantData.email': { $in: allMemberEmails },
+      eventSlug: event.slug,
+      $or: [
+        { 'members.email': { $in: allMemberEmails } },
+        { 'participantData.email': { $in: allMemberEmails } },
+      ],
       status: { $ne: 'REJECTED' },
     });
 
@@ -473,7 +481,20 @@ const createRegistration = async (req, res, next) => {
 
     // ── 7. Generate IDs and Submission Token ──
     const registrationId = await generateRegistrationId();
-    const submissionToken = `st_${crypto.randomBytes(18).toString('hex')}`;
+    // Only generate submissionToken for Capture The Flag (CTF proof uploads)
+    const isCtfEvent = event.slug === 'capture-the-flag';
+    const submissionToken = isCtfEvent ? `st_${crypto.randomBytes(18).toString('hex')}` : undefined;
+
+    const lead = sanitizedMembers[0] || {};
+    const m2 = sanitizedMembers[1] || {};
+    const m3 = sanitizedMembers[2] || {};
+    const m4 = sanitizedMembers[3] || {};
+
+    const teamSummary = sanitizedMembers
+      .map((m, i) => `${i + 1}. ${m.name} (${m.phone || 'N/A'}, ${m.email || 'N/A'}, ${m.college || 'N/A'})`)
+      .join(' | ');
+
+    const finalPaymentStatus = allPccoeEligible ? 'FREE_PCCOE' : (paymentRequired ? 'PENDING' : 'NOT_REQUIRED');
 
     // ── 8. Save Registration in MongoDB (status: CONFIRMED) ──
     const registration = await Registration.create({
@@ -481,32 +502,83 @@ const createRegistration = async (req, res, next) => {
       eventId: event._id,
       eventSlug: event.slug,
       eventName: event.name,
-      teamName: teamName?.trim() || sanitizedMembers[0].name,
+      teamName: teamName?.trim() || lead.name,
+
+      // Top-level Lead Contact Details (Directly visible in Atlas Table View)
+      leadName: lead.name || '',
+      leadEmail: lead.email ? lead.email.toLowerCase() : '',
+      leadPhone: lead.phone || '',
+      leadCollege: lead.college || '',
+      leadYear: lead.year || '',
+      leadBranch: lead.branch || '',
+
+      // Top-level Member 2 Details
+      member2Name: m2.name || undefined,
+      member2Email: m2.email ? m2.email.toLowerCase() : undefined,
+      member2Phone: m2.phone || undefined,
+      member2College: m2.college || undefined,
+      member2Year: m2.year || undefined,
+      member2Branch: m2.branch || undefined,
+
+      // Top-level Member 3 Details
+      member3Name: m3.name || undefined,
+      member3Email: m3.email ? m3.email.toLowerCase() : undefined,
+      member3Phone: m3.phone || undefined,
+      member3College: m3.college || undefined,
+      member3Year: m3.year || undefined,
+      member3Branch: m3.branch || undefined,
+
+      // Top-level Member 4 Details
+      member4Name: m4.name || undefined,
+      member4Email: m4.email ? m4.email.toLowerCase() : undefined,
+      member4Phone: m4.phone || undefined,
+      member4College: m4.college || undefined,
+      member4Year: m4.year || undefined,
+      member4Branch: m4.branch || undefined,
+
+      teamMembersSummary: teamSummary,
+
+      memberCount: sanitizedMembers.length,
+      isPccoe: allPccoeEligible,
+
+      // Clean members array with isPccoe flag
+      members: sanitizedMembers.map((m) => ({
+        name: m.name,
+        email: m.email?.toLowerCase(),
+        phone: m.phone,
+        college: m.college,
+        year: m.year,
+        branch: m.branch,
+        isPccoe: isMemberPccoeEligible(m),
+      })),
+
+      // Mirror participantData for backwards compatibility with legacy queries
       participantData: sanitizedMembers,
-      submissionToken,
-      status: 'CONFIRMED',
-      eligibility: {
-        allPccoeEligible,
-        pccoeMemberCount,
-        totalMemberCount: sanitizedMembers.length,
-      },
+
+      // Clean payment fields (both top-level and nested)
+      amount: payableAmount,
+      transactionId: transactionId || undefined,
+      screenshotUrl: screenshotUrl || undefined,
       payment: {
         amount: payableAmount,
-        required: paymentRequired,
-        reason: paymentReason,
-        status: paymentStatus,
+        status: finalPaymentStatus,
         transactionId: transactionId || undefined,
         screenshotUrl: screenshotUrl || undefined,
-        screenshotPublicId: screenshotPublicId || undefined,
       },
-      emailStatus: 'PENDING',
+
+      status: 'CONFIRMED',
+      submissionToken,
     });
 
-    // ── 9. Dispatch Confirmation Email (Non-blocking, after successful MongoDB save) ──
+    // ── 9. Sync into Dedicated Event Collection (e.g. registrations_datathon) ──
+    await syncToEventCollection(registration);
+
+    // ── 10. Dispatch Confirmation Email (Only if SMTP is configured) ──
+    const isSmtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
     const recipientEmail = sanitizedMembers[0]?.email;
     const recipientName = sanitizedMembers[0]?.name || registration.teamName;
 
-    if (recipientEmail) {
+    if (isSmtpConfigured && recipientEmail) {
       sendConfirmationEmail({
         to: recipientEmail,
         participantName: recipientName,
@@ -514,21 +586,12 @@ const createRegistration = async (req, res, next) => {
         registrationId: registration.registrationId,
         teamName: isTeamEvent ? registration.teamName : undefined,
         memberCount: sanitizedMembers.length,
-        submissionToken: event.slug === 'capture-the-flag' ? registration.submissionToken : undefined,
+        submissionToken: isCtfEvent ? registration.submissionToken : undefined,
         payableAmount,
         paymentRequired,
-      })
-        .then(async (sent) => {
-          registration.emailStatus = sent ? 'SENT' : 'FAILED';
-          registration.emailSentAt = sent ? new Date() : undefined;
-          await registration.save();
-        })
-        .catch(async (err) => {
-          console.error(`✖ Email dispatch error for ${registration.registrationId}:`, err.message);
-          registration.emailStatus = 'FAILED';
-          registration.emailError = err.message;
-          await registration.save();
-        });
+      }).catch((err) => {
+        console.error(`✖ Email dispatch error for ${registration.registrationId}:`, err.message);
+      });
     }
 
     // ── 10. Return Confirmed Registration Details to Frontend ──
