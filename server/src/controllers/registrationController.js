@@ -654,6 +654,18 @@ const createRegistration = async (req, res, next) => {
       }));
     }
 
+    // Explicitly compute all participant emails for atomic concurrency-safe uniqueness per event
+    const uniqueParticipantEmails = Array.from(new Set(
+      [registrationData.leadEmail, ...(sanitizedMembers || []).map((m) => m.email)]
+        .filter(Boolean)
+        .map((e) => String(e).trim().toLowerCase())
+    ));
+    registrationData.participantEmails = uniqueParticipantEmails;
+
+    if (isTeamEvent && typedTeamName && typedTeamName.trim()) {
+      registrationData.normalizedTeamName = typedTeamName.trim().toLowerCase();
+    }
+
     const registration = await Registration.create(registrationData);
 
     // ── 9. Sync into Dedicated Event Collection (e.g. registrations_datathon) ──
@@ -742,6 +754,22 @@ const createRegistration = async (req, res, next) => {
       },
     });
   } catch (error) {
+    if (error.code === 11000) {
+      if (error.keyValue && error.keyValue.participantEmails) {
+        const email = error.keyValue.participantEmails;
+        return res.status(409).json({
+          success: false,
+          clashingEmail: typeof email === 'string' ? email : undefined,
+          message: `Participant "${email}" is already registered for this event. Every participant can only participate once per event.`,
+        });
+      }
+      if (error.keyValue && error.keyValue.normalizedTeamName) {
+        return res.status(409).json({
+          success: false,
+          message: 'A team with this name is already registered for this event. Please choose a distinct team name.',
+        });
+      }
+    }
     next(error);
   }
 };

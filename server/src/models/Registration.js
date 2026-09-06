@@ -43,6 +43,19 @@ const registrationSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    normalizedTeamName: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+
+    // ── All Participant Emails (for fast lookups & atomic unique indexing per event) ──
+    participantEmails: {
+      type: [String],
+      trim: true,
+      lowercase: true,
+      default: [],
+    },
 
     // ── Primary Contact ──
     leadName: {
@@ -185,6 +198,30 @@ const registrationSchema = new mongoose.Schema(
   }
 );
 
+// Pre-validate hook: ensure participantEmails and normalizedTeamName are always synchronized
+registrationSchema.pre('validate', function (next) {
+  const emails = new Set();
+  if (this.leadEmail) {
+    emails.add(this.leadEmail.trim().toLowerCase());
+  }
+  if (Array.isArray(this.members)) {
+    this.members.forEach((m) => {
+      if (m && m.email) emails.add(m.email.trim().toLowerCase());
+    });
+  }
+  if (emails.size > 0) {
+    this.participantEmails = Array.from(emails);
+  }
+
+  if (this.normalizedTeamName) {
+    this.normalizedTeamName = this.normalizedTeamName.trim().toLowerCase();
+  } else if (this.teamName && this.teamName.trim() && (!this.leadName || this.teamName.trim().toLowerCase() !== this.leadName.trim().toLowerCase())) {
+    this.normalizedTeamName = this.teamName.trim().toLowerCase();
+  }
+
+  next();
+});
+
 // High-performance indexes
 registrationSchema.index({ eventId: 1, status: 1 });
 registrationSchema.index({ eventSlug: 1, status: 1 });
@@ -199,6 +236,28 @@ registrationSchema.index(
   {
     unique: true,
     partialFilterExpression: { transactionId: { $type: 'string', $gt: '' } },
+  }
+);
+
+// Concurrency-safe unique indexes: prevent race-condition duplicate registrations per event
+registrationSchema.index(
+  { eventId: 1, participantEmails: 1 },
+  {
+    name: 'eventId_1_participantEmails_1',
+    unique: true,
+    partialFilterExpression: { status: { $in: ['CONFIRMED', 'APPROVED', 'PENDING'] } },
+  }
+);
+
+registrationSchema.index(
+  { eventId: 1, normalizedTeamName: 1 },
+  {
+    name: 'eventId_1_normalizedTeamName_1',
+    unique: true,
+    partialFilterExpression: {
+      status: { $in: ['CONFIRMED', 'APPROVED', 'PENDING'] },
+      normalizedTeamName: { $type: 'string', $gt: '' },
+    },
   }
 );
 

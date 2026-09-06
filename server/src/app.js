@@ -12,44 +12,76 @@ const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
+// ── Trust Proxy Configuration ──
+// Safely configure Express to trust the production reverse proxy (Render, Railway, Nginx, ALB).
+// Default to 1 trusted hop to prevent client IP spoofing via crafted X-Forwarded-For headers
+// while ensuring express-rate-limit isolates buckets per real client IP.
+const parseTrustProxy = () => {
+  const envVal = process.env.TRUST_PROXY;
+  if (envVal === undefined || envVal === '') return 1;
+  if (envVal.toLowerCase() === 'true') return true;
+  if (envVal.toLowerCase() === 'false') return false;
+  const num = Number(envVal);
+  if (!Number.isNaN(num)) return num;
+  return envVal;
+};
+app.set('trust proxy', parseTrustProxy());
+
 // ── Security ──
 app.use(helmet());
 
-// ── CORS ──
-const rawClientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.trim().replace(/\/+$/, '') : '';
-const normalizedClientUrl = rawClientUrl && !/^https?:\/\//i.test(rawClientUrl)
-  ? `https://${rawClientUrl}`
-  : rawClientUrl;
+// ── CORS Configuration ──
+// Strictly allow explicitly configured production frontend origins and development localhost.
+// Arbitrary wildcards (*), arbitrary *.vercel.app / *.netlify.app, and arbitrary origins are rejected.
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  const cleanOrigin = origin.trim().replace(/\/+$/, '');
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  rawClientUrl,
-  normalizedClientUrl,
-].filter(Boolean);
+  // 1. Check ALLOWED_ORIGINS (comma-separated list of origins)
+  if (process.env.ALLOWED_ORIGINS) {
+    const configuredOrigins = process.env.ALLOWED_ORIGINS.split(',')
+      .map((o) => o.trim().replace(/\/+$/, ''))
+      .filter(Boolean);
+    for (const o of configuredOrigins) {
+      if (cleanOrigin === o || cleanOrigin === `https://${o}`) return true;
+    }
+  }
+
+  // 2. Check CLIENT_URL (standard single frontend environment variable)
+  if (process.env.CLIENT_URL) {
+    const clientUrl = process.env.CLIENT_URL.trim().replace(/\/+$/, '');
+    if (clientUrl && (cleanOrigin === clientUrl || cleanOrigin === `https://${clientUrl}`)) {
+      return true;
+    }
+  }
+
+  // 3. In development / non-production environments, allow local development servers
+  if (process.env.NODE_ENV !== 'production') {
+    if (cleanOrigin === 'http://localhost:3000' || cleanOrigin === 'http://127.0.0.1:3000') {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (curl, server-to-server, mobile)
+      // Allow requests with no origin (curl, server-to-server, mobile native requests)
       if (!origin) return callback(null, true);
 
-      // Normalize incoming origin by removing trailing slash
-      const cleanOrigin = origin.replace(/\/+$/, '');
-
-      // Allow matching origins, local development, or any Vercel deployment preview
-      if (
-        allowedOrigins.includes(cleanOrigin) ||
-        cleanOrigin.endsWith('.vercel.app') ||
-        process.env.NODE_ENV !== 'production'
-      ) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       }
-      return callback(new Error(`CORS policy does not allow access from origin: ${origin}`));
+
+      // Reject all unauthorized origins by omitting Access-Control-Allow-Origin
+      return callback(null, false);
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma', 'X-Requested-With'],
     credentials: true,
+    optionsSuccessStatus: 204,
   })
 );
 

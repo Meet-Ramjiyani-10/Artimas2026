@@ -19,18 +19,22 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 /**
- * Validation rules for admin login (supports username or email).
+ * Validation rules for admin login (requires explicit username, email, or identifier).
  */
 const validateLogin = [
+  body('identifier')
+    .custom((_, { req }) => {
+      const raw = req.body?.username ?? req.body?.email ?? req.body?.identifier;
+      if (raw === undefined || raw === null || typeof raw !== 'string' || !raw.trim()) {
+        throw new Error('Username or email is required');
+      }
+      return true;
+    }),
   body('email')
     .optional()
     .isString()
     .trim(),
   body('username')
-    .optional()
-    .isString()
-    .trim(),
-  body('identifier')
     .optional()
     .isString()
     .trim(),

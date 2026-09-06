@@ -37,6 +37,25 @@ const errorHandler = (err, req, res, _next) => {
         message,
       });
     }
+
+    if (err.keyValue && (err.keyValue.participantEmails || (err.keyPattern && err.keyPattern.participantEmails))) {
+      const email = err.keyValue.participantEmails || 'A participant';
+      message = `Participant "${email}" is already registered for this event. Every participant can only participate once per event.`;
+      return res.status(409).json({
+        success: false,
+        clashingEmail: typeof email === 'string' ? email : undefined,
+        message,
+      });
+    }
+
+    if (err.keyValue && (err.keyValue.normalizedTeamName || (err.keyPattern && err.keyPattern.normalizedTeamName))) {
+      message = 'A team with this name is already registered for this event. Please choose a distinct team name.';
+      return res.status(409).json({
+        success: false,
+        message,
+      });
+    }
+
     const field = Object.keys(err.keyValue || {}).join(', ');
     message = `Duplicate value for field: ${field}`;
   }

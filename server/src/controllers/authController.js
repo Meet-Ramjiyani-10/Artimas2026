@@ -12,6 +12,13 @@ const login = async (req, res, next) => {
     const rawIdentifier = req.body.username || req.body.email || req.body.identifier;
     const identifier = rawIdentifier ? String(rawIdentifier).trim().toLowerCase() : '';
 
+    if (!identifier) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username or email is required',
+      });
+    }
+
     if (!password) {
       return res.status(400).json({
         success: false,
@@ -19,19 +26,12 @@ const login = async (req, res, next) => {
       });
     }
 
-    let query;
-    if (identifier) {
-      query = {
-        $or: [
-          { email: identifier },
-          { username: identifier },
-        ],
-      };
-    } else {
-      // Fallback for legacy password-only master login
-      const defaultEmail = (process.env.ADMIN_EMAIL || 'admin@artimas.in').toLowerCase();
-      query = { email: defaultEmail };
-    }
+    const query = {
+      $or: [
+        { email: identifier },
+        { username: identifier },
+      ],
+    };
 
     // Find admin with password hash included
     const admin = await Admin.findOne(query).select('+passwordHash');

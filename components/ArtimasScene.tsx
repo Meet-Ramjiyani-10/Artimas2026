@@ -82,7 +82,7 @@ export default function ArtimasScene() {
           setOpenMap(map);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Clear legacy sessionStorage

@@ -30,7 +30,7 @@ export default function SubpageLayout({
     setHasSeenIntro(true);
     try {
       sessionStorage.removeItem('artimas_has_seen_intro');
-    } catch {}
+    } catch { }
   }, []);
   return (
     <>
