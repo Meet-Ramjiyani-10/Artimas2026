@@ -18,6 +18,7 @@ export const MEDIA = {
   },
   images: {
     logo: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_800,c_limit/v1788352573/Untitled_-_September_02_2026_at_18.03.44.webp',
+    aimsaLogo: 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto,w_240,c_limit/v1788372702/xijdufnorzgujqejjosp.png',
     kalchakra: 'https://res.cloudinary.com/qllarlul/image/upload/v1788649127/Kalchakra_OG.webp',
     bgImage: 'https://res.cloudinary.com/qllarlul/image/upload/v1788219483/bg_image.png',
     pillar: 'https://res.cloudinary.com/qllarlul/image/upload/v1788219529/layer_1_pillar.png',
