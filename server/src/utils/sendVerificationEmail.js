@@ -1,4 +1,5 @@
 const { createTransporter } = require('../config/mail');
+const { getWhatsAppLink } = require('./whatsappLinks');
 
 const ARTIMAS_LOGO_URL = 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_500,c_limit/v1788690181/Logo_with_footer.png';
 const AIMSA_LOGO_URL = 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto,w_240,c_limit/v1788372702/xijdufnorzgujqejjosp.png';
@@ -10,9 +11,11 @@ const AIMSA_LOGO_URL = 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/
  * @param {string} options.to             Recipient email
  * @param {string} options.participantName Participant/team leader name
  * @param {string} options.eventName      Event name
+ * @param {string} [options.eventSlug]    Event slug (for WhatsApp link)
  * @param {string} options.registrationId Human-readable registration ID
- * @param {string} options.teamName       Team name (optional)
+ * @param {string} [options.teamName]     Team name (optional)
  * @param {number} options.amount         Payment amount
+ * @param {string} [options.submissionToken] CTF token (optional)
  * @param {string} options.remarks        Verification remarks
  * @returns {Promise<boolean>}            True if email sent, false if skipped
  */
@@ -20,9 +23,11 @@ const sendVerificationEmail = async ({
   to,
   participantName,
   eventName,
+  eventSlug,
   registrationId,
   teamName,
   amount,
+  submissionToken,
   remarks,
 }) => {
   const transporter = createTransporter();
@@ -35,6 +40,18 @@ const sendVerificationEmail = async ({
   const teamLine = teamName
     ? `<tr style="border-bottom:1px solid #ede3d3;"><td class="table-cell-pad" style="padding:11px 16px;color:#7a6245;font-size:13.5px;font-weight:600;">Team</td><td class="table-cell-pad" style="padding:11px 16px;color:#1a1208;font-size:14px;font-weight:600;">${teamName}</td></tr>`
     : '';
+
+  const ctfTokenBox = submissionToken
+    ? `
+      <div style="background:#fbf5ea;border:1.5px dashed #c99a4e;border-radius:8px;padding:18px;margin:22px 0;text-align:center;">
+        <span style="color:#8c5d1e;font-size:12px;letter-spacing:2px;font-weight:700;">⚔ CTF SUBMISSION TOKEN</span>
+        <p style="font-family:monospace;color:#1a1208;font-size:18px;margin:8px 0 4px;letter-spacing:1px;font-weight:bold;">${submissionToken}</p>
+        <span style="color:#7a6245;font-size:11.5px;">Keep this token safe. Your team will use it to upload challenge proof screenshots.</span>
+      </div>
+    `
+    : '';
+
+  const whatsappGroupUrl = eventSlug ? getWhatsAppLink(eventSlug) : null;
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -204,6 +221,17 @@ const sendVerificationEmail = async ({
           </td>
         </tr>
       </table>
+
+      ${ctfTokenBox}
+
+      ${whatsappGroupUrl ? `
+      <!-- Official WhatsApp Group -->
+      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:18px 16px;margin:22px 0;text-align:center;">
+        <span style="color:#15803d;font-size:11.5px;letter-spacing:1.5px;font-weight:800;text-transform:uppercase;">Official WhatsApp Community</span>
+        <p style="color:#273b2a;font-size:13.5px;margin:8px 0 14px;">Join the ${eventName} WhatsApp group for schedules & announcements:</p>
+        <a href="${whatsappGroupUrl}" style="display:inline-block;background-color:#22c55e;color:#ffffff;padding:11px 22px;border-radius:6px;font-weight:700;text-decoration:none;font-size:13.5px;box-shadow:0 2px 8px rgba(34,197,94,0.3);">JOIN WHATSAPP GROUP ↗</a>
+      </div>
+      ` : ''}
 
       <!-- Next Steps -->
       <div style="background:#fbf7ee;border:1px solid #e5d8c3;border-radius:8px;padding:18px;margin:22px 0;">

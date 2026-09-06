@@ -957,9 +957,11 @@ const resendVerificationEmail = async (req, res, next) => {
       to: registration.leadEmail,
       participantName: registration.leadName || registration.teamName,
       eventName: registration.eventName,
+      eventSlug: registration.eventSlug,
       registrationId: registration.registrationId,
       teamName: registration.teamName,
       amount: registration.amount || 0,
+      submissionToken: registration.submissionToken,
       remarks: registration.verification?.remarks || 'Registration confirmed & verified successfully',
     });
 
