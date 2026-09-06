@@ -97,7 +97,7 @@ export interface EventScheduleDetail {
 export const EVENT_SCHEDULE_DATA: Record<string, EventScheduleDetail> = {
   'pixel-perfect': {
     name: 'Surprise Event',
-    date: '11th Oct, 2026',
+    date: '11 October 2026',
     time: '10:00 AM – 05:00 PM',
     venue: 'PCCOE Campus Arena',
     teamSize: 'Individual participation only',
@@ -105,55 +105,47 @@ export const EVENT_SCHEDULE_DATA: Record<string, EventScheduleDetail> = {
   },
   'surprise-event': {
     name: 'Surprise Event',
-    date: '11th Oct, 2026',
+    date: '11 October 2026',
     time: '10:00 AM – 05:00 PM',
     venue: 'PCCOE Campus Arena',
     teamSize: 'Individual participation only',
     rounds: '1 Round',
   },
-  'hackmatrix': {
-    name: 'HackMatrix',
-    date: 'Oct 9–11, 2026',
-    time: '30-Hour Build Sprint',
-    venue: 'Architecture Hall, Block D',
-    teamSize: '3–4 members',
+  'datathon': {
+    name: 'Datathon',
+    date: '18 October 2026',
+    time: '10:00 AM – 06:00 PM',
+    venue: 'Online Arena',
+    teamSize: '1–2 members',
     rounds: '2 Rounds',
   },
   'prompt-relay': {
     name: 'Prompt Relay',
-    date: 'Oct 9–10, 2026',
+    date: '19 October 2026',
     time: '02:30 PM – 05:30 PM',
     venue: 'Seminar Hall, Block A',
-    teamSize: '3 members (mandatory)',
+    teamSize: '1–3 members',
     rounds: '3 Rounds',
   },
   'brandathon': {
     name: 'Brandathon',
-    date: 'Oct 9–11, 2026',
+    date: '19 October 2026',
     time: '09:30 AM – 12:30 PM',
     venue: 'Old Reading Hall / Block C',
     teamSize: '2–4 members',
     rounds: '3 Rounds',
   },
-  'datathon': {
-    name: 'Datathon',
-    date: 'Oct 9–10, 2026',
-    time: '05:00 PM – 08:00 PM',
-    venue: 'Data Analytics Lab, Block D',
-    teamSize: '1–2 members',
-    rounds: '2 Rounds',
-  },
   'capture-the-flag': {
     name: 'Capture the Flag',
-    date: 'Oct 10–11, 2026',
+    date: '20 October 2026',
     time: '01:30 PM – 04:30 PM',
-    venue: 'Seminar Hall, 5th Floor Mech Building',
-    teamSize: '2–4 members',
+    venue: 'Online Arena',
+    teamSize: '2 or 4 members',
     rounds: '2 Rounds',
   },
   'houdini-heist': {
     name: 'Houdini Heist',
-    date: 'Oct 10–11, 2026',
+    date: '20 October 2026',
     time: '10:00 AM – 02:00 PM',
     venue: 'Auditorium / Rooms 6517–6519',
     teamSize: '3 members (exactly)',
@@ -161,11 +153,19 @@ export const EVENT_SCHEDULE_DATA: Record<string, EventScheduleDetail> = {
   },
   'among-us': {
     name: 'Among Us',
-    date: 'Oct 9–11, 2026',
+    date: '20 October 2026',
     time: '03:00 PM – 07:00 PM',
     venue: 'Main Stage / Open Air Theatre',
     teamSize: 'Individual participation only',
     rounds: '3 Rounds',
+  },
+  'hackmatrix': {
+    name: 'HackMatrix',
+    date: '20 October 2026',
+    time: '24-Hour Build Sprint',
+    venue: 'Architecture Hall, Block D',
+    teamSize: '2–4 members',
+    rounds: '2 Rounds',
   },
 };
 
@@ -1413,11 +1413,6 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
   const allPccoeEligible = pccoeMemberCount === members.length;
   const paymentRequired = !allPccoeEligible && event.fee > 0;
 
-  // Derive schedule and location metadata cleanly
-  const scheduleDate = schedule.date || event.dateLocation?.split('·')[0]?.trim() || '11th Oct, 2026';
-  const scheduleVenue = schedule.venue || event.dateLocation?.split('·')[1]?.trim() || 'PCCOE Campus / Online Arena';
-  const eventTime = schedule.time || '10:00 AM – 05:00 PM IST';
-
   // If registration is closed for this event, render decree closed state
   if (!isCheckingStatus && isRegistrationClosed) {
     return (
@@ -2012,24 +2007,6 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                               ? `₹${registrationResult?.payment?.amount || registrationResult?.payableAmount || event.fee} — Verification Pending`
                               : 'No payment required'}
                           </span>
-                        </div>
-                      </div>
-
-                      {/* EVENT INFORMATION (Compact & Clear, No Emojis) */}
-                      <div className="reg-confirm-section" style={{ borderTop: '1px solid rgba(138, 106, 64, 0.25)', paddingTop: '10px', marginTop: '10px' }}>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', fontSize: '12.5px' }}>
-                          <div>
-                            <span style={{ color: '#5a3818', fontWeight: 600 }}>Date:</span>{' '}
-                            <strong style={{ color: '#1a0b02' }}>{scheduleDate}</strong>
-                          </div>
-                          <div>
-                            <span style={{ color: '#5a3818', fontWeight: 600 }}>Time:</span>{' '}
-                            <strong style={{ color: '#1a0b02' }}>{eventTime}</strong>
-                          </div>
-                          <div>
-                            <span style={{ color: '#5a3818', fontWeight: 600 }}>Venue:</span>{' '}
-                            <strong style={{ color: '#1a0b02' }}>{scheduleVenue}</strong>
-                          </div>
                         </div>
                       </div>
                     </div>
