@@ -1,6 +1,7 @@
 <div align="center">
 
 # ❖ ARTIMAS 2026 ❖
+
 ### The Cosmic Epochs of Innovation & Technology
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.4-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
@@ -51,16 +52,16 @@ It serves as the grand interactive portal, chronicles showcase, and event regist
 
 ## 🛠️ Technology Stack
 
-| Layer | Technology | Description |
-|---|---|---|
-| **Framework** | **Next.js 16** (App Router) | Server-side rendering, static generation, route prefetching, and Turbopack |
-| **UI Library** | **React 19** | Concurrent rendering, state hooks, and dynamic imports |
-| **Language** | **TypeScript 5.8+** | Strict type safety, typed model-viewer intrinsic elements, typed event schemas |
-| **Styling** | **Custom Vanilla CSS** | 4,800+ lines of custom CSS, 3D transform matrices, glassmorphism, fluid clamp typography |
-| **3D Rendering** | **@google/model-viewer 3.5.0** | Web component rendering `chakra_medallion.glb` with WebGL/PBR lighting |
-| **Particle Physics** | **HTML5 2D Canvas** | 60fps golden ember particle simulation with sinusoidal flicker algorithms |
-| **Media Delivery** | **Cloudinary CDN** | Edge-cached video delivery and automated format/size optimizations (`f_auto,q_auto,w_...`) |
-| **Typography** | **Google Fonts** | *Cinzel Decorative* (Headings) and *Cormorant Garamond* (Body & Decrees) |
+| Layer                | Technology                     | Description                                                                                |
+| -------------------- | ------------------------------ | ------------------------------------------------------------------------------------------ |
+| **Framework**        | **Next.js 16** (App Router)    | Server-side rendering, static generation, route prefetching, and Turbopack                 |
+| **UI Library**       | **React 19**                   | Concurrent rendering, state hooks, and dynamic imports                                     |
+| **Language**         | **TypeScript 5.8+**            | Strict type safety, typed model-viewer intrinsic elements, typed event schemas             |
+| **Styling**          | **Custom Vanilla CSS**         | 4,800+ lines of custom CSS, 3D transform matrices, glassmorphism, fluid clamp typography   |
+| **3D Rendering**     | **@google/model-viewer 3.5.0** | Web component rendering `chakra_medallion.glb` with WebGL/PBR lighting                     |
+| **Particle Physics** | **HTML5 2D Canvas**            | 60fps golden ember particle simulation with sinusoidal flicker algorithms                  |
+| **Media Delivery**   | **Cloudinary CDN**             | Edge-cached video delivery and automated format/size optimizations (`f_auto,q_auto,w_...`) |
+| **Typography**       | **Google Fonts**               | _Cinzel Decorative_ (Headings) and _Cormorant Garamond_ (Body & Decrees)                   |
 
 ---
 
@@ -117,45 +118,51 @@ Artimas2026/
 
 ## 🏆 Festival Chronicles & Events
 
-| Event | Category | Epoch | Entry Fee | Team Size | Prize Pool |
-|---|---|---|---|---|---|
-| **Datathon** | Data Science & AI | Satya Yuga | ₹150 | 1 - 2 | ₹30,000 |
-| **Surprise Event** | Competitive Photography | Satya Yuga | ₹100 | 1 (Solo) | Exciting Rewards |
-| **Prompt Relay** | Generative AI Sprint | Treta Yuga | ₹150 | 1 - 3 | ₹20,000 |
-| **Brandathon** | Design & Strategy | Treta Yuga | ₹150 | 2 - 4 | ₹25,000 |
-| **Capture the Flag** | Cybersecurity & War Games | Dwapara Yuga | ₹150 | 1 - 3 | ₹25,000 |
-| **Houdini Heist** | Mystery & Escape Quest | Dwapara Yuga | ₹150 | Exactly 3 | ₹20,000 |
-| **Among Us** | Gaming & Social Deduction | Kali Yuga | ₹50 | 1 (Solo) | ₹10,000 |
-| **HackMatrix** | 24h Hackathon & Engineering | Kali Yuga | ₹150 | 2 - 4 | ₹30,000 |
+| Event                | Category                    | Epoch        | Entry Fee | Team Size | Prize Pool       |
+| -------------------- | --------------------------- | ------------ | --------- | --------- | ---------------- |
+| **Datathon**         | Data Science & AI           | Satya Yuga   | ₹150      | 1 - 2     | ₹30,000          |
+| **Surprise Event**   | Competitive Photography     | Satya Yuga   | ₹100      | 1 (Solo)  | Exciting Rewards |
+| **Prompt Relay**     | Generative AI Sprint        | Treta Yuga   | ₹150      | 1 - 3     | ₹20,000          |
+| **Brandathon**       | Design & Strategy           | Treta Yuga   | ₹150      | 2 - 4     | ₹25,000          |
+| **Capture the Flag** | Cybersecurity & War Games   | Dwapara Yuga | ₹150      | 1 - 3     | ₹25,000          |
+| **Houdini Heist**    | Mystery & Escape Quest      | Dwapara Yuga | ₹150      | Exactly 3 | ₹20,000          |
+| **Among Us**         | Gaming & Social Deduction   | Kali Yuga    | ₹50       | 1 (Solo)  | ₹10,000          |
+| **HackMatrix**       | 24h Hackathon & Engineering | Kali Yuga    | ₹150      | 2 - 4     | ₹30,000          |
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/) (version 18.18 or higher recommended)
 - `npm` or `pnpm` / `yarn`
 
 ### Installation & Local Development
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/Meet-Ramjiyani-10/Artimas2026.git
    cd Artimas2026
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Start the local development server (with Turbopack)**:
+
    ```bash
    npm run dev
    ```
+
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 4. **Type Checking & Verification**:
+
    ```bash
    npx tsc --noEmit
    ```
@@ -171,9 +178,9 @@ Artimas2026/
 ## 🏛️ Department & Association Credits
 
 - **Organized By**: Department of Computer Science & Engineering (AI & ML)
-- **Institution**: Pimpri Chinchwad College of Engineering (PCCOE), Sector 26, Pradhikaran, Nigdi, Pune - 411044
-- **Student Association**: AIMSA (*All India AI & ML Students Association*)
-- **Motto**: *|| एम्सा कुटुम्बकम् ||*
+- **Institution**: Pimpri Chinchwad College of Engineering (PCCOE), Sector 26, Pradhikaran, Nigdi, Pune - 411044 .
+- **Student Association**: AIMSA (_All India AI & ML Students Association_)
+- **Motto**: _|| एम्सा कुटुम्बकम् ||_
 
 ---
 
