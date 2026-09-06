@@ -18,6 +18,32 @@ const {
 } = require('../middleware/uploadMiddleware');
 const { validateRegistration } = require('../middleware/validationMiddleware');
 
+// Dedicated rate limiter for main registration creation
+// Intentionally generous (70 req / 15 min per IP) to accommodate campus NAT / shared Wi-Fi
+const createRegistrationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 70, // 70 requests per IP per 15-minute window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many registration requests from this network. Please try again after 15 minutes.',
+  },
+});
+
+// Dedicated rate limiter for email availability check
+// Generous (100 req / 15 min per IP) to support normal typing/blur without enumeration abuse
+const checkEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per IP per 15-minute window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many email verification requests. Please try again after 15 minutes.',
+  },
+});
+
 // Dedicated rate limiter for payment screenshot uploads
 // Limits public uploads to 10 requests per 15 minutes per IP to prevent storage exhaustion and abuse
 const uploadPaymentScreenshotLimiter = rateLimit({
@@ -43,8 +69,10 @@ const handleOptionalMultipart = (req, res, next) => {
 
 // ── Registration Core Routes ──
 // POST /api/registrations — Create confirmed registration (JSON or FormData with payment screenshot)
+// Middleware order: Rate Limiter -> Multipart Parsing -> Input Validation -> Registration Controller
 router.post(
   '/',
+  createRegistrationLimiter,
   handleOptionalMultipart,
   validateRegistration,
   createRegistration
@@ -58,9 +86,9 @@ router.post(
   uploadPaymentScreenshot
 );
 
-// Check if an email is already registered for an event
-router.post('/check-email', checkEmailAvailability);
-router.get('/check-email', checkEmailAvailability);
+// Check if an email is already registered for an event (protected by dedicated 100 req / 15 min limiter)
+router.post('/check-email', checkEmailLimiter, checkEmailAvailability);
+router.get('/check-email', checkEmailLimiter, checkEmailAvailability);
 
 // GET /api/registrations/:registrationId — Public lookup by Pass ID (non-sensitive)
 router.get('/:registrationId', getRegistration);
