@@ -198,15 +198,55 @@ export function getEventSchedule(event: EventItem): EventScheduleDetail {
   };
 }
 
+function formatBadgeDate(rawDate: string): { shortVal: string; subVal: string } {
+  if (!rawDate) return { shortVal: 'TBA', subVal: '' };
+
+  const trimmed = rawDate.trim();
+
+  // Pattern: "19 October 2026", "19 Oct 2026", "11–12 October 2026"
+  const dmy = trimmed.match(/^(\d{1,2}(?:[–-]\d{1,2})?)\s+([A-Za-z]+)(?:\s*,?\s*(\d{4}))?$/);
+  if (dmy) {
+    const [, day, month, year] = dmy;
+    const monthShort = month.length > 3 ? month.slice(0, 3) : month;
+    return {
+      shortVal: `${day} ${monthShort}`,
+      subVal: year || '2026',
+    };
+  }
+
+  // Pattern: "October 19, 2026" or "Oct 19, 2026"
+  const mdy = trimmed.match(/^([A-Za-z]+)\s+(\d{1,2}(?:[–-]\d{1,2})?)(?:\s*,?\s*(\d{4}))?$/);
+  if (mdy) {
+    const [, month, day, year] = mdy;
+    const monthShort = month.length > 3 ? month.slice(0, 3) : month;
+    return {
+      shortVal: `${day} ${monthShort}`,
+      subVal: year || '2026',
+    };
+  }
+
+  // General fallback: strip 4-digit year from shortVal and put year in subVal
+  const yearMatch = trimmed.match(/\b(20\d\d)\b/);
+  const year = yearMatch ? yearMatch[1] : '';
+  const withoutYear = trimmed.replace(/\b20\d\d\b/g, '').replace(/,\s*$/, '').trim();
+
+  return {
+    shortVal: withoutYear || trimmed,
+    subVal: year,
+  };
+}
+
 function EventSpecsCard({ schedule }: { schedule: EventScheduleDetail }) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
+  const dateBadge = formatBadgeDate(schedule.date);
 
   const specItems = [
     {
       id: 'date',
       label: 'DATE',
-      shortVal: schedule.date.replace(', 2026', ''),
-      subVal: '',
+      shortVal: dateBadge.shortVal,
+      subVal: dateBadge.subVal,
       fullVal: `Date: ${schedule.date}`,
       valClass: 'val-date',
     },
