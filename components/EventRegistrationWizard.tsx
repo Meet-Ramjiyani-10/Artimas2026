@@ -1608,7 +1608,6 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                           onBlur={handleTeamNameBlur}
                           placeholder={isSolo ? 'ENTER PARTICIPANT NAME' : 'ENTER TEAM NAME'}
                           className={`reg-input ${teamNameTouched && teamNameError ? 'reg-input-error' : ''}`}
-                          autoFocus
                         />
                         {teamNameTouched && teamNameError && (
                           <span className="reg-field-error">⚠ {teamNameError}</span>
@@ -1661,7 +1660,6 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                           onBlur={() => handleFieldBlur('name')}
                           placeholder="FULL NAME"
                           className={`reg-input full-width ${currentTouched.name && currentErrors.name ? 'reg-input-error' : ''}`}
-                          autoFocus
                         />
                         {currentTouched.name && currentErrors.name && (
                           <span className="reg-field-error">⚠ {currentErrors.name}</span>
