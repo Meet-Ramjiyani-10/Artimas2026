@@ -99,19 +99,8 @@ app.get('/', (req, res) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ── Rate limiting on auth routes ──
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 requests per window
-  message: {
-    success: false,
-    message: 'Too many login attempts. Please try again after 15 minutes.',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// ── General API rate limiter ──
+// ── General API rate limiter (Public endpoints) ──
+// Exempts admin operations, CSV exports, and admin authentication so admins are never blocked
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 600,
@@ -121,6 +110,10 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    const url = req.originalUrl || req.url || '';
+    return url.startsWith('/api/admin') || url.startsWith('/api/auth');
+  },
 });
 
 app.use('/api/', apiLimiter);
@@ -136,10 +129,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── Mount routes ──
-app.use('/api/auth', authLimiter, authRoutes);
+// Admin login and admin portal routes have no rate limits
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
-app.use('/api/admin', adminRoutes);
 
 // ── Error handling ──
 app.use(notFound);
