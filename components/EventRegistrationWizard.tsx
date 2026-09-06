@@ -1186,10 +1186,10 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 1 * 1024 * 1024) {
       setPaymentErrors((prev) => ({
         ...prev,
-        screenshot: 'Screenshot size must not exceed 5MB.',
+        screenshot: 'Screenshot size must not exceed 1MB.',
       }));
       return;
     }
@@ -1889,7 +1889,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                                     <line x1="12" y1="3" x2="12" y2="15" />
                                   </svg>
                                   <span style={{ fontSize: '13.5px', fontWeight: 600 }}>Click to upload payment screenshot</span>
-                                  <span style={{ fontSize: '11px', color: 'var(--ink-light)' }}>Supported formats: JPG, JPEG, PNG, WebP (max 5MB)</span>
+                                  <span style={{ fontSize: '11px', color: 'var(--ink-light)' }}>Supported formats: JPG, JPEG, PNG, WebP (max 1MB)</span>
                                 </div>
                               )}
                             </label>

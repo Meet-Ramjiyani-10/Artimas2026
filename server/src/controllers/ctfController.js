@@ -235,6 +235,22 @@ const getAdminCtfScreenshots = async (req, res, next) => {
       });
     }
 
+    // Role-based authorization: Event admin can view CTF screenshots ONLY for their assigned event
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const matchesEvent =
+        (registration.eventId && String(registration.eventId) === String(req.admin.eventId)) ||
+        (registration.eventSlug && registration.eventSlug.toLowerCase() === req.admin.eventSlug?.toLowerCase()) ||
+        (registration.eventName && registration.eventName.toLowerCase() === req.admin.eventName?.toLowerCase()) ||
+        (req.admin.eventSlug === 'capture-the-flag' && /capture/i.test(registration.eventName || ''));
+
+      if (!matchesEvent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You cannot access CTF submissions for other events',
+        });
+      }
+    }
+
     const screenshots = await CtfSubmission.find({
       registrationId: registration.registrationId,
     }).sort({ uploadedAt: -1 });

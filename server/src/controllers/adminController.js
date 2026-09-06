@@ -505,9 +505,26 @@ const rejectRegistration = async (req, res, next) => {
       });
     }
 
+    // Role-based authorization: Event admin can reject ONLY their assigned event
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const matchesEvent =
+        (registration.eventId && String(registration.eventId) === String(req.admin.eventId)) ||
+        (registration.eventSlug && registration.eventSlug.toLowerCase() === req.admin.eventSlug?.toLowerCase()) ||
+        (registration.eventName && registration.eventName.toLowerCase() === req.admin.eventName?.toLowerCase()) ||
+        (req.admin.eventSlug === 'capture-the-flag' && /capture/i.test(registration.eventName || ''));
+
+      if (!matchesEvent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You can only manage registrations for your assigned event',
+        });
+      }
+    }
+
     registration.status = 'REJECTED';
+    registration.verified = false;
     if (!registration.verification) registration.verification = {};
-    registration.verification.verifiedBy = req.user?._id;
+    registration.verification.verifiedBy = req.admin?._id;
     registration.verification.verifiedAt = new Date();
     if (remarks) registration.verification.remarks = remarks;
 
@@ -672,14 +689,20 @@ const getStats = async (req, res, next) => {
       const verified = eventRegs.filter((r) => r.verified === true || r.status === 'APPROVED').length;
       const unverified = eventRegs.filter((r) => r.verified !== true && r.status !== 'APPROVED' && r.status !== 'REJECTED').length;
       const totalTeams = eventRegs.filter((r) => (r.teamName && r.teamName.trim()) || (r.members && r.members.length > 1)).length;
+      const totalRevenue = eventRegs
+        .filter((r) => r.status !== 'REJECTED')
+        .reduce((sum, r) => sum + (r.amount || 0), 0);
 
       return res.status(200).json({
         success: true,
         data: {
           total,
+          totalRegistrations: total,
           verified,
           unverified,
           totalTeams,
+          totalRevenue,
+          revenue: totalRevenue,
           eventName: req.admin.eventName,
           eventSlug: req.admin.eventSlug,
         },

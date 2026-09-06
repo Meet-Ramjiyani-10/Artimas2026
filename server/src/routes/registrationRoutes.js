@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 const {
   createRegistration,
   getRegistration,
@@ -10,8 +11,25 @@ const {
   uploadCtfScreenshot,
   getCtfScreenshots,
 } = require('../controllers/ctfController');
-const { uploadCtfScreenshotFile, upload } = require('../middleware/uploadMiddleware');
+const {
+  uploadCtfScreenshotFile,
+  uploadPaymentScreenshotMiddleware,
+  upload,
+} = require('../middleware/uploadMiddleware');
 const { validateRegistration } = require('../middleware/validationMiddleware');
+
+// Dedicated rate limiter for payment screenshot uploads
+// Limits public uploads to 10 requests per 15 minutes per IP to prevent storage exhaustion and abuse
+const uploadPaymentScreenshotLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Max 10 uploads per IP per 15-minute window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many payment screenshot upload attempts from this IP. Please try again after 15 minutes.',
+  },
+});
 
 // Middleware to conditionally handle multipart form data if sent, without requiring file
 const handleOptionalMultipart = (req, res, next) => {
@@ -32,10 +50,11 @@ router.post(
   createRegistration
 );
 
-// POST /api/registrations/upload-payment-screenshot — Pre-upload payment screenshot
+// POST /api/registrations/upload-payment-screenshot — Pre-upload payment screenshot (protected by dedicated rate limiter and 500KB limit)
 router.post(
   '/upload-payment-screenshot',
-  upload.any(),
+  uploadPaymentScreenshotLimiter,
+  uploadPaymentScreenshotMiddleware,
   uploadPaymentScreenshot
 );
 

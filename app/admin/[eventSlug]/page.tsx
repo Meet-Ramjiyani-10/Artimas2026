@@ -57,9 +57,12 @@ interface AdminProfile {
 
 interface EventStats {
   total: number;
+  totalRegistrations?: number;
   verified: number;
   unverified: number;
   totalTeams: number;
+  totalRevenue?: number;
+  revenue?: number;
   eventName?: string;
   eventSlug?: string;
 }
@@ -196,9 +199,12 @@ export default function EventAdminPortal() {
           if (evData) {
             setStats({
               total: evData.count,
+              totalRegistrations: evData.count,
               verified: evData.verified ?? evData.approved ?? 0,
               unverified: evData.unverified ?? 0,
               totalTeams: regsJson.data?.filter((r: RegistrationItem) => r.teamName || (r.members && r.members.length > 1)).length || 0,
+              totalRevenue: evData.revenue ?? evData.totalRevenue ?? 0,
+              revenue: evData.revenue ?? evData.totalRevenue ?? 0,
               eventName: evData.eventName,
               eventSlug: evData.eventSlug,
             });
@@ -746,10 +752,13 @@ export default function EventAdminPortal() {
   }
 
   // Calculate live counts
-  const totalCount = stats?.total ?? registrations.length;
+  const totalCount = stats?.totalRegistrations ?? stats?.total ?? registrations.length;
   const verifiedCount = stats?.verified ?? registrations.filter((r) => r.verified || r.status === 'APPROVED').length;
   const unverifiedCount = stats?.unverified ?? registrations.filter((r) => !r.verified && r.status !== 'APPROVED').length;
   const totalTeamsCount = stats?.totalTeams ?? registrations.filter((r) => r.teamName || (r.members && r.members.length > 1)).length;
+  const totalRevenue = stats?.totalRevenue ?? stats?.revenue ?? registrations
+    .filter((r) => r.status !== 'REJECTED')
+    .reduce((sum, r) => sum + (r.amount || 0), 0);
 
   // ── 3. EVENT ADMIN DASHBOARD ──
   return (
@@ -901,6 +910,13 @@ export default function EventAdminPortal() {
             <span className="admin-metric-label">Total Teams</span>
             <div className="admin-metric-value" style={{ color: '#60a5fa' }}>
               {totalTeamsCount}
+            </div>
+          </div>
+
+          <div className="admin-metric-card span-full-mobile">
+            <span className="admin-metric-label">Total Revenue</span>
+            <div className="admin-metric-value" style={{ color: '#facc15' }}>
+              ₹{totalRevenue}
             </div>
           </div>
         </div>

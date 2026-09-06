@@ -548,10 +548,10 @@ const createRegistration = async (req, res, next) => {
             });
           }
 
-          if (uploadedFile.size > 5 * 1024 * 1024) {
+          if (uploadedFile.size > 1 * 1024 * 1024) {
             return res.status(400).json({
               success: false,
-              message: 'Payment screenshot file size exceeds 5MB limit.',
+              message: 'Payment screenshot file size exceeds 1MB limit (must be 1MB or below).',
             });
           }
 
@@ -809,10 +809,11 @@ const uploadPaymentScreenshot = async (req, res, next) => {
       });
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    const MAX_PAYMENT_SCREENSHOT_SIZE = 1 * 1024 * 1024; // Strict 1MB limit
+    if (file.size > MAX_PAYMENT_SCREENSHOT_SIZE) {
       return res.status(400).json({
         success: false,
-        message: 'Payment screenshot file size exceeds 5MB limit.',
+        message: 'Payment screenshot file size exceeds 1MB limit (must be 1MB or below).',
       });
     }
 
