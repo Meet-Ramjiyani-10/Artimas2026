@@ -3162,7 +3162,7 @@ body.mode-yugas .yuga-title-img.active {
 /* Center Ornamental Divider */
 .team-ornament-divider {
     position: absolute;
-    top: 50%;
+    top: 48%;
     left: 8%;
     right: 8%;
     display: flex;
@@ -3170,6 +3170,56 @@ body.mode-yugas .yuga-title-img.active {
     justify-content: center;
     z-index: 3;
     pointer-events: none;
+}
+
+/* Medieval Lore Testimonial Box */
+.team-decree-lore-box {
+    position: absolute;
+    top: 52%;
+    left: clamp(14px, 4.5%, 24px);
+    right: clamp(14px, 4.5%, 24px);
+    bottom: clamp(52px, 13.5%, 66px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 4;
+    pointer-events: none;
+    padding: 0 4px;
+}
+
+.team-member-lore {
+    font-family: var(--font-body, 'Cormorant Garamond', serif);
+    font-size: clamp(0.92rem, 1.2vw, 1.06rem);
+    font-weight: 500;
+    font-style: italic;
+    color: #e2d2b4;
+    line-height: 1.42;
+    margin: 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+    letter-spacing: 0.015em;
+    transition: color 0.35s ease, transform 0.35s ease;
+}
+
+.team-member-lore::before {
+    content: '“';
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    color: #c9a45c;
+    font-size: 1.15em;
+    margin-right: 3px;
+}
+
+.team-member-lore::after {
+    content: '”';
+    font-family: var(--font-title, 'Cinzel Decorative', serif);
+    color: #c9a45c;
+    font-size: 1.15em;
+    margin-left: 3px;
+}
+
+.team-decree-card:hover .team-member-lore {
+    color: #fff2d4;
+    transform: translateY(-1px);
 }
 
 /* Bottom-Right Social Badge */
@@ -3294,6 +3344,18 @@ body.mode-yugas .yuga-title-img.active {
         height: clamp(170px, 48%, 215px);
         right: -10px;
         top: -10px;
+    }
+
+    .team-decree-lore-box {
+        top: 50%;
+        bottom: 48px;
+        left: 12px;
+        right: 12px;
+    }
+
+    .team-member-lore {
+        font-size: clamp(0.82rem, 3.6vw, 0.94rem);
+        line-height: 1.36;
     }
 
     .team-social-badge {

@@ -62,6 +62,13 @@ export default function TeamGrid() {
                 <span className="decree-divider-line" />
               </div>
 
+              {/* Medieval Decree Lore / Description */}
+              {member.description && (
+                <div className="team-decree-lore-box">
+                  <p className="team-member-lore">{member.description}</p>
+                </div>
+              )}
+
               {/* Bottom-Right Social Badge */}
               {member.socials && (
                 <div className="team-social-badge" aria-label={`${member.name} Social Links`}>
