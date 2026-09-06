@@ -119,6 +119,24 @@ const registrationSchema = new mongoose.Schema(
       remarks: String,
     },
 
+    // ── Email Notification & Idempotency Tracking ──
+    confirmationEmailSentAt: {
+      type: Date,
+      default: null,
+    },
+    verificationEmailSentAt: {
+      type: Date,
+      default: null,
+    },
+    confirmationEmailLastError: {
+      type: String,
+      default: null,
+    },
+    verificationEmailLastError: {
+      type: String,
+      default: null,
+    },
+
     // Status is immediately CONFIRMED upon registration
     status: {
       type: String,

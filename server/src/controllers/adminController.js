@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Registration = require('../models/Registration');
 const Event = require('../models/Event');
 const sendVerificationEmail = require('../utils/sendVerificationEmail');
+const sendConfirmationEmail = require('../utils/sendConfirmationEmail');
 const { syncToEventCollection } = require('../utils/eventCollectionHelper');
 const { isMasterAdmin } = require('../middleware/authMiddleware');
 
@@ -318,6 +319,8 @@ const verifyRegistration = async (req, res, next) => {
           verified: true,
           verifiedAt: registration.verifiedAt,
           verifiedBy: registration.verifiedBy,
+          verificationEmailSentAt: registration.verificationEmailSentAt || null,
+          verificationEmailLastError: registration.verificationEmailLastError || null,
         },
       });
     }
@@ -325,42 +328,103 @@ const verifyRegistration = async (req, res, next) => {
     const adminId = req.admin?._id;
     const now = new Date();
 
-    registration.status = 'APPROVED';
-    registration.verified = true;
-    registration.verifiedAt = now;
-    registration.verifiedBy = adminId;
+    const updateFields = {
+      status: 'APPROVED',
+      verified: true,
+      verifiedAt: now,
+      verifiedBy: adminId,
+      'verification.verifiedBy': adminId,
+      'verification.verifiedAt': now,
+    };
+    if (remarks) {
+      updateFields['verification.remarks'] = remarks;
+    }
 
-    if (!registration.verification) registration.verification = {};
-    registration.verification.verifiedBy = adminId;
-    registration.verification.verifiedAt = now;
-    if (remarks) registration.verification.remarks = remarks;
+    // Atomic update to eliminate race conditions between simultaneous VERIFY requests
+    const updatedRegistration = await Registration.findOneAndUpdate(
+      {
+        _id: registration._id,
+        $or: [
+          { verified: { $ne: true } },
+          { status: { $ne: 'APPROVED' } },
+        ],
+      },
+      { $set: updateFields },
+      { new: true }
+    );
 
-    await registration.save();
+    // If null, another concurrent request just won the transition
+    if (!updatedRegistration) {
+      const currentDoc = await Registration.findById(registration._id).lean();
+      return res.status(200).json({
+        success: true,
+        message: 'Registration is already verified',
+        data: {
+          registrationId: currentDoc?.registrationId || registration.registrationId,
+          status: currentDoc?.status || 'APPROVED',
+          verified: true,
+          verifiedAt: currentDoc?.verifiedAt || now,
+          verifiedBy: currentDoc?.verifiedBy || adminId,
+          verificationEmailSentAt: currentDoc?.verificationEmailSentAt || null,
+          verificationEmailLastError: currentDoc?.verificationEmailLastError || null,
+        },
+      });
+    }
 
     // Sync to dedicated event collection
     const event = await Event.findOne({
       $or: [
-        { _id: registration.eventId },
-        { slug: registration.eventSlug },
-        { name: { $regex: new RegExp(`^${(registration.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+        { _id: updatedRegistration.eventId },
+        { slug: updatedRegistration.eventSlug },
+        { name: { $regex: new RegExp(`^${(updatedRegistration.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
       ],
     }).lean();
-    await syncToEventCollection(registration, event?.slug || registration.eventSlug);
+    await syncToEventCollection(updatedRegistration, event?.slug || updatedRegistration.eventSlug);
 
-    // Attempt verification email non-blocking
-    if (registration.leadEmail) {
+    // Send verification email ONLY if verificationEmailSentAt == null
+    if (!updatedRegistration.verificationEmailSentAt && updatedRegistration.leadEmail) {
       try {
-        await sendVerificationEmail({
-          to: registration.leadEmail,
-          participantName: registration.leadName || registration.teamName,
-          eventName: registration.eventName,
-          registrationId: registration.registrationId,
-          teamName: registration.teamName,
-          amount: registration.amount || 0,
+        const emailResult = await sendVerificationEmail({
+          to: updatedRegistration.leadEmail,
+          participantName: updatedRegistration.leadName || updatedRegistration.teamName,
+          eventName: updatedRegistration.eventName,
+          registrationId: updatedRegistration.registrationId,
+          teamName: updatedRegistration.teamName,
+          amount: updatedRegistration.amount || 0,
           remarks: remarks || 'Registration confirmed & verified successfully',
         });
+
+        if (emailResult && emailResult.success) {
+          await Registration.findByIdAndUpdate(updatedRegistration._id, {
+            $set: {
+              verificationEmailSentAt: new Date(),
+              verificationEmailLastError: null,
+            },
+          });
+          updatedRegistration.verificationEmailSentAt = new Date();
+          updatedRegistration.verificationEmailLastError = null;
+        } else {
+          const errMsg = (emailResult && emailResult.error) ? String(emailResult.error).slice(0, 500) : 'Failed to dispatch verification email';
+          await Registration.findByIdAndUpdate(updatedRegistration._id, {
+            $set: {
+              verificationEmailSentAt: null,
+              verificationEmailLastError: errMsg,
+            },
+          });
+          updatedRegistration.verificationEmailSentAt = null;
+          updatedRegistration.verificationEmailLastError = errMsg;
+        }
       } catch (emailErr) {
-        console.warn(`✖ Verification email could not be sent to ${registration.leadEmail}:`, emailErr.message);
+        console.warn(`✖ Verification email error for ${updatedRegistration.leadEmail}:`, emailErr.message);
+        const errMsg = String(emailErr.message || 'Verification email dispatch error').slice(0, 500);
+        await Registration.findByIdAndUpdate(updatedRegistration._id, {
+          $set: {
+            verificationEmailSentAt: null,
+            verificationEmailLastError: errMsg,
+          },
+        }).catch(() => {});
+        updatedRegistration.verificationEmailSentAt = null;
+        updatedRegistration.verificationEmailLastError = errMsg;
       }
     }
 
@@ -368,11 +432,13 @@ const verifyRegistration = async (req, res, next) => {
       success: true,
       message: 'Registration verified and approved',
       data: {
-        registrationId: registration.registrationId,
-        status: registration.status,
-        verified: registration.verified,
-        verifiedAt: registration.verifiedAt,
-        verifiedBy: registration.verifiedBy,
+        registrationId: updatedRegistration.registrationId,
+        status: updatedRegistration.status,
+        verified: updatedRegistration.verified,
+        verifiedAt: updatedRegistration.verifiedAt,
+        verifiedBy: updatedRegistration.verifiedBy,
+        verificationEmailSentAt: updatedRegistration.verificationEmailSentAt,
+        verificationEmailLastError: updatedRegistration.verificationEmailLastError,
       },
     });
   } catch (error) {
@@ -851,6 +917,214 @@ const toggleEventRegistration = async (req, res, next) => {
   }
 };
 
+/**
+ * @desc    Resend verification email to a verified registration
+ * @route   POST /api/admin/registrations/:id/resend-verification-email
+ * @access  Protected (MASTER_ADMIN, ADMIN, TECH_TEAM, EVENT_ADMIN)
+ */
+const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    let registration = await Registration.findOne({ registrationId: id.toUpperCase() });
+    if (!registration && id.match(/^[0-9a-fA-F]{24}$/)) {
+      registration = await Registration.findById(id);
+    }
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Registration not found',
+      });
+    }
+
+    // Role-based authorization: Event admin can only resend for their assigned event
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const matchesEvent =
+        (registration.eventId && String(registration.eventId) === String(req.admin.eventId)) ||
+        (registration.eventSlug && registration.eventSlug.toLowerCase() === req.admin.eventSlug?.toLowerCase()) ||
+        (registration.eventName && registration.eventName.toLowerCase() === req.admin.eventName?.toLowerCase()) ||
+        (req.admin.eventSlug === 'capture-the-flag' && /capture/i.test(registration.eventName || ''));
+
+      if (!matchesEvent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You can only manage registrations for your assigned event',
+        });
+      }
+    }
+
+    if (!registration.verified || registration.status !== 'APPROVED') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot resend verification email: Registration must be verified first',
+      });
+    }
+
+    if (!registration.leadEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'No recipient email address found for this registration',
+      });
+    }
+
+    const emailResult = await sendVerificationEmail({
+      to: registration.leadEmail,
+      participantName: registration.leadName || registration.teamName,
+      eventName: registration.eventName,
+      registrationId: registration.registrationId,
+      teamName: registration.teamName,
+      amount: registration.amount || 0,
+      remarks: registration.verification?.remarks || 'Registration confirmed & verified successfully',
+    });
+
+    if (emailResult && emailResult.success) {
+      const now = new Date();
+      await Registration.findByIdAndUpdate(registration._id, {
+        $set: {
+          verificationEmailSentAt: now,
+          verificationEmailLastError: null,
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Verification email resent successfully',
+        data: {
+          registrationId: registration.registrationId,
+          verificationEmailSentAt: now,
+          verificationEmailLastError: null,
+        },
+      });
+    } else {
+      const errMsg = (emailResult && emailResult.error) ? String(emailResult.error).slice(0, 500) : 'Failed to dispatch verification email';
+      await Registration.findByIdAndUpdate(registration._id, {
+        $set: {
+          verificationEmailLastError: errMsg,
+        },
+      });
+
+      return res.status(502).json({
+        success: false,
+        message: `Failed to resend verification email: ${errMsg}`,
+        data: {
+          registrationId: registration.registrationId,
+          verificationEmailSentAt: registration.verificationEmailSentAt,
+          verificationEmailLastError: errMsg,
+        },
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc    Resend confirmation email to a registration
+ * @route   POST /api/admin/registrations/:id/resend-confirmation-email
+ * @access  Protected (MASTER_ADMIN, ADMIN, TECH_TEAM, EVENT_ADMIN)
+ */
+const resendConfirmationEmail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    let registration = await Registration.findOne({ registrationId: id.toUpperCase() });
+    if (!registration && id.match(/^[0-9a-fA-F]{24}$/)) {
+      registration = await Registration.findById(id);
+    }
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Registration not found',
+      });
+    }
+
+    if (req.admin && req.admin.role === 'EVENT_ADMIN') {
+      const matchesEvent =
+        (registration.eventId && String(registration.eventId) === String(req.admin.eventId)) ||
+        (registration.eventSlug && registration.eventSlug.toLowerCase() === req.admin.eventSlug?.toLowerCase()) ||
+        (registration.eventName && registration.eventName.toLowerCase() === req.admin.eventName?.toLowerCase()) ||
+        (req.admin.eventSlug === 'capture-the-flag' && /capture/i.test(registration.eventName || ''));
+
+      if (!matchesEvent) {
+        return res.status(403).json({
+          success: false,
+          message: 'Forbidden: You can only manage registrations for your assigned event',
+        });
+      }
+    }
+
+    const recipientEmail = registration.leadEmail || registration.members?.[0]?.email;
+    if (!recipientEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'No recipient email address found for this registration',
+      });
+    }
+
+    const event = await Event.findOne({
+      $or: [
+        { _id: registration.eventId },
+        { slug: registration.eventSlug },
+        { name: { $regex: new RegExp(`^${(registration.eventName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } },
+      ],
+    }).lean();
+
+    const emailResult = await sendConfirmationEmail({
+      to: recipientEmail,
+      participantName: registration.leadName || registration.teamName,
+      eventName: registration.eventName,
+      eventSlug: registration.eventSlug || event?.slug,
+      registrationId: registration.registrationId,
+      teamName: registration.teamName,
+      memberCount: registration.members?.length || 1,
+      submissionToken: registration.submissionToken,
+      payableAmount: registration.amount || 0,
+      paymentRequired: (registration.amount || 0) > 0 && !registration.isPccoe,
+    });
+
+    if (emailResult && emailResult.success) {
+      const now = new Date();
+      await Registration.findByIdAndUpdate(registration._id, {
+        $set: {
+          confirmationEmailSentAt: now,
+          confirmationEmailLastError: null,
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Confirmation email resent successfully',
+        data: {
+          registrationId: registration.registrationId,
+          confirmationEmailSentAt: now,
+          confirmationEmailLastError: null,
+        },
+      });
+    } else {
+      const errMsg = (emailResult && emailResult.error) ? String(emailResult.error).slice(0, 500) : 'Failed to dispatch confirmation email';
+      await Registration.findByIdAndUpdate(registration._id, {
+        $set: {
+          confirmationEmailLastError: errMsg,
+        },
+      });
+
+      return res.status(502).json({
+        success: false,
+        message: `Failed to resend confirmation email: ${errMsg}`,
+        data: {
+          registrationId: registration.registrationId,
+          confirmationEmailSentAt: registration.confirmationEmailSentAt,
+          confirmationEmailLastError: errMsg,
+        },
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getRegistrations,
   getRegistrationDetail,
@@ -861,4 +1135,6 @@ module.exports = {
   getStats,
   getAdminEvents,
   toggleEventRegistration,
+  resendVerificationEmail,
+  resendConfirmationEmail,
 };

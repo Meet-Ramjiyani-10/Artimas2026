@@ -33,6 +33,10 @@ interface RegistrationItem {
   verified?: boolean;
   verifiedAt?: string;
   verifiedBy?: string;
+  confirmationEmailSentAt?: string | null;
+  verificationEmailSentAt?: string | null;
+  confirmationEmailLastError?: string | null;
+  verificationEmailLastError?: string | null;
   members?: Member[];
   createdAt: string;
   updatedAt: string;
@@ -122,6 +126,8 @@ export default function AdminPortal() {
   const [viewMode, setViewMode] = useState<'auto' | 'cards' | 'table'>('auto');
   const [selectedRegistration, setSelectedRegistration] = useState<RegistrationItem | null>(null);
   const [unverifyTarget, setUnverifyTarget] = useState<RegistrationItem | null>(null);
+  const [verifyTarget, setVerifyTarget] = useState<RegistrationItem | null>(null);
+  const [resendingEmailId, setResendingEmailId] = useState<string | null>(null);
 
   // Check saved token on mount and redirect event admin if needed
   useEffect(() => {
@@ -283,9 +289,30 @@ export default function AdminPortal() {
       if (res.ok && json.success) {
         setRegistrations((prev) =>
           prev.map((r) =>
-            r._id === reg._id ? { ...r, verified: true, status: 'APPROVED' } : r
+            r._id === reg._id
+              ? {
+                  ...r,
+                  verified: true,
+                  status: 'APPROVED',
+                  verificationEmailSentAt: json.data?.verificationEmailSentAt || r.verificationEmailSentAt,
+                  verificationEmailLastError: json.data?.verificationEmailLastError,
+                }
+              : r
           )
         );
+        if (selectedRegistration && selectedRegistration._id === reg._id) {
+          setSelectedRegistration((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  verified: true,
+                  status: 'APPROVED',
+                  verificationEmailSentAt: json.data?.verificationEmailSentAt || prev.verificationEmailSentAt,
+                  verificationEmailLastError: json.data?.verificationEmailLastError,
+                }
+              : null
+          );
+        }
         setStats((prev) => prev ? {
           ...prev,
           approved: prev.approved + 1,
@@ -299,6 +326,69 @@ export default function AdminPortal() {
       alert('Network error while verifying participant');
     } finally {
       setActionLoadingId(null);
+    }
+  };
+
+  // Resend verification email
+  const handleResendVerificationEmail = async (reg: RegistrationItem) => {
+    if (!token) return;
+    setResendingEmailId(reg._id);
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/registrations/${reg.registrationId}/resend-verification-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        const now = json.data?.verificationEmailSentAt || new Date().toISOString();
+        setRegistrations((prev) =>
+          prev.map((r) =>
+            r._id === reg._id
+              ? {
+                  ...r,
+                  verificationEmailSentAt: now,
+                  verificationEmailLastError: null,
+                }
+              : r
+          )
+        );
+        if (selectedRegistration && selectedRegistration._id === reg._id) {
+          setSelectedRegistration((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  verificationEmailSentAt: now,
+                  verificationEmailLastError: null,
+                }
+              : null
+          );
+        }
+        alert(`✓ Verification email resent successfully to ${reg.leadEmail}`);
+      } else {
+        const errMsg = json.message || 'Failed to resend verification email';
+        alert(errMsg);
+        if (json.data?.verificationEmailLastError) {
+          setRegistrations((prev) =>
+            prev.map((r) =>
+              r._id === reg._id
+                ? {
+                    ...r,
+                    verificationEmailLastError: json.data.verificationEmailLastError,
+                  }
+                : r
+            )
+          );
+        }
+      }
+    } catch {
+      alert('Network error while resending verification email');
+    } finally {
+      setResendingEmailId(null);
     }
   };
 
@@ -919,7 +1009,7 @@ export default function AdminPortal() {
                         <th>COLLEGE</th>
                         <th>MEMBERS</th>
                         <th>FEE</th>
-                        <th>STATUS</th>
+                        <th>VERIFICATION & EMAIL STATUS</th>
                         <th style={{ textAlign: 'center' }}>ACTION</th>
                       </tr>
                     </thead>
@@ -992,15 +1082,84 @@ export default function AdminPortal() {
                               )}
                             </td>
                             <td style={{ whiteSpace: 'nowrap' }}>
-                              {isVerified ? (
-                                <span className="admin-status-verified-badge">
-                                  ✓ VERIFIED
-                                </span>
-                              ) : (
-                                <span className="admin-status-unverified-badge">
-                                  ● UNVERIFIED
-                                </span>
-                              )}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                <div>
+                                  {isVerified ? (
+                                    <span className="admin-status-verified-badge">
+                                      ✓ VERIFIED
+                                    </span>
+                                  ) : (
+                                    <span className="admin-status-unverified-badge">
+                                      ● UNVERIFIED
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: '11px' }}>
+                                  {isVerified ? (
+                                    reg.verificationEmailSentAt ? (
+                                      <span style={{ color: '#4ade80', fontWeight: 600 }}>
+                                        ✓ Verification email sent
+                                      </span>
+                                    ) : reg.verificationEmailLastError ? (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span style={{ color: '#f87171', fontWeight: 600 }}>
+                                          ⚠ Verification email failed
+                                        </span>
+                                        <button
+                                          type="button"
+                                          disabled={resendingEmailId === reg._id}
+                                          onClick={() => handleResendVerificationEmail(reg)}
+                                          style={{
+                                            padding: '2px 6px',
+                                            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                                            border: '1px solid rgba(239, 68, 68, 0.4)',
+                                            borderRadius: '3px',
+                                            color: '#fca5a5',
+                                            fontSize: '10.5px',
+                                            cursor: resendingEmailId === reg._id ? 'not-allowed' : 'pointer',
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          {resendingEmailId === reg._id ? '...' : 'Resend Email'}
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <span style={{ color: '#94a3b8' }}>Not sent</span>
+                                        <button
+                                          type="button"
+                                          disabled={resendingEmailId === reg._id}
+                                          onClick={() => handleResendVerificationEmail(reg)}
+                                          style={{
+                                            padding: '2px 6px',
+                                            backgroundColor: 'rgba(148, 163, 184, 0.15)',
+                                            border: '1px solid rgba(148, 163, 184, 0.3)',
+                                            borderRadius: '3px',
+                                            color: '#cbd5e1',
+                                            fontSize: '10.5px',
+                                            cursor: resendingEmailId === reg._id ? 'not-allowed' : 'pointer',
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          {resendingEmailId === reg._id ? '...' : 'Send Email'}
+                                        </button>
+                                      </div>
+                                    )
+                                  ) : reg.confirmationEmailSentAt ? (
+                                    <span style={{ color: '#60a5fa' }}>
+                                      ✓ Confirmation email sent
+                                    </span>
+                                  ) : reg.confirmationEmailLastError ? (
+                                    <span style={{ color: '#fb923c' }}>
+                                      ⚠ Confirmation email failed
+                                    </span>
+                                  ) : (
+                                    <span style={{ color: '#64748b' }}>
+                                      Not sent
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </td>
                             <td style={{ whiteSpace: 'nowrap', textAlign: 'center' }}>
                               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -1026,7 +1185,7 @@ export default function AdminPortal() {
                                   <button
                                     type="button"
                                     disabled={isActionBusy}
-                                    onClick={() => handleVerify(reg)}
+                                    onClick={() => setVerifyTarget(reg)}
                                     style={{
                                       padding: '5px 10px',
                                       backgroundColor: '#166534',
@@ -1152,6 +1311,63 @@ export default function AdminPortal() {
                           )}
                         </div>
 
+                        {/* Email Status in Card */}
+                        <div style={{ margin: '8px 0 10px', fontSize: '11.5px' }}>
+                          {isVerified ? (
+                            reg.verificationEmailSentAt ? (
+                              <span style={{ color: '#4ade80', fontWeight: 600 }}>✓ Verification email sent</span>
+                            ) : reg.verificationEmailLastError ? (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                <span style={{ color: '#f87171', fontWeight: 600 }}>⚠ Verification email failed</span>
+                                <button
+                                  type="button"
+                                  disabled={resendingEmailId === reg._id}
+                                  onClick={() => handleResendVerificationEmail(reg)}
+                                  style={{
+                                    padding: '3px 8px',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                                    borderRadius: '4px',
+                                    color: '#fca5a5',
+                                    fontSize: '11px',
+                                    cursor: resendingEmailId === reg._id ? 'not-allowed' : 'pointer',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {resendingEmailId === reg._id ? '...' : 'Resend Email'}
+                                </button>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                                <span style={{ color: '#94a3b8' }}>Verification email not sent</span>
+                                <button
+                                  type="button"
+                                  disabled={resendingEmailId === reg._id}
+                                  onClick={() => handleResendVerificationEmail(reg)}
+                                  style={{
+                                    padding: '3px 8px',
+                                    backgroundColor: 'rgba(148, 163, 184, 0.15)',
+                                    border: '1px solid rgba(148, 163, 184, 0.3)',
+                                    borderRadius: '4px',
+                                    color: '#cbd5e1',
+                                    fontSize: '11px',
+                                    cursor: resendingEmailId === reg._id ? 'not-allowed' : 'pointer',
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  {resendingEmailId === reg._id ? '...' : 'Send Email'}
+                                </button>
+                              </div>
+                            )
+                          ) : reg.confirmationEmailSentAt ? (
+                            <span style={{ color: '#60a5fa' }}>✓ Confirmation email sent</span>
+                          ) : reg.confirmationEmailLastError ? (
+                            <span style={{ color: '#fb923c' }}>⚠ Confirmation email failed</span>
+                          ) : (
+                            <span style={{ color: '#64748b' }}>Not sent</span>
+                          )}
+                        </div>
+
                         {/* Large Touch Actions */}
                         <div className="admin-card-actions">
                           {isVerified ? (
@@ -1168,7 +1384,7 @@ export default function AdminPortal() {
                               type="button"
                               className="admin-btn-card-verify"
                               disabled={isActionBusy}
-                              onClick={() => handleVerify(reg)}
+                              onClick={() => setVerifyTarget(reg)}
                             >
                               {isActionBusy ? 'VERIFYING...' : '✓ VERIFY'}
                             </button>
@@ -1545,6 +1761,87 @@ export default function AdminPortal() {
                 }}
               >
                 Yes, Unverify
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Confirmation Dialog for Verify ── */}
+      {verifyTarget && (
+        <div
+          className="admin-modal-overlay"
+          onClick={() => setVerifyTarget(null)}
+        >
+          <div
+            className="admin-modal-dialog"
+            style={{ maxWidth: '460px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#4ade80', margin: '0 0 10px' }}>
+              Confirm Participant Verification
+            </h3>
+            <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.5', margin: '0 0 14px' }}>
+              Are you sure you want to verify registration{' '}
+              <strong style={{ color: '#60a5fa' }}>{verifyTarget.registrationId}</strong> (
+              {verifyTarget.teamName || verifyTarget.leadName})?
+            </p>
+
+            <div
+              style={{
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
+                borderRadius: '6px',
+                padding: '12px 14px',
+                marginBottom: '20px',
+                color: '#86efac',
+                fontSize: '12.5px',
+                lineHeight: 1.5,
+              }}
+            >
+              ✉ <strong>Notice:</strong> An approval verification email will be automatically sent to{' '}
+              <strong>{verifyTarget.leadEmail}</strong> upon confirmation.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setVerifyTarget(null)}
+                style={{
+                  padding: '9px 16px',
+                  backgroundColor: '#1e293b',
+                  border: '1px solid #334155',
+                  borderRadius: '6px',
+                  color: '#cbd5e1',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  minHeight: '40px',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={actionLoadingId === verifyTarget._id}
+                onClick={async () => {
+                  const target = verifyTarget;
+                  setVerifyTarget(null);
+                  await handleVerify(target);
+                }}
+                style={{
+                  padding: '9px 18px',
+                  backgroundColor: '#16a34a',
+                  border: 'none',
+                  borderRadius: '6px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: actionLoadingId === verifyTarget._id ? 'not-allowed' : 'pointer',
+                  minHeight: '40px',
+                }}
+              >
+                {actionLoadingId === verifyTarget._id ? 'Verifying...' : 'Yes, Verify & Send Email'}
               </button>
             </div>
           </div>

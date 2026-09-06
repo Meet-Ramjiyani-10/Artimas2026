@@ -1918,7 +1918,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                 {/* ── Step 3: Redesigned Simple & Easy-to-Understand Confirmation Page ── */}
                 {isSuccess && (
                   <div className="reg-success-view">
-                    <div className="reg-success-badge" style={{ width: '40px', height: '40px', fontSize: '20px', marginBottom: '6px' }}>✓</div>
+                    <div className="reg-success-badge" style={{ width: '40px', height: '40px', fontSize: '20px', margin: '0 auto 8px auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</div>
                     <h2 className="reg-success-title" style={{ margin: '0 0 2px', fontSize: 'clamp(18px, 2.2vw, 22px)' }}>REGISTRATION CONFIRMED</h2>
                     <p className="reg-success-sub" style={{ margin: '0 0 8px', fontSize: '12.5px' }}>Your entry into the trial has been sealed in the archives.</p>
 

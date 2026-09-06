@@ -645,26 +645,57 @@ const createRegistration = async (req, res, next) => {
     // ── 9. Sync into Dedicated Event Collection (e.g. registrations_datathon) ──
     await syncToEventCollection(registration, event.slug);
 
-    // ── 10. Dispatch Confirmation Email (Only if SMTP is configured) ──
-    const isSmtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
-    const recipientEmail = sanitizedMembers[0]?.email;
-    const recipientName = sanitizedMembers[0]?.name || registration.teamName;
+    // ── 10. Dispatch Confirmation Email ──
+    const recipientEmail = sanitizedMembers[0]?.email || registration.leadEmail;
+    const recipientName = sanitizedMembers[0]?.name || registration.leadName || registration.teamName;
 
-    if (isSmtpConfigured && recipientEmail) {
-      sendConfirmationEmail({
-        to: recipientEmail,
-        participantName: recipientName,
-        eventName: event.name,
-        eventSlug: event.slug,
-        registrationId: registration.registrationId,
-        teamName: isTeamEvent ? registration.teamName : undefined,
-        memberCount: sanitizedMembers.length,
-        submissionToken: isCtfEvent ? registration.submissionToken : undefined,
-        payableAmount,
-        paymentRequired,
-      }).catch((err) => {
+    if (recipientEmail) {
+      try {
+        const emailResult = await sendConfirmationEmail({
+          to: recipientEmail,
+          participantName: recipientName,
+          eventName: event.name,
+          eventSlug: event.slug,
+          registrationId: registration.registrationId,
+          teamName: isTeamEvent ? registration.teamName : undefined,
+          memberCount: sanitizedMembers.length,
+          submissionToken: isCtfEvent ? registration.submissionToken : undefined,
+          payableAmount,
+          paymentRequired,
+        });
+
+        if (emailResult && emailResult.success) {
+          await Registration.findByIdAndUpdate(registration._id, {
+            $set: {
+              confirmationEmailSentAt: new Date(),
+              confirmationEmailLastError: null,
+            },
+          });
+          registration.confirmationEmailSentAt = new Date();
+          registration.confirmationEmailLastError = null;
+        } else {
+          const errMsg = (emailResult && emailResult.error) ? String(emailResult.error).slice(0, 500) : 'Failed to send confirmation email';
+          await Registration.findByIdAndUpdate(registration._id, {
+            $set: {
+              confirmationEmailSentAt: null,
+              confirmationEmailLastError: errMsg,
+            },
+          });
+          registration.confirmationEmailSentAt = null;
+          registration.confirmationEmailLastError = errMsg;
+        }
+      } catch (err) {
         console.error(`✖ Email dispatch error for ${registration.registrationId}:`, err.message);
-      });
+        const errMsg = String(err.message || 'Unknown email dispatch error').slice(0, 500);
+        await Registration.findByIdAndUpdate(registration._id, {
+          $set: {
+            confirmationEmailSentAt: null,
+            confirmationEmailLastError: errMsg,
+          },
+        }).catch(() => {});
+        registration.confirmationEmailSentAt = null;
+        registration.confirmationEmailLastError = errMsg;
+      }
     }
 
     // ── 10. Return Confirmed Registration Details to Frontend ──

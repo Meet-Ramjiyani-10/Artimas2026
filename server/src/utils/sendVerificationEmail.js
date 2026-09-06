@@ -26,7 +26,7 @@ const sendVerificationEmail = async ({
 
   if (!transporter) {
     console.warn(`⚠ Email skipped (SMTP not configured) — would send to: ${to}`);
-    return false;
+    return { success: false, error: 'SMTP not configured' };
   }
 
   const teamLine = teamName ? `<tr><td style="padding:8px 16px;color:#9a8866;font-size:14px;">Team</td><td style="padding:8px 16px;color:#e8d8b0;font-size:14px;font-weight:600;">${teamName}</td></tr>` : '';
@@ -50,8 +50,21 @@ const sendVerificationEmail = async ({
 
     <!-- Content -->
     <div style="padding:32px 24px;">
-      <div style="text-align:center;margin-bottom:24px;">
-        <div style="display:inline-block;width:56px;height:56px;line-height:56px;border-radius:50%;background:linear-gradient(135deg,#3a6b35,#2d5a28);color:#fff;font-size:28px;font-weight:bold;">✓</div>
+      <!-- Status Icon -->
+      <div style="text-align:center;margin:0 auto 24px auto;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto;border-collapse:collapse;">
+          <tr>
+            <td align="center" valign="middle" width="58" height="58" style="width:58px;height:58px;border-radius:50%;background-color:#2e6b2c;background:linear-gradient(135deg,#3a6b35,#2d5a28);color:#ffffff;text-align:center;vertical-align:middle;padding:0;margin:0;">
+              <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto;border-collapse:collapse;">
+                <tr>
+                  <td align="center" valign="middle" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:28px;line-height:28px;font-weight:bold;color:#ffffff;text-align:center;vertical-align:middle;padding:0;margin:0;">
+                    &#10003;
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
       </div>
 
       <h2 style="text-align:center;color:#e8d8b0;font-size:22px;margin:0 0 8px;letter-spacing:1px;">PAYMENT APPROVED</h2>
@@ -120,7 +133,7 @@ const sendVerificationEmail = async ({
   `.trim();
 
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: process.env.MAIL_FROM || 'ARTIMAS 26 <noreply@artimas.in>',
       to,
       subject: `✓ Registration Approved — ${eventName} | ARTIMAS 26 [${registrationId}]`,
@@ -128,11 +141,11 @@ const sendVerificationEmail = async ({
     });
 
     console.log(`✦ Approval email sent to: ${to} (${registrationId})`);
-    return true;
+    return { success: true, messageId: info?.messageId };
   } catch (error) {
     console.error(`✖ Failed to send email to ${to}:`, error.message);
     // Don't throw — email failure shouldn't block the approval
-    return false;
+    return { success: false, error: error.message };
   }
 };
 
