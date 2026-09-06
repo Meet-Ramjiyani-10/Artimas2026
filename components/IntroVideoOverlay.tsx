@@ -12,23 +12,12 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [videoSrc, setVideoSrc] = useState<string>(MEDIA.videos.intro);
-
   // Initial loader state before video plays
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [isLoaderFading, setIsLoaderFading] = useState(false);
   const videoReadyRef = useRef(false);
   const minTimePassedRef = useRef(false);
   const isDismissingRef = useRef(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isMobile = window.innerWidth <= 768 || window.matchMedia('(max-width: 768px)').matches;
-      if (isMobile) {
-        setVideoSrc(MEDIA.videos.introMobile);
-      }
-    }
-  }, []);
 
   const handleFinish = () => {
     if (isFadingOut) return;
@@ -116,7 +105,7 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
       vid.removeEventListener('loadeddata', onReady);
       clearTimeout(fallbackTimer);
     };
-  }, [videoSrc]);
+  }, []);
 
   const toggleSound = () => {
     if (videoRef.current) {
@@ -146,14 +135,15 @@ export default function IntroVideoOverlay({ onComplete }: IntroVideoOverlayProps
 
       <video
         ref={videoRef}
-        key={videoSrc}
-        src={videoSrc}
         className="intro-video-player"
         playsInline
         muted
         preload="auto"
         onEnded={handleFinish}
-      />
+      >
+        <source src={MEDIA.videos.introMobile} media="(max-width: 768px)" type="video/webm" />
+        <source src={MEDIA.videos.intro} type="video/webm" />
+      </video>
 
       {!isVideoLoading && (
         <div className="intro-controls-bar">

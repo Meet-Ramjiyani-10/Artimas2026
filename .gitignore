@@ -10,3 +10,6 @@ coverage/
 !.env.example
 !server/.env.example
 
+# Temporary download / scratch directories
+r2_assets/
+scratch/
