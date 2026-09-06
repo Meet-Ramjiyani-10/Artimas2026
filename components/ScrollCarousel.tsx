@@ -293,6 +293,8 @@ export default function ScrollCarousel() {
                                 className="decree-btn register-action-btn"
                                 onClick={(e) => e.stopPropagation()}
                                 aria-label={`Enter The Trial for ${item.event.name}`}
+                                target={item.event.registerUrl?.startsWith('http') ? '_blank' : undefined}
+                                rel={item.event.registerUrl?.startsWith('http') ? 'noopener noreferrer' : undefined}
                               >
                                 ENTER THE TRIAL
                               </Link>

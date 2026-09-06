@@ -19,7 +19,7 @@ export default async function RegisterPage({ params }: RegisterPageProps) {
 
   // If hackmatrix, redirect to external registration link
   if (slug === 'hackmatrix' || slug === 'hack-matrix') {
-    redirect('https://hackmatrix.artimas.in');
+    redirect('https://hackmatrix.gfgpccoe.in');
   }
 
   return (

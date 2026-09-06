@@ -101,7 +101,12 @@ export default async function RulebookPage({ params }: RulebookPageProps) {
 
               <div className="decree-btn-group rulebook-btn-row">
                 {isRegistrationOpen ? (
-                  <Link href={event.registerUrl} className="decree-btn register-action-btn">
+                  <Link
+                    href={event.registerUrl}
+                    className="decree-btn register-action-btn"
+                    target={event.registerUrl?.startsWith('http') ? '_blank' : undefined}
+                    rel={event.registerUrl?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  >
                     ENTER THE TRIAL (₹{event.fee})
                   </Link>
                 ) : (

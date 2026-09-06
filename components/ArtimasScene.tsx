@@ -734,6 +734,8 @@ export default function ArtimasScene() {
                                     href={evt.registerUrl}
                                     className="yuga-decree-btn primary"
                                     onClick={(e) => e.stopPropagation()}
+                                    target={evt.registerUrl?.startsWith('http') ? '_blank' : undefined}
+                                    rel={evt.registerUrl?.startsWith('http') ? 'noopener noreferrer' : undefined}
                                   >
                                     ENTER TRIAL
                                   </Link>

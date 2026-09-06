@@ -214,7 +214,7 @@ export const MEDIA = {
 | `among-us` | **Among Us** | Gaming & Social Deduction | Kali Yuga | ₹50 | 1 (Solo) | ₹10,000 |
 | `hackmatrix` | **HackMatrix** | Hackathon & Engineering | Kali Yuga | ₹150 | 2 - 4 | ₹30,000 |
 
-*Note: HackMatrix registration on `/events/hackmatrix/register` automatically redirects to the external hackathon portal (`https://hackmatrix.artimas.in`).*
+*Note: HackMatrix registration on `/events/hackmatrix/register` automatically redirects to the external hackathon portal (`https://hackmatrix.gfgpccoe.in`).*
 
 ---
 

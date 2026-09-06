@@ -312,7 +312,7 @@ const events = [
     mythicCrest: 'blade',
     dharmaLevel: 'DHARMA 1/4',
     prizePool: '₹30,000 PRIZE POOL',
-    registerUrl: '/events/hackmatrix/register',
+    registerUrl: 'https://hackmatrix.gfgpccoe.in',
     rulebookUrl: 'https://res.cloudinary.com/qllarlul/image/upload/v1788699546/HACK_MATRIX_5.0_Rule_Book.pdf',
     aliases: ['hackmatrix', 'hack-matrix', 'matrix', 'cyber-warzone', 'warzone', 'esports', 'srijan'],
     teamConfig: {

@@ -257,7 +257,7 @@ export const EVENTS: EventItem[] = [
     shortDescription: 'A national-level hackathon bringing together innovators, creators, and problem-solvers to build solutions that matter. Join us to turn bold ideas into transformative realities.',
     dateLocation: '20 OCTOBER 2026  ·  HACK ARENA',
     description: 'A national-level hackathon bringing together innovators, creators, and problem-solvers to build solutions that matter. Join us to turn bold ideas into transformative realities.',
-    registerUrl: '/events/hackmatrix/register',
+    registerUrl: 'https://hackmatrix.gfgpccoe.in',
     rulebookUrl: 'https://res.cloudinary.com/qllarlul/image/upload/v1788699546/HACK_MATRIX_5.0_Rule_Book.pdf',
     fee: 150,
     ruleSubtitle: 'HACKATHON SPRINT | 2 TO 4 MEMBERS PER TEAM',
