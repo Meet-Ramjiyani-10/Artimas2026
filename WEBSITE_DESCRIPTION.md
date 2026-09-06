@@ -122,4 +122,3 @@ The festival's visual identity, event categorization, and interactive storytelli
 * **UI/UX Designers & Creative Strategists**: Visionaries crafting brand narratives and interactive experiences.
 * **Sponsors & Industry Leaders**: Top technology firms seeking exceptional engineering talent and high-impact brand visibility.
 
-.
