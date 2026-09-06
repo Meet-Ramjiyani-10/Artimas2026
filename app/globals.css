@@ -2620,6 +2620,15 @@ body.mode-yugas .yuga-title-img.active {
     margin-top: 2px;
 }
 
+.scroll-card .decree-btn-group.single-btn,
+.scroll-card .decree-btn-group.is-closed,
+.scroll-card .decree-btn-group:has(> :only-child) {
+    grid-template-columns: 1fr;
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .scroll-card .decree-btn {
     width: 100%;
     min-width: 0;
@@ -8813,6 +8822,15 @@ body.mode-yugas .yuga-title-img.active {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+}
+
+.yuga-decree-actions.single-btn,
+.yuga-decree-actions.is-closed,
+.yuga-decree-actions:has(> :only-child) {
+    grid-template-columns: 1fr !important;
+    max-width: 260px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 .yuga-decree-btn {

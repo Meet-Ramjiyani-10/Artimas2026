@@ -272,34 +272,41 @@ export default function ScrollCarousel() {
                     </p>
 
                     {/* Action Buttons: VIEW RULEBOOK & ENTER THE TRIAL */}
-                    <div className="decree-btn-group">
-                      <Link
-                        href={item.event.rulebookUrl}
-                        className="decree-btn rulebook-action-btn"
-                        onClick={(e) => e.stopPropagation()}
-                        aria-label={`View Rulebook for ${item.event.name}`}
-                      >
-                        VIEW RULEBOOK
-                      </Link>
-                      {(openMap[item.event.slug] !== false && openMap[item.event.id] !== false) ? (
-                        <Link
-                          href={item.event.registerUrl}
-                          className="decree-btn register-action-btn"
-                          onClick={(e) => e.stopPropagation()}
-                          aria-label={`Enter The Trial for ${item.event.name}`}
-                        >
-                          ENTER THE TRIAL
-                        </Link>
-                      ) : (
-                        <div
-                          className="decree-btn register-action-btn closed"
-                          onClick={(e) => e.stopPropagation()}
-                          aria-label={`Registration closed for ${item.event.name}`}
-                        >
-                          REGISTRATION CLOSED
+                    {(() => {
+                      const isRegistrationOpen = openMap[item.event.slug] !== false && openMap[item.event.id] !== false;
+                      return (
+                        <div className={`decree-btn-group ${!isRegistrationOpen ? 'single-btn is-closed' : ''}`}>
+                          {isRegistrationOpen ? (
+                            <>
+                              <Link
+                                href={item.event.rulebookUrl}
+                                className="decree-btn rulebook-action-btn"
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label={`View Rulebook for ${item.event.name}`}
+                              >
+                                VIEW RULEBOOK
+                              </Link>
+                              <Link
+                                href={item.event.registerUrl}
+                                className="decree-btn register-action-btn"
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label={`Enter The Trial for ${item.event.name}`}
+                              >
+                                ENTER THE TRIAL
+                              </Link>
+                            </>
+                          ) : (
+                            <div
+                              className="decree-btn register-action-btn closed"
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label={`Registration closed for ${item.event.name}`}
+                            >
+                              REGISTRATION CLOSED
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

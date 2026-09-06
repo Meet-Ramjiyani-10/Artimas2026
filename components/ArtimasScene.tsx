@@ -715,31 +715,38 @@ export default function ArtimasScene() {
                         )}
 
                         {/* Action Buttons */}
-                        <div className="yuga-decree-actions">
-                          <Link
-                            href={evt.rulebookUrl}
-                            className="yuga-decree-btn secondary"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            VIEW RULEBOOK
-                          </Link>
-                          {(openMap[evt.slug] !== false && openMap[evt.id] !== false) ? (
-                            <Link
-                              href={evt.registerUrl}
-                              className="yuga-decree-btn primary"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              ENTER TRIAL
-                            </Link>
-                          ) : (
-                            <div
-                              className="yuga-decree-btn closed"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              REGISTRATION CLOSED
+                        {(() => {
+                          const isRegistrationOpen = openMap[evt.slug] !== false && openMap[evt.id] !== false;
+                          return (
+                            <div className={`yuga-decree-actions ${!isRegistrationOpen ? 'single-btn is-closed' : ''}`}>
+                              {isRegistrationOpen ? (
+                                <>
+                                  <Link
+                                    href={evt.rulebookUrl}
+                                    className="yuga-decree-btn secondary"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    VIEW RULEBOOK
+                                  </Link>
+                                  <Link
+                                    href={evt.registerUrl}
+                                    className="yuga-decree-btn primary"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    ENTER TRIAL
+                                  </Link>
+                                </>
+                              ) : (
+                                <div
+                                  className="yuga-decree-btn closed"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  REGISTRATION CLOSED
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
