@@ -82,7 +82,7 @@ const events = [
     dharmaLevel: 'DHARMA 4/4',
     prizePool: '₹30,000 PRIZE POOL',
     registerUrl: '/events/datathon/register',
-    rulebookUrl: '/events/datathon/rulebook',
+    rulebookUrl: 'https://res.cloudinary.com/qllarlul/image/upload/v1788699546/Datathon_2026_Rulebook.pdf',
     aliases: ['data-thon', 'sankhya'],
     teamConfig: {
       minMembers: 1,
@@ -148,7 +148,7 @@ const events = [
     dharmaLevel: 'DHARMA 3/4',
     prizePool: '₹20,000 PRIZE POOL',
     registerUrl: '/events/prompt-relay/register',
-    rulebookUrl: '/events/prompt-relay/rulebook',
+    rulebookUrl: 'https://res.cloudinary.com/qllarlul/image/upload/v1788699548/PROMPT_RELAY_Rulebook_Round3_TextOnly.pdf',
     aliases: ['promptrelay', 'prompt-relay', 'shabdavedhi'],
     teamConfig: {
       minMembers: 1,
@@ -180,7 +180,7 @@ const events = [
     dharmaLevel: 'DHARMA 3/4',
     prizePool: '₹25,000 PRIZE POOL',
     registerUrl: '/events/brandathon/register',
-    rulebookUrl: '/events/brandathon/rulebook',
+    rulebookUrl: 'https://res.cloudinary.com/qllarlul/image/upload/v1788699546/BRANDATHON_RULEBOOK.pdf',
     aliases: ['brand-thon', 'abhikalp'],
     teamConfig: {
       minMembers: 2,
@@ -214,7 +214,7 @@ const events = [
     dharmaLevel: 'DHARMA 2/4',
     prizePool: '₹25,000 PRIZE POOL',
     registerUrl: '/events/capture-the-flag/register',
-    rulebookUrl: '/events/capture-the-flag/rulebook',
+    rulebookUrl: 'https://res.cloudinary.com/qllarlul/image/upload/v1788699546/Kurukshetra_CTF_Rulebook-2.pdf',
     aliases: ['ctf', 'kurukshetra'],
     teamConfig: {
       minMembers: 2,
@@ -247,7 +247,7 @@ const events = [
     dharmaLevel: 'DHARMA 2/4',
     prizePool: '₹20,000 PRIZE POOL',
     registerUrl: '/events/houdini-heist/register',
-    rulebookUrl: '/events/houdini-heist/rulebook',
+    rulebookUrl: 'https://res.cloudinary.com/qllarlul/image/upload/v1788699546/Rule_book_Houdini_Heist_Chakravyuh.pdf',
     aliases: ['houdini-heist', 'houdiniheist', 'houdini-hiest', 'houdini', 'kurukshetra', 'code-kurukshetra', 'chakravyuh'],
     teamConfig: {
       minMembers: 3,
@@ -313,7 +313,7 @@ const events = [
     dharmaLevel: 'DHARMA 1/4',
     prizePool: '₹30,000 PRIZE POOL',
     registerUrl: '/events/hackmatrix/register',
-    rulebookUrl: '/events/hackmatrix/rulebook',
+    rulebookUrl: 'https://res.cloudinary.com/qllarlul/image/upload/v1788699546/HACK_MATRIX_5.0_Rule_Book.pdf',
     aliases: ['hackmatrix', 'hack-matrix', 'matrix', 'cyber-warzone', 'warzone', 'esports', 'srijan'],
     teamConfig: {
       minMembers: 2,

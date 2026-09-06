@@ -283,6 +283,8 @@ export default function ScrollCarousel() {
                                 className="decree-btn rulebook-action-btn"
                                 onClick={(e) => e.stopPropagation()}
                                 aria-label={`View Rulebook for ${item.event.name}`}
+                                target={item.event.rulebookUrl?.startsWith('http') ? '_blank' : undefined}
+                                rel={item.event.rulebookUrl?.startsWith('http') ? 'noopener noreferrer' : undefined}
                               >
                                 VIEW RULEBOOK
                               </Link>

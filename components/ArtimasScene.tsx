@@ -725,6 +725,8 @@ export default function ArtimasScene() {
                                     href={evt.rulebookUrl}
                                     className="yuga-decree-btn secondary"
                                     onClick={(e) => e.stopPropagation()}
+                                    target={evt.rulebookUrl?.startsWith('http') ? '_blank' : undefined}
+                                    rel={evt.rulebookUrl?.startsWith('http') ? 'noopener noreferrer' : undefined}
                                   >
                                     VIEW RULEBOOK
                                   </Link>

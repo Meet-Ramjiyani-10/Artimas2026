@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getEventBySlug } from '@/lib/events';
 import SubpageLayout from '@/components/SubpageLayout';
 import EventContactButton from '@/components/EventContactButton';
@@ -19,6 +19,11 @@ export default async function RulebookPage({ params }: RulebookPageProps) {
 
   if (!event) {
     notFound();
+  }
+
+  // If this event has an external PDF rulebook (Cloudinary), redirect directly to it
+  if (event.rulebookUrl && event.rulebookUrl.startsWith('http')) {
+    redirect(event.rulebookUrl);
   }
 
   // Fetch live registrationOpen status from backend
