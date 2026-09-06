@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from 'next';
-import { Cinzel_Decorative, Cormorant_Garamond } from 'next/font/google';
+import { Cinzel, Cinzel_Decorative, Cormorant_Garamond } from 'next/font/google';
 import PageTransitionLoader from '@/components/PageTransitionLoader';
 import { MEDIA } from '@/lib/media';
 import './globals.css';
+
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-cinzel',
+  display: 'swap',
+});
 
 const cinzelDecorative = Cinzel_Decorative({
   subsets: ['latin'],
@@ -45,7 +52,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cinzelDecorative.variable} ${cormorantGaramond.variable}`}
+      className={`${cinzelDecorative.variable} ${cormorantGaramond.variable} ${cinzel.variable}`}
       data-scroll-behavior="smooth"
     >
       <head>
