@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
-const { uploadToCloudinary } = require('../config/cloudinary');
+const { uploadToCloudinary, uploadPaymentScreenshotWithFallback } = require('../config/cloudinary');
 const generateRegistrationId = require('../utils/generateRegistrationId');
 const { syncToEventCollection } = require('../utils/eventCollectionHelper');
 
@@ -569,7 +569,7 @@ const createRegistration = async (req, res, next) => {
           }
 
           try {
-            const uploadResult = await uploadToCloudinary(uploadedFile.buffer, {
+            const uploadResult = await uploadPaymentScreenshotWithFallback(uploadedFile.buffer, {
               folder: `artimas26/payments`,
             });
             screenshotUrl = uploadResult.secure_url;
@@ -805,7 +805,7 @@ const uploadPaymentScreenshot = async (req, res, next) => {
       });
     }
 
-    const uploadResult = await uploadToCloudinary(file.buffer, {
+    const uploadResult = await uploadPaymentScreenshotWithFallback(file.buffer, {
       folder: 'artimas26/payments',
     });
 
