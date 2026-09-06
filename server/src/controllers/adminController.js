@@ -192,6 +192,9 @@ const getRegistrations = async (req, res, next) => {
       ...r,
       verified: r.verified === true || r.status === 'APPROVED',
       eventSlug: r.eventSlug || nameToSlug[(r.eventName || '').toLowerCase()] || '',
+      emailStatus: r.emailStatus || (r.verificationEmailSentAt ? 'sent' : r.verificationEmailLastError ? 'failed' : null),
+      emailSentAt: r.emailSentAt || r.verificationEmailSentAt || null,
+      emailLastError: r.emailLastError || r.verificationEmailLastError || null,
     }));
 
     res.status(200).json({
@@ -260,6 +263,9 @@ const getRegistrationDetail = async (req, res, next) => {
         verified: registration.verified === true || registration.status === 'APPROVED',
         event: event || null,
         eventSlug: event?.slug || registration.eventSlug || '',
+        emailStatus: registration.emailStatus || (registration.verificationEmailSentAt ? 'sent' : registration.verificationEmailLastError ? 'failed' : null),
+        emailSentAt: registration.emailSentAt || registration.verificationEmailSentAt || null,
+        emailLastError: registration.emailLastError || registration.verificationEmailLastError || null,
       },
     });
   } catch (error) {
@@ -365,8 +371,9 @@ const verifyRegistration = async (req, res, next) => {
           verified: true,
           verifiedAt: currentDoc?.verifiedAt || now,
           verifiedBy: currentDoc?.verifiedBy || adminId,
-          verificationEmailSentAt: currentDoc?.verificationEmailSentAt || null,
-          verificationEmailLastError: currentDoc?.verificationEmailLastError || null,
+          emailStatus: currentDoc?.emailStatus || (currentDoc?.verificationEmailSentAt ? 'sent' : null),
+          emailSentAt: currentDoc?.emailSentAt || currentDoc?.verificationEmailSentAt || null,
+          emailLastError: currentDoc?.emailLastError || currentDoc?.verificationEmailLastError || null,
         },
       });
     }
@@ -381,53 +388,7 @@ const verifyRegistration = async (req, res, next) => {
     }).lean();
     await syncToEventCollection(updatedRegistration, event?.slug || updatedRegistration.eventSlug);
 
-    // Send verification email ONLY if verificationEmailSentAt == null
-    if (!updatedRegistration.verificationEmailSentAt && updatedRegistration.leadEmail) {
-      try {
-        const emailResult = await sendVerificationEmail({
-          to: updatedRegistration.leadEmail,
-          participantName: updatedRegistration.leadName || updatedRegistration.teamName,
-          eventName: updatedRegistration.eventName,
-          registrationId: updatedRegistration.registrationId,
-          teamName: updatedRegistration.teamName,
-          amount: updatedRegistration.amount || 0,
-          remarks: remarks || 'Registration confirmed & verified successfully',
-        });
-
-        if (emailResult && emailResult.success) {
-          await Registration.findByIdAndUpdate(updatedRegistration._id, {
-            $set: {
-              verificationEmailSentAt: new Date(),
-              verificationEmailLastError: null,
-            },
-          });
-          updatedRegistration.verificationEmailSentAt = new Date();
-          updatedRegistration.verificationEmailLastError = null;
-        } else {
-          const errMsg = (emailResult && emailResult.error) ? String(emailResult.error).slice(0, 500) : 'Failed to dispatch verification email';
-          await Registration.findByIdAndUpdate(updatedRegistration._id, {
-            $set: {
-              verificationEmailSentAt: null,
-              verificationEmailLastError: errMsg,
-            },
-          });
-          updatedRegistration.verificationEmailSentAt = null;
-          updatedRegistration.verificationEmailLastError = errMsg;
-        }
-      } catch (emailErr) {
-        console.warn(`✖ Verification email error for ${updatedRegistration.leadEmail}:`, emailErr.message);
-        const errMsg = String(emailErr.message || 'Verification email dispatch error').slice(0, 500);
-        await Registration.findByIdAndUpdate(updatedRegistration._id, {
-          $set: {
-            verificationEmailSentAt: null,
-            verificationEmailLastError: errMsg,
-          },
-        }).catch(() => {});
-        updatedRegistration.verificationEmailSentAt = null;
-        updatedRegistration.verificationEmailLastError = errMsg;
-      }
-    }
-
+    // Return 200 OK — verification is separate from email sending (email not sent automatically)
     res.status(200).json({
       success: true,
       message: 'Registration verified and approved',
@@ -437,8 +398,9 @@ const verifyRegistration = async (req, res, next) => {
         verified: updatedRegistration.verified,
         verifiedAt: updatedRegistration.verifiedAt,
         verifiedBy: updatedRegistration.verifiedBy,
-        verificationEmailSentAt: updatedRegistration.verificationEmailSentAt,
-        verificationEmailLastError: updatedRegistration.verificationEmailLastError,
+        emailStatus: updatedRegistration.emailStatus || (updatedRegistration.verificationEmailSentAt ? 'sent' : null),
+        emailSentAt: updatedRegistration.emailSentAt || updatedRegistration.verificationEmailSentAt || null,
+        emailLastError: updatedRegistration.emailLastError || updatedRegistration.verificationEmailLastError || null,
       },
     });
   } catch (error) {
@@ -982,6 +944,9 @@ const resendVerificationEmail = async (req, res, next) => {
       const now = new Date();
       await Registration.findByIdAndUpdate(registration._id, {
         $set: {
+          emailStatus: 'sent',
+          emailSentAt: now,
+          emailLastError: null,
           verificationEmailSentAt: now,
           verificationEmailLastError: null,
         },
@@ -989,9 +954,12 @@ const resendVerificationEmail = async (req, res, next) => {
 
       return res.status(200).json({
         success: true,
-        message: 'Verification email resent successfully',
+        message: 'Email Sent Successfully',
         data: {
           registrationId: registration.registrationId,
+          emailStatus: 'sent',
+          emailSentAt: now,
+          emailLastError: null,
           verificationEmailSentAt: now,
           verificationEmailLastError: null,
         },
@@ -1000,17 +968,20 @@ const resendVerificationEmail = async (req, res, next) => {
       const errMsg = (emailResult && emailResult.error) ? String(emailResult.error).slice(0, 500) : 'Failed to dispatch verification email';
       await Registration.findByIdAndUpdate(registration._id, {
         $set: {
+          emailStatus: 'failed',
+          emailLastError: errMsg,
           verificationEmailLastError: errMsg,
         },
       });
 
       return res.status(502).json({
         success: false,
-        message: `Failed to resend verification email: ${errMsg}`,
+        message: `Email Not Sent: ${errMsg}`,
         data: {
           registrationId: registration.registrationId,
-          verificationEmailSentAt: registration.verificationEmailSentAt,
-          verificationEmailLastError: errMsg,
+          emailStatus: 'failed',
+          emailSentAt: registration.emailSentAt || registration.verificationEmailSentAt || null,
+          emailLastError: errMsg,
         },
       });
     }
@@ -1135,6 +1106,7 @@ module.exports = {
   getStats,
   getAdminEvents,
   toggleEventRegistration,
+  sendVerificationEmail: resendVerificationEmail,
   resendVerificationEmail,
   resendConfirmationEmail,
 };

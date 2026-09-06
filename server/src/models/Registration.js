@@ -120,6 +120,20 @@ const registrationSchema = new mongoose.Schema(
     },
 
     // ── Email Notification & Idempotency Tracking ──
+    emailStatus: {
+      type: String,
+      enum: ['sent', 'failed', null],
+      default: null,
+      index: true,
+    },
+    emailSentAt: {
+      type: Date,
+      default: null,
+    },
+    emailLastError: {
+      type: String,
+      default: null,
+    },
     confirmationEmailSentAt: {
       type: Date,
       default: null,

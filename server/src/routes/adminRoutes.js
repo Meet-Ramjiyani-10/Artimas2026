@@ -54,6 +54,9 @@ router.get('/registrations/:id/ctf/screenshots', getAdminCtfScreenshots);
 // PATCH /api/admin/registrations/:id/verify
 router.patch('/registrations/:id/verify', validateVerification, verifyRegistration);
 
+// POST /api/admin/registrations/:id/send-verification-email
+router.post('/registrations/:id/send-verification-email', resendVerificationEmail);
+
 // POST /api/admin/registrations/:id/resend-verification-email
 router.post('/registrations/:id/resend-verification-email', resendVerificationEmail);
 
