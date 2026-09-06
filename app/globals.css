@@ -8,6 +8,10 @@
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent !important;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 :focus:not(:focus-visible) {
@@ -21,6 +25,22 @@ a,
 input,
 select {
     -webkit-tap-highlight-color: transparent !important;
+}
+
+img {
+    -webkit-user-drag: none;
+    user-drag: none;
+}
+
+/* Allow text selection inside interactive form fields */
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable="plaintext-only"] {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
 }
 
 :root {
@@ -59,6 +79,10 @@ body {
     scroll-behavior: smooth;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /* ── Enforce 100% Fixed Zoom & Scale Reset for Desktop Views ── */
@@ -332,15 +356,19 @@ body.mode-yugas .brand-logo:hover {
     top: 54%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(80vw, 470px);
-    height: min(80vw, 470px);
-    max-width: calc(100vh - 240px);
-    max-height: calc(100vh - 240px);
+    aspect-ratio: 1 / 1 !important;
+    width: min(80vw, calc(100vh - 240px), 470px);
+    height: min(80vw, calc(100vh - 240px), 470px);
+    min-width: 220px;
+    min-height: 220px;
+    max-width: none !important;
+    max-height: none !important;
+    transform-origin: center center !important;
     z-index: 3;
     pointer-events: auto;
     cursor: pointer;
     animation: wheelSpin 60s linear infinite;
-    filter: sepia(0.6) hue-rotate(-20deg) saturate(2) brightness(0.9) drop-shadow(0 0 80px rgba(212, 136, 58, 0.7));
+    filter: sepia(0.6) hue-rotate(-20deg) saturate(2) brightness(0.9) drop-shadow(0 0 45px rgba(212, 136, 58, 0.65));
     transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1), top 1.6s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: transform;
     -webkit-tap-highlight-color: transparent !important;
@@ -395,6 +423,12 @@ model-viewer:focus-visible {
 body.mode-yugas .chakra-container {
     top: 100%;
     left: 50%;
+    aspect-ratio: 1 / 1 !important;
+    width: min(80vw, calc(100vh - 240px), 470px);
+    height: min(80vw, calc(100vh - 240px), 470px);
+    max-width: none !important;
+    max-height: none !important;
+    transform-origin: center center !important;
     animation: none !important;
 }
 
@@ -422,7 +456,7 @@ body.mode-yugas .chakra-container {
         top: 54%;
         opacity: 1;
         transform: translate(-50%, -50%) rotate(0deg) scale(1);
-        filter: sepia(0.6) hue-rotate(-20deg) saturate(2) brightness(0.9) drop-shadow(0 0 80px rgba(212, 136, 58, 0.7));
+        filter: sepia(0.6) hue-rotate(-20deg) saturate(2) brightness(0.9) drop-shadow(0 0 45px rgba(212, 136, 58, 0.65));
     }
 }
 
@@ -1056,10 +1090,14 @@ body.mode-yugas .yuga-title-img.active {
 
     .chakra-container {
         top: 55%;
-        width: min(74vw, 340px);
-        height: min(74vw, 340px);
-        max-height: calc(100dvh - 210px);
-        max-width: calc(100dvh - 210px);
+        aspect-ratio: 1 / 1 !important;
+        width: min(74vw, calc(100dvh - 210px), 340px);
+        height: min(74vw, calc(100dvh - 210px), 340px);
+        min-width: 200px;
+        min-height: 200px;
+        max-width: none !important;
+        max-height: none !important;
+        transform-origin: center center !important;
     }
 
     body.mode-yugas .brand-logo {
@@ -1106,15 +1144,25 @@ body.mode-yugas .yuga-title-img.active {
 
     .chakra-container {
         top: 55.5%;
-        width: min(72vw, 285px);
-        height: min(72vw, 285px);
-        max-height: calc(100dvh - 195px);
-        max-width: calc(100dvh - 195px);
+        aspect-ratio: 1 / 1 !important;
+        width: min(72vw, calc(100dvh - 195px), 285px);
+        height: min(72vw, calc(100dvh - 195px), 285px);
+        min-width: 180px;
+        min-height: 180px;
+        max-width: none !important;
+        max-height: none !important;
+        transform-origin: center center !important;
     }
 
     body.mode-yugas .chakra-container {
-        width: min(60vw, 220px);
-        height: min(60vw, 220px);
+        aspect-ratio: 1 / 1 !important;
+        width: min(60vw, calc(100dvh - 195px), 220px);
+        height: min(60vw, calc(100dvh - 195px), 220px);
+        min-width: 160px;
+        min-height: 160px;
+        max-width: none !important;
+        max-height: none !important;
+        transform-origin: center center !important;
     }
 
     .enter-btn {
@@ -8601,8 +8649,14 @@ body.mode-yugas .yuga-title-img.active {
     body.mode-yugas .chakra-container {
         top: 100%;
         left: 50%;
-        width: min(68vw, 270px);
-        height: min(68vw, 270px);
+        aspect-ratio: 1 / 1 !important;
+        width: min(68vw, calc(100dvh - 210px), 270px);
+        height: min(68vw, calc(100dvh - 210px), 270px);
+        min-width: 180px;
+        min-height: 180px;
+        max-width: none !important;
+        max-height: none !important;
+        transform-origin: center center !important;
     }
 
     .yuga-titles-wrapper {

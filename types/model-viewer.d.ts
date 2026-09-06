@@ -4,6 +4,8 @@ type ModelViewerElement = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLEle
   src?: string;
   alt?: string;
   'camera-orbit'?: string;
+  'camera-target'?: string;
+  bounds?: string;
   'interaction-prompt'?: string;
   'disable-zoom'?: boolean;
   'disable-pan'?: boolean;
@@ -13,6 +15,7 @@ type ModelViewerElement = DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLEle
   loading?: string;
   'seamless-poster'?: boolean;
   style?: React.CSSProperties;
+  [key: string]: any;
 };
 
 declare module 'react' {
