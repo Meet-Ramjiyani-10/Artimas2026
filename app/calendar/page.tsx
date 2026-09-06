@@ -11,10 +11,12 @@ export const metadata: Metadata = {
 export default function CalendarPage() {
   return (
     <SubpageLayout
-      tag="Artimas 2026 • Chronicles of Time"
-      title="Festival Schedule"
+      tag="CHRONICLES OF TIME"
+      title="FESTIVAL SCHEDULE"
       description="The definitive day-by-day and hour-by-hour timeline. Explore all 4 official schedule chronicles covering online qualifiers and the 3 grand offline arena days."
-      fullWidth={true}
+      showHeader={true}
+      fullWidth={false}
+      showFooter={true}
     >
       <CalendarViewer />
     </SubpageLayout>

@@ -78,9 +78,16 @@ export default function SubpageLayout({
         <div className={`subpage-container${fullWidth ? ' full-width' : ''}`}>
           {showHeader && title && (
             <header className="subpage-header">
+              {/* Mobile Back Nav: Positioned cleanly above the entire title and tag */}
+              <div className="subpage-back-nav">
+                <Link href="/" className="subpage-back-pill">
+                  ← Home
+                </Link>
+              </div>
+
               <div className="subpage-header-top">
                 {tag && <span className="subpage-tag">{tag}</span>}
-                <Link href="/" className="subpage-back-pill">
+                <Link href="/" className="subpage-back-pill desktop-back-pill">
                   ← Home
                 </Link>
               </div>

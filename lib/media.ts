@@ -56,5 +56,13 @@ export const MEDIA = {
       180: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_800,c_limit/v1788219523/Dwapara_Yuga.png',
       270: 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_800,c_limit/v1788219528/Kali_Yuga.png',
     },
+    sponsors: {
+      munching: {
+        smokedTaxi: 'https://res.cloudinary.com/qllarlul/image/upload/v1788713313/smoked_taxi.webp',
+        froyoLand: 'https://res.cloudinary.com/qllarlul/image/upload/v1788713313/froyo_land.webp',
+        balaji: 'https://res.cloudinary.com/qllarlul/image/upload/v1788713313/balaji.webp',
+        budhani: 'https://res.cloudinary.com/qllarlul/image/upload/v1788713313/budhani.webp',
+      },
+    },
   },
 } as const;
