@@ -1142,6 +1142,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
     if (e) e.preventDefault();
     if (isTransitioning) return;
     setErrorMessage('');
+    setPaymentErrors({});
 
     if (isSuccess) {
       router.push('/events');
@@ -1295,7 +1296,26 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       }
 
       if (!response.ok || !data.success) {
-        if (response.status === 409 || data.clashingEmail) {
+        // Handle Duplicate Transaction ID specifically:
+        // Must stay strictly on Step 2 (payment page) and display error ONLY under transaction ID field
+        const isTxClash = Boolean(
+          data.clashingTransactionId ||
+          (data.message && /transaction\s*id|utr/i.test(data.message))
+        );
+
+        if (isTxClash) {
+          const txErrorMsg = data.message || 'This transaction ID has already been used. Each transaction ID must be unique.';
+          setPaymentErrors((prev) => ({
+            ...prev,
+            transactionId: txErrorMsg,
+          }));
+          // Clear any general errorMessage so nothing renders at the bottom of the page or on Step 1
+          setErrorMessage('');
+          return;
+        }
+
+        // Handle Clashing Email specifically (only redirect to Step 1 if an email conflict occurred)
+        if (data.clashingEmail || (response.status === 409 && /email|already registered/i.test(data.message || ''))) {
           // Identify clashing email and member
           const clashingEmail = (data.clashingEmail || '').trim().toLowerCase();
           let clashIdx = members.findIndex(
@@ -1353,6 +1373,14 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
       });
     } catch (error: any) {
       const msg = error?.message || '';
+      if (/transaction\s*id|utr/i.test(msg)) {
+        setPaymentErrors((prev) => ({
+          ...prev,
+          transactionId: msg,
+        }));
+        setErrorMessage('');
+        return;
+      }
       if (
         msg === 'Failed to fetch' ||
         msg.includes('is not valid JSON') ||
@@ -1859,7 +1887,23 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                             className={`reg-input reg-input-nocase full-width ${paymentErrors.transactionId ? 'reg-input-error' : ''}`}
                           />
                           {paymentErrors.transactionId && (
-                            <span className="reg-field-error">⚠ {paymentErrors.transactionId}</span>
+                            <span
+                              className="reg-field-error"
+                              style={{
+                                color: '#b91c1c',
+                                fontWeight: 700,
+                                fontSize: '13px',
+                                marginTop: '6px',
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '5px',
+                                lineHeight: '1.4',
+                                wordBreak: 'break-word',
+                              }}
+                            >
+                              <span style={{ flexShrink: 0, marginTop: '1px' }}>⚠</span>
+                              <span>{paymentErrors.transactionId}</span>
+                            </span>
                           )}
                         </div>
 
@@ -1902,7 +1946,7 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                       </div>
                     )}
 
-                    {errorMessage && <p className="reg-error-msg">{errorMessage}</p>}
+                    {errorMessage && !paymentErrors.transactionId && <p className="reg-error-msg">{errorMessage}</p>}
 
                     <div className="reg-btn-row reg-btn-row-submit">
                       <button type="button" onClick={handlePrev} disabled={isTransitioning} className="reg-secondary-btn">

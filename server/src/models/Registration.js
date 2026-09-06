@@ -194,5 +194,12 @@ registrationSchema.index({ eventName: 1, status: 1 });
 registrationSchema.index({ eventName: 1, leadEmail: 1 });
 registrationSchema.index({ eventName: 1, 'members.email': 1 });
 registrationSchema.index({ createdAt: -1 });
+registrationSchema.index(
+  { transactionId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { transactionId: { $type: 'string', $gt: '' } },
+  }
+);
 
 module.exports = mongoose.model('Registration', registrationSchema);

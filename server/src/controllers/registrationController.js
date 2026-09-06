@@ -524,6 +524,20 @@ const createRegistration = async (req, res, next) => {
           });
         }
 
+        // Check for duplicate Transaction ID across the DB (case-insensitive)
+        const escapedTx = transactionId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const existingTx = await Registration.findOne({
+          transactionId: { $regex: new RegExp(`^${escapedTx}$`, 'i') },
+        }).lean();
+
+        if (existingTx) {
+          return res.status(409).json({
+            success: false,
+            clashingTransactionId: transactionId,
+            message: `Transaction ID "${transactionId}" has already been used for another registration (${existingTx.registrationId} - ${existingTx.eventName || 'Event'}). Each transaction ID must be unique across all registrations.`,
+          });
+        }
+
         // Check for uploaded file in req.files or req.file
         let uploadedFile = null;
         if (req.file) {

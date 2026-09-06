@@ -29,7 +29,15 @@ const errorHandler = (err, req, res, _next) => {
   // Mongoose duplicate key
   if (err.code === 11000) {
     statusCode = 409;
-    const field = Object.keys(err.keyValue).join(', ');
+    if (err.keyValue && err.keyValue.transactionId) {
+      message = `Transaction ID "${err.keyValue.transactionId}" has already been used. Each transaction ID must be unique across all registrations.`;
+      return res.status(409).json({
+        success: false,
+        clashingTransactionId: err.keyValue.transactionId,
+        message,
+      });
+    }
+    const field = Object.keys(err.keyValue || {}).join(', ');
     message = `Duplicate value for field: ${field}`;
   }
 
