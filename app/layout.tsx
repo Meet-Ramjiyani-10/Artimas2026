@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Cinzel_Decorative, Cormorant_Garamond } from 'next/font/google';
 import PageTransitionLoader from '@/components/PageTransitionLoader';
 import { MEDIA } from '@/lib/media';
@@ -17,6 +17,11 @@ const cormorantGaramond = Cormorant_Garamond({
   variable: '--font-body',
   display: 'swap',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: 'Artimas',

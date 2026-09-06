@@ -61,6 +61,19 @@ body {
     -ms-overflow-style: none !important;
 }
 
+/* ── Enforce 100% Fixed Zoom & Scale Reset for Desktop Views ── */
+@media (min-width: 769px) {
+    html {
+        zoom: 1 !important;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    body {
+        zoom: 1 !important;
+    }
+}
+
 /* Universal Invisible Scrollbars across all browsers */
 html,
 body,
@@ -5766,8 +5779,10 @@ body.mode-yugas .yuga-title-img.active {
 }
 
 .reg-qr-img {
-    width: 180px;
-    height: 180px;
+    width: 190px;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 840 / 928;
     object-fit: contain;
     border-radius: 6px;
     border: 1px solid rgba(201, 164, 92, 0.3);

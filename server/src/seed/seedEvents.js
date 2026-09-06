@@ -63,6 +63,7 @@ const standardMemberFields = [
 const events = [
   // ── SATYA YUGA ──
   {
+    overheadTitle: 'Sankhya',
     name: 'Datathon',
     slug: 'datathon',
     category: 'Data Science & AI',
@@ -82,7 +83,7 @@ const events = [
     prizePool: '₹30,000 PRIZE POOL',
     registerUrl: '/events/datathon/register',
     rulebookUrl: '/events/datathon/rulebook',
-    aliases: ['data-thon'],
+    aliases: ['data-thon', 'sankhya'],
     teamConfig: {
       minMembers: 1,
       maxMembers: 2,
@@ -94,6 +95,7 @@ const events = [
     active: true,
   },
   {
+    overheadTitle: 'Drishti',
     name: 'Surprise Event',
     slug: 'pixel-perfect',
     category: 'Competitive Photography',
@@ -113,7 +115,7 @@ const events = [
     prizePool: 'EXCITING REWARDS',
     registerUrl: '/events/pixel-perfect/register',
     rulebookUrl: '/events/pixel-perfect/rulebook',
-    aliases: ['surprise-event', 'surprise', 'pixelperfect', 'photography', 'secret-event'],
+    aliases: ['surprise-event', 'surprise', 'pixelperfect', 'photography', 'secret-event', 'drishti'],
     teamConfig: {
       minMembers: 1,
       maxMembers: 1,
@@ -127,6 +129,7 @@ const events = [
 
   // ── TRETA YUGA ──
   {
+    overheadTitle: 'Shabdavedhi',
     name: 'Prompt Relay',
     slug: 'prompt-relay',
     category: 'Generative AI Sprint',
@@ -146,7 +149,7 @@ const events = [
     prizePool: '₹20,000 PRIZE POOL',
     registerUrl: '/events/prompt-relay/register',
     rulebookUrl: '/events/prompt-relay/rulebook',
-    aliases: ['promptrelay', 'prompt-relay'],
+    aliases: ['promptrelay', 'prompt-relay', 'shabdavedhi'],
     teamConfig: {
       minMembers: 1,
       maxMembers: 3,
@@ -158,6 +161,7 @@ const events = [
     active: true,
   },
   {
+    overheadTitle: 'Abhikalp',
     name: 'Brandathon',
     slug: 'brandathon',
     category: 'Design & Strategy',
@@ -177,7 +181,7 @@ const events = [
     prizePool: '₹25,000 PRIZE POOL',
     registerUrl: '/events/brandathon/register',
     rulebookUrl: '/events/brandathon/rulebook',
-    aliases: ['brand-thon'],
+    aliases: ['brand-thon', 'abhikalp'],
     teamConfig: {
       minMembers: 2,
       maxMembers: 4,
@@ -191,7 +195,8 @@ const events = [
 
   // ── DWAPARA YUGA ──
   {
-    name: 'Capture the Flag (CTF)',
+    overheadTitle: 'Kurukshetra',
+    name: 'Capture the Flag',
     slug: 'capture-the-flag',
     category: 'Cybersecurity & War Games',
     yuga: 'Dwapara Yuga',
@@ -210,7 +215,7 @@ const events = [
     prizePool: '₹25,000 PRIZE POOL',
     registerUrl: '/events/capture-the-flag/register',
     rulebookUrl: '/events/capture-the-flag/rulebook',
-    aliases: ['ctf'],
+    aliases: ['ctf', 'kurukshetra'],
     teamConfig: {
       minMembers: 2,
       maxMembers: 4,
@@ -223,6 +228,7 @@ const events = [
     active: true,
   },
   {
+    overheadTitle: 'Chakravyuh',
     name: 'Houdini Heist',
     slug: 'houdini-heist',
     category: 'Mystery & Escape Quest',
@@ -242,7 +248,7 @@ const events = [
     prizePool: '₹20,000 PRIZE POOL',
     registerUrl: '/events/houdini-heist/register',
     rulebookUrl: '/events/houdini-heist/rulebook',
-    aliases: ['houdini-heist', 'houdiniheist', 'houdini-hiest', 'houdini', 'kurukshetra', 'code-kurukshetra'],
+    aliases: ['houdini-heist', 'houdiniheist', 'houdini-hiest', 'houdini', 'kurukshetra', 'code-kurukshetra', 'chakravyuh'],
     teamConfig: {
       minMembers: 3,
       maxMembers: 3,
@@ -256,6 +262,7 @@ const events = [
 
   // ── KALI YUGA ──
   {
+    overheadTitle: 'Mayajaal',
     name: 'Among Us',
     slug: 'among-us',
     category: 'Gaming & Social Deduction',
@@ -275,7 +282,7 @@ const events = [
     prizePool: '₹10,000 PRIZE POOL',
     registerUrl: '/events/among-us/register',
     rulebookUrl: '/events/among-us/rulebook',
-    aliases: ['amongus', 'among-us'],
+    aliases: ['amongus', 'among-us', 'mayajaal'],
     teamConfig: {
       minMembers: 1,
       maxMembers: 1,
@@ -287,6 +294,7 @@ const events = [
     active: true,
   },
   {
+    overheadTitle: 'Srijan',
     name: 'HackMatrix',
     slug: 'hackmatrix',
     category: 'Hackathon & Engineering',
@@ -306,7 +314,7 @@ const events = [
     prizePool: '₹30,000 PRIZE POOL',
     registerUrl: '/events/hackmatrix/register',
     rulebookUrl: '/events/hackmatrix/rulebook',
-    aliases: ['hackmatrix', 'hack-matrix', 'matrix', 'cyber-warzone', 'warzone', 'esports'],
+    aliases: ['hackmatrix', 'hack-matrix', 'matrix', 'cyber-warzone', 'warzone', 'esports', 'srijan'],
     teamConfig: {
       minMembers: 2,
       maxMembers: 4,

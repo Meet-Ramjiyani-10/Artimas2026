@@ -85,6 +85,7 @@ const ALIAS_TO_SLUG: Record<string, string> = {
   'data-thon': 'datathon',
   'datathon': 'datathon',
   'data science': 'datathon',
+  'sankhya': 'datathon',
   'surprise-event': 'pixel-perfect',
   'surprise event': 'pixel-perfect',
   'surprise': 'pixel-perfect',
@@ -93,9 +94,11 @@ const ALIAS_TO_SLUG: Record<string, string> = {
   'pixel perfect': 'pixel-perfect',
   'photography': 'pixel-perfect',
   'secret-event': 'pixel-perfect',
+  'drishti': 'pixel-perfect',
   'promptrelay': 'prompt-relay',
   'prompt relay': 'prompt-relay',
   'prompt-relay': 'prompt-relay',
+  'shabdavedhi': 'prompt-relay',
   'brand-a-thon': 'brandathon',
   'brandathon': 'brandathon',
   'brand': 'brandathon',
@@ -111,9 +114,11 @@ const ALIAS_TO_SLUG: Record<string, string> = {
   'escape-room': 'houdini-heist',
   'escape room': 'houdini-heist',
   'houdini': 'houdini-heist',
+  'chakravyuh': 'houdini-heist',
   'amongus': 'among-us',
   'among-us': 'among-us',
   'among us': 'among-us',
+  'mayajaal': 'among-us',
 };
 
 export function getEventContacts(slugOrName?: string): EventContactGroup {
@@ -134,13 +139,13 @@ export function getEventContacts(slugOrName?: string): EventContactGroup {
   // 3. Normalized alphanumeric match
   const clean = raw.replace(/[^a-z0-9]/g, '');
 
-  if (clean.includes('data')) return EVENT_CONTACTS['datathon'];
-  if (clean.includes('prompt')) return EVENT_CONTACTS['prompt-relay'];
-  if (clean.includes('houdini') || clean.includes('heist') || clean.includes('escape')) return EVENT_CONTACTS['houdini-heist'];
-  if (clean.includes('among') || clean.includes('imposter')) return EVENT_CONTACTS['among-us'];
+  if (clean.includes('data') || clean.includes('sankhya')) return EVENT_CONTACTS['datathon'];
+  if (clean.includes('prompt') || clean.includes('shabdavedhi')) return EVENT_CONTACTS['prompt-relay'];
+  if (clean.includes('houdini') || clean.includes('heist') || clean.includes('escape') || clean.includes('chakravyuh')) return EVENT_CONTACTS['houdini-heist'];
+  if (clean.includes('among') || clean.includes('imposter') || clean.includes('mayajaal')) return EVENT_CONTACTS['among-us'];
   if (clean.includes('capture') || clean.includes('flag') || clean.includes('ctf') || clean.includes('kuruk')) return EVENT_CONTACTS['capture-the-flag'];
   if (clean.includes('brand') || clean.includes('abhikalp')) return EVENT_CONTACTS['brandathon'];
-  if (clean.includes('surprise') || clean.includes('pixel') || clean.includes('photo') || clean.includes('secret')) return EVENT_CONTACTS['pixel-perfect'];
+  if (clean.includes('surprise') || clean.includes('pixel') || clean.includes('photo') || clean.includes('secret') || clean.includes('drishti')) return EVENT_CONTACTS['pixel-perfect'];
 
   // 4. Exact match against eventName
   for (const group of Object.values(EVENT_CONTACTS)) {

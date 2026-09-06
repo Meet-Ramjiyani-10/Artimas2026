@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EventItem } from '@/lib/events';
 import { subscribeToPageTransition } from '@/lib/pageTransitionState';
+import { MEDIA } from '@/lib/media';
 import WhatsAppGroupCard from './WhatsAppGroupCard';
 import EventContactButton from './EventContactButton';
 
@@ -1832,12 +1833,12 @@ export default function EventRegistrationWizard({ event }: EventRegistrationWiza
                         {/* QR Code */}
                         <div className="reg-qr-wrapper">
                           <img
-                            src={event.paymentQrUrl || '/images/payment-qr.svg'}
+                            src={event.paymentQrUrl && !event.paymentQrUrl.includes('payment-qr') ? event.paymentQrUrl : MEDIA.images.paymentQr}
                             alt="Payment QR Code"
                             className="reg-qr-img"
                           />
                           <p className="reg-qr-instruction">Scan the QR code to make the payment.</p>
-                          <span className="reg-upi-id">UPI ID: {event.upiId || 'artimas2026@upi'}</span>
+                          <span className="reg-upi-id">UPI ID: {event.upiId && event.upiId !== 'artimas2026@upi' ? event.upiId : 'garudkarrajan-1@oksbi'}</span>
                         </div>
 
                         {/* Transaction ID Input */}

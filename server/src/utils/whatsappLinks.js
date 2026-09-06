@@ -1,12 +1,12 @@
 const EVENT_WHATSAPP_GROUPS = {
-  'datathon': process.env.WHATSAPP_DATATHON || 'https://chat.whatsapp.com/datathon-artimas26',
-  'pixel-perfect': process.env.WHATSAPP_PIXEL_PERFECT || 'https://chat.whatsapp.com/pixel-perfect-artimas26',
-  'prompt-relay': process.env.WHATSAPP_PROMPT_RELAY || 'https://chat.whatsapp.com/prompt-relay-artimas26',
-  'brandathon': process.env.WHATSAPP_BRANDATHON || 'https://chat.whatsapp.com/brandathon-artimas26',
-  'capture-the-flag': process.env.WHATSAPP_CTF || 'https://chat.whatsapp.com/ctf-artimas26',
-  'houdini-heist': process.env.WHATSAPP_HOUDINI_HEIST || 'https://chat.whatsapp.com/houdini-heist-artimas26',
-  'among-us': process.env.WHATSAPP_AMONG_US || 'https://chat.whatsapp.com/among-us-artimas26',
-  'hackmatrix': process.env.WHATSAPP_HACKMATRIX || 'https://chat.whatsapp.com/hackmatrix-artimas26',
+  'datathon': process.env.WHATSAPP_DATATHON || 'https://chat.whatsapp.com/HlP9bGbGYVuAkEPChjWwHx',
+  'pixel-perfect': process.env.WHATSAPP_PIXEL_PERFECT || 'https://chat.whatsapp.com/ITNyOJQPemgAGwx4Jn2XTN',
+  'prompt-relay': process.env.WHATSAPP_PROMPT_RELAY || 'https://chat.whatsapp.com/C9Nt9vvwMdpL0yrTbnH8gB',
+  'brandathon': process.env.WHATSAPP_BRANDATHON || 'https://chat.whatsapp.com/IPfbUXUeiur2sq5jMhfiZ1',
+  'capture-the-flag': process.env.WHATSAPP_CTF || 'https://chat.whatsapp.com/DXC58rAlLSXK7uHVBunJ6a',
+  'houdini-heist': process.env.WHATSAPP_HOUDINI_HEIST || 'https://chat.whatsapp.com/BlLAG6eMzCA6SE4sCwvrgR',
+  'among-us': process.env.WHATSAPP_AMONG_US || 'https://chat.whatsapp.com/J3Mv0JxW9wGKZrUWUQpVZa',
+  'hackmatrix': process.env.WHATSAPP_HACKMATRIX || 'https://chat.whatsapp.com/FONJvxabDmp9NtIuI5TQOr',
 };
 
 const ALIAS_MAP = {

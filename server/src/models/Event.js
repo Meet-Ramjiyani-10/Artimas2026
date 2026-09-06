@@ -81,6 +81,10 @@ const teamConfigSchema = new mongoose.Schema(
  */
 const eventSchema = new mongoose.Schema(
   {
+    overheadTitle: {
+      type: String,
+      trim: true,
+    },
     name: {
       type: String,
       required: [true, 'Event name is required'],
@@ -141,12 +145,12 @@ const eventSchema = new mongoose.Schema(
     },
     paymentQrUrl: {
       type: String,
-      default: '/images/payment-qr.png',
+      default: 'https://res.cloudinary.com/qllarlul/image/upload/v1788692475/QR.jpg',
       trim: true,
     },
     upiId: {
       type: String,
-      default: 'artimas2026@upi',
+      default: 'garudkarrajan-1@oksbi',
       trim: true,
     },
     prizePool: {

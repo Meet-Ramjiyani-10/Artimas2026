@@ -1,7 +1,7 @@
 const { createTransporter } = require('../config/mail');
 const { getWhatsAppLink } = require('./whatsappLinks');
 
-const ARTIMAS_LOGO_URL = 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_500,c_limit/v1788352573/Untitled_-_September_02_2026_at_18.03.44.png';
+const ARTIMAS_LOGO_URL = 'https://res.cloudinary.com/qllarlul/image/upload/f_auto,q_auto,w_500,c_limit/v1788690181/Logo_with_footer.png';
 const AIMSA_LOGO_URL = 'https://res.cloudinary.com/qllarlul/image/upload/e_trim/f_auto,q_auto,w_240,c_limit/v1788372702/xijdufnorzgujqejjosp.png';
 
 /**

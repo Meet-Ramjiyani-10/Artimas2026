@@ -38,6 +38,7 @@ export const EVENTS: EventItem[] = [
   {
     id: 1,
     slug: 'datathon',
+    overheadTitle: 'Sankhya',
     name: 'Datathon',
     category: 'Data Science & AI',
     yuga: 'Satya Yuga',
@@ -61,11 +62,12 @@ export const EVENTS: EventItem[] = [
       memberLabelPrefix: 'Member',
       addMemberPrompt: '+ Add Member 2 (Max 2 Members)',
     },
-    aliases: ['data-thon'],
+    aliases: ['data-thon', 'sankhya'],
   },
   {
     id: 2,
     slug: 'pixel-perfect',
+    overheadTitle: 'Drishti',
     name: 'Surprise Event',
     category: 'Competitive Photography',
     yuga: 'Satya Yuga',
@@ -89,13 +91,14 @@ export const EVENTS: EventItem[] = [
       memberLabelPrefix: 'Photographer',
       addMemberPrompt: 'Individual Entry',
     },
-    aliases: ['surprise-event', 'surprise', 'pixelperfect', 'photography', 'secret-event'],
+    aliases: ['surprise-event', 'surprise', 'pixelperfect', 'photography', 'secret-event', 'drishti'],
   },
 
   // ── TRETA YUGA: THE SILVER AGE OF SACRIFICE & VALOR (2 Events) ──
   {
     id: 3,
     slug: 'prompt-relay',
+    overheadTitle: 'Shabdavedhi',
     name: 'Prompt Relay',
     category: 'Generative AI Sprint',
     yuga: 'Treta Yuga',
@@ -119,7 +122,7 @@ export const EVENTS: EventItem[] = [
       memberLabelPrefix: 'Member',
       addMemberPrompt: '+ Add Member (Max 3 Members)',
     },
-    aliases: ['promptrelay', 'prompt-relay'],
+    aliases: ['promptrelay', 'prompt-relay', 'shabdavedhi'],
   },
   {
     id: 4,
@@ -185,6 +188,7 @@ export const EVENTS: EventItem[] = [
   {
     id: 9,
     slug: 'houdini-heist',
+    overheadTitle: 'Chakravyuh',
     name: 'Houdini Heist',
     category: 'Mystery & Escape Quest',
     yuga: 'Dwapara Yuga',
@@ -208,13 +212,14 @@ export const EVENTS: EventItem[] = [
       memberLabelPrefix: 'Member',
       addMemberPrompt: 'Compulsory 3 Members',
     },
-    aliases: ['houdini-heist', 'houdiniheist', 'houdini-hiest', 'houdini', 'kurukshetra', 'code-kurukshetra'],
+    aliases: ['houdini-heist', 'houdiniheist', 'houdini-hiest', 'houdini', 'kurukshetra', 'code-kurukshetra', 'chakravyuh'],
   },
 
   // ── KALI YUGA: THE IRON AGE OF ENTROPY & KALKI (2 Events) ──
   {
     id: 11,
     slug: 'among-us',
+    overheadTitle: 'Mayajaal',
     name: 'Among Us',
     category: 'Gaming & Social Deduction',
     yuga: 'Kali Yuga',
@@ -238,11 +243,12 @@ export const EVENTS: EventItem[] = [
       memberLabelPrefix: 'Participant',
       addMemberPrompt: 'Individual Entry',
     },
-    aliases: ['amongus', 'among-us'],
+    aliases: ['amongus', 'among-us', 'mayajaal'],
   },
   {
     id: 12,
     slug: 'hackmatrix',
+    overheadTitle: 'Srijan',
     name: 'HackMatrix',
     category: 'Hackathon & Engineering',
     yuga: 'Kali Yuga',
@@ -266,7 +272,7 @@ export const EVENTS: EventItem[] = [
       memberLabelPrefix: 'Hacker',
       addMemberPrompt: '+ Add Member (Max 4 Members)',
     },
-    aliases: ['hackmatrix', 'hack-matrix', 'matrix', 'cyber-warzone', 'warzone', 'esports'],
+    aliases: ['hackmatrix', 'hack-matrix', 'matrix', 'cyber-warzone', 'warzone', 'esports', 'srijan'],
   },
 ];
 
